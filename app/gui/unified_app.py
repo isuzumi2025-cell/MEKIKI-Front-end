@@ -24,6 +24,12 @@ import json
 import base64
 from PIL import Image
 
+# プロジェクトルートをsys.pathに追加 (app.coreなどのインポートを可能にする)
+_project_root = Path(__file__).resolve().parent.parent.parent  # OCR directory
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+from PIL import Image
+
 # Windows UTF-8対応
 if sys.platform == 'win32' and not isinstance(sys.stdout, io.TextIOWrapper):
     try:
@@ -564,10 +570,15 @@ class UnifiedApp(ctk.CTk):
         auth_frame = ctk.CTkFrame(main_frame)
         auth_frame.pack(fill="x", pady=5)
 
-        # Profile Selection
-        from app.core.auth_manager import AuthProfileManager
-        auth_manager = AuthProfileManager()
-        profile_names = ["-- New Profile --"] + auth_manager.get_profile_names()
+        # Profile Selection - with error handling
+        auth_manager = None
+        profile_names = ["(profiles unavailable)"]
+        try:
+            from app.core.auth_manager import AuthProfileManager
+            auth_manager = AuthProfileManager()
+            profile_names = ["-- New Profile --"] + auth_manager.get_profile_names()
+        except Exception as e:
+            print(f"[Auth] Import error: {e}")
         
         ctk.CTkLabel(auth_frame, text="プロファイル選択", font=("Meiryo", 11)).pack(anchor="w")
         profile_var = ctk.StringVar(value="-- New Profile --")
