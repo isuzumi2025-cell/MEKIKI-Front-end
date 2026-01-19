@@ -39,6 +39,16 @@ except ImportError:
         """Fallback stub"""
         pass
 
+# EditMixin 統合 (Phase 1.5)
+try:
+    from app.gui.windows.comparison_mixins.edit_mixin import EditMixin
+    _HAS_EDIT_MIXIN = True
+except ImportError:
+    _HAS_EDIT_MIXIN = False
+    class EditMixin:
+        """Fallback stub"""
+        pass
+
 @dataclass 
 class EditableRegion:
     """編集可能なエリア"""
@@ -55,13 +65,14 @@ class EditableRegion:
     canvas_text_id: Optional[int] = None
 
 
-class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
+class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     """
     高度な校正ワークスペース
     埋め込みフレーム版 (比較マトリクスを置き換え)
     
     Mixins:
     - SelectionMixin: 範囲選択 (Quick/Fullモード、即座シート反映)
+    - EditMixin: 手動編集 (ドラッグ移動、リサイズ、リアルタイム更新)
     """
     
     def __init__(self, parent, **kwargs):
@@ -123,6 +134,10 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         # ★ SDK Phase 2: SelectionMixin 初期化
         if _HAS_SELECTION_MIXIN and hasattr(self, '_init_selection_manager'):
             self._init_selection_manager()
+        
+        # ★ Phase 1.5: EditMixin 初期化
+        if _HAS_EDIT_MIXIN and hasattr(self, '_init_edit_mixin'):
+            self._init_edit_mixin()
 
     def _show_error(self, message: str, exception: Exception = None, show_traceback: bool = False):
         """統一エラー表示メソッド（B-004: 例外ハンドリング強化）"""
