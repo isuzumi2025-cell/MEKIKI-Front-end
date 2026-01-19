@@ -56,6 +56,12 @@ class SpreadsheetPanel(ctk.CTkFrame):
         self.on_row_select = on_row_select
         self._thumbnail_refs = []
 
+        # Virtual list state
+        self._visible_rows = {}  # {index: row_widget}
+        self._visible_range = (0, 0)  # (start_index, end_index)
+        self._rows_per_page = 15  # Number of visible rows to render
+        self._scroll_update_pending = False
+
         self._build_ui()
         log_diagnostic("[SpreadsheetPanel] UI built successfully")
 
@@ -114,6 +120,12 @@ class SpreadsheetPanel(ctk.CTkFrame):
         # 3. Scrollable content area
         self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color="#1E1E1E", corner_radius=0)
         self.scroll_frame.pack(fill="both", expand=True)
+
+        # Bind scroll events for virtual list
+        self.scroll_frame.bind("<Configure>", self._on_scroll_configure)
+        self.scroll_frame._parent_canvas.bind("<MouseWheel>", self._on_scroll_event)
+        self.scroll_frame._parent_canvas.bind("<Button-4>", self._on_scroll_event)  # Linux scroll up
+        self.scroll_frame._parent_canvas.bind("<Button-5>", self._on_scroll_event)  # Linux scroll down
 
     def update_data(self, sync_pairs: List[Any], web_regions: List[Any], pdf_regions: List[Any],
                     web_image=None, pdf_image=None):
@@ -196,22 +208,115 @@ class SpreadsheetPanel(ctk.CTkFrame):
             self.export_btn.configure(state="normal")
 
     def _refresh_rows(self):
-        """Clear and rebuild all rows"""
-        log_diagnostic(f"[_refresh_rows] Starting: {len(self.sync_pairs)} pairs to display")
+        """Clear and rebuild rows using virtual list (only visible rows)"""
+        log_diagnostic(f"[_refresh_rows] Starting VIRTUAL: {len(self.sync_pairs)} pairs total")
         log_diagnostic(f"[_refresh_rows] web_image: {self.web_image.size if self.web_image else 'None'}")
         log_diagnostic(f"[_refresh_rows] pdf_image: {self.pdf_image.size if self.pdf_image else 'None'}")
 
+        # Clear all existing widgets
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
+        self._visible_rows = {}
         self._thumbnail_refs = []
 
-        for i, pair in enumerate(self.sync_pairs):
-            self._create_row(i, pair)
+        # Calculate initial visible range (first page)
+        total_rows = len(self.sync_pairs)
+        if total_rows == 0:
+            return
 
-        log_diagnostic(f"[_refresh_rows] Done: {len(self._thumbnail_refs)} thumbnails created")
+        # Set scrollregion based on total rows
+        total_height = total_rows * (self.ROW_HEIGHT + 1)  # +1 for pady
+        self.scroll_frame._parent_canvas.configure(scrollregion=(0, 0, 800, total_height))
+
+        # Render initial visible rows
+        end_index = min(self._rows_per_page, total_rows)
+        self._visible_range = (0, end_index)
+        self._render_visible_rows()
+
+        log_diagnostic(f"[_refresh_rows] Done VIRTUAL: Rendered {end_index} of {total_rows} rows")
 
         # Force UI update to ensure widgets are displayed
         self.scroll_frame.update_idletasks()
+
+    def _render_visible_rows(self):
+        """Render only the rows in the visible range"""
+        start_idx, end_idx = self._visible_range
+
+        # Clear existing visible rows
+        for widget in self.scroll_frame.winfo_children():
+            widget.destroy()
+        self._visible_rows = {}
+        self._thumbnail_refs = []
+
+        # Add top spacer for scrolled-past rows
+        if start_idx > 0:
+            top_spacer_height = start_idx * (self.ROW_HEIGHT + 1)
+            top_spacer = ctk.CTkFrame(self.scroll_frame, height=top_spacer_height, fg_color="#1E1E1E")
+            top_spacer.pack(fill="x")
+            top_spacer.pack_propagate(False)
+
+        # Render visible rows
+        for i in range(start_idx, end_idx):
+            if i < len(self.sync_pairs):
+                pair = self.sync_pairs[i]
+                row_widget = self._create_row(i, pair)
+                self._visible_rows[i] = row_widget
+
+        # Add bottom spacer for remaining rows
+        remaining_rows = len(self.sync_pairs) - end_idx
+        if remaining_rows > 0:
+            bottom_spacer_height = remaining_rows * (self.ROW_HEIGHT + 1)
+            bottom_spacer = ctk.CTkFrame(self.scroll_frame, height=bottom_spacer_height, fg_color="#1E1E1E")
+            bottom_spacer.pack(fill="x")
+            bottom_spacer.pack_propagate(False)
+
+        log_diagnostic(f"[Virtual] Rendered rows {start_idx} to {end_idx-1} (total: {len(self.sync_pairs)})")
+
+    def _on_scroll_event(self, event):
+        """Handle scroll events to trigger virtual list updates"""
+        if not self._scroll_update_pending:
+            self._scroll_update_pending = True
+            self.after(50, self._update_visible_range)  # Debounce 50ms
+
+    def _on_scroll_configure(self, event):
+        """Handle configure events"""
+        if not self._scroll_update_pending:
+            self._scroll_update_pending = True
+            self.after(50, self._update_visible_range)
+
+    def _update_visible_range(self):
+        """Calculate and update visible row range based on scroll position"""
+        self._scroll_update_pending = False
+
+        if not self.sync_pairs:
+            return
+
+        try:
+            # Get current scroll position (0.0 to 1.0)
+            canvas = self.scroll_frame._parent_canvas
+            yview = canvas.yview()
+            scroll_top = yview[0]  # Top of visible area (0.0 = top, 1.0 = bottom)
+
+            # Calculate visible row indices
+            total_rows = len(self.sync_pairs)
+            total_height = total_rows * (self.ROW_HEIGHT + 1)
+
+            # Current scroll position in pixels
+            scroll_y_px = scroll_top * total_height
+
+            # Calculate visible row range with buffer (render extra rows above/below)
+            buffer_rows = 5
+            start_idx = max(0, int(scroll_y_px / (self.ROW_HEIGHT + 1)) - buffer_rows)
+            end_idx = min(total_rows, start_idx + self._rows_per_page + (buffer_rows * 2))
+
+            # Only update if range changed significantly
+            old_start, old_end = self._visible_range
+            if abs(start_idx - old_start) > 3 or abs(end_idx - old_end) > 3:
+                self._visible_range = (start_idx, end_idx)
+                self._render_visible_rows()
+
+        except Exception as e:
+            log_diagnostic(f"[Virtual] Scroll update error: {e}")
 
     def _create_row(self, index: int, pair):
         """Create a single row with thumbnails below ID"""
@@ -332,6 +437,8 @@ class SpreadsheetPanel(ctk.CTkFrame):
         row.bind("<Button-1>", lambda e, p=pair, w=row: self._on_row_click(w, p))
         for widget in [score_frame, web_id_frame, pdf_id_frame]:
             widget.bind("<Button-1>", lambda e, p=pair, w=row: self._on_row_click(w, p))
+
+        return row
 
     def _create_thumbnail(self, source_image, bbox):
         """Create a thumbnail from the source image and bbox [x1, y1, x2, y2]"""

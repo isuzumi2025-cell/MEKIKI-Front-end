@@ -107,13 +107,13 @@ class NavigationPanel(ctk.CTkFrame):
         
         # --- 出力 & 管理 ---
         self._build_section_header("EXPORT & MANAGE")
-        
+
         self._build_sidebar_button(
             "📤 Export Excel",
             self.callbacks.get("export_excel"),
             icon="📊"
         )
-        
+
         self._build_sidebar_button(
             "💾 Save Project",
             self.callbacks.get("save_project"),
@@ -121,6 +121,16 @@ class NavigationPanel(ctk.CTkFrame):
             fg_color="transparent",
             border_width=1,
             text_color=("gray10", "gray90")
+        )
+
+        # --- 設定 ---
+        self._build_section_header("SETTINGS")
+
+        self._build_sidebar_button(
+            "⚙️ API Settings",
+            self.callbacks.get("open_settings"),
+            icon="🔐",
+            fg_color=("#455A64", "#37474F")
         )
          
         # プログレスバー（最下部固定）

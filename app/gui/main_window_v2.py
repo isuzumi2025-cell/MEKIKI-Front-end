@@ -30,6 +30,7 @@ from app.core.analyzer import ContentAnalyzer
 from app.gui.macro_view import MacroView
 from app.gui.micro_view import MicroView
 from app.gui.navigation import NavigationPanel
+from app.gui.sdk.keyboard_manager import KeyboardManager
 
 
 # デザイン設定 (これらはMainWindowの__init__に移動)
@@ -62,9 +63,10 @@ class MainWindow(ctk.CTk):
         # ビュー
         self.current_view = None
         self.macro_view: Optional[MacroView] = None
-        
+
         self._setup_ui()
         self._initialize_engines()
+        self._setup_keyboard_shortcuts()
     
     def _setup_ui(self):
         """UI構築"""
@@ -91,7 +93,8 @@ class MainWindow(ctk.CTk):
             "run_ocr": self.run_ocr,
             "export_excel": self.export_excel,
             "save_project": self.save_project,
-            "load_project": self.load_project
+            "load_project": self.load_project,
+            "open_settings": self.open_settings
         }
         
         self.nav_panel = NavigationPanel(
@@ -783,6 +786,75 @@ class MainWindow(ctk.CTk):
         """プロジェクト読込"""
         # TODO: DataManagerを使用
         messagebox.showinfo("プロジェクト読込", "この機能は実装予定です")
+
+    def open_settings(self):
+        """API設定画面を開く"""
+        try:
+            from app.gui.dialogs.settings_dialog import SettingsDialog
+
+            # 設定ダイアログを開く（モーダル）
+            dialog = SettingsDialog(self)
+            self.wait_window(dialog)
+
+            # 設定保存後、エンジンを再初期化
+            print("🔄 API設定が更新されました。エンジンを再初期化します...")
+            self._initialize_engines()
+
+        except Exception as e:
+            messagebox.showerror(
+                "設定エラー",
+                f"設定画面の表示に失敗しました:\n{str(e)}"
+            )
+            print(f"❌ Settings dialog error: {e}")
+
+    def _setup_keyboard_shortcuts(self):
+        """キーボードショートカット設定"""
+        try:
+            self.keyboard_manager = KeyboardManager(self)
+
+            # ファイル操作
+            self.keyboard_manager.bind("save", self.save_project)
+            self.keyboard_manager.bind("open", self.load_project)
+            self.keyboard_manager.bind("export_excel", self.export_excel)
+            self.keyboard_manager.bind("settings", self.open_settings)
+            self.keyboard_manager.bind("quit", self.quit)
+
+            # 表示
+            self.keyboard_manager.bind("refresh", self.show_macro_view)
+            self.keyboard_manager.bind("toggle_fullscreen", self._toggle_fullscreen)
+
+            # ツール
+            self.keyboard_manager.bind("run_ocr", self.run_ocr)
+            self.keyboard_manager.bind("match_all", self.match_all)
+
+            # ヘルプ
+            self.keyboard_manager.bind("help", self._show_help)
+            self.keyboard_manager.bind("shortcuts", self.keyboard_manager.show_help_dialog)
+
+            print("✅ Keyboard shortcuts configured")
+
+        except Exception as e:
+            print(f"⚠️ Failed to setup keyboard shortcuts: {e}")
+
+    def _toggle_fullscreen(self):
+        """フルスクリーン切り替え"""
+        current = self.attributes('-fullscreen')
+        self.attributes('-fullscreen', not current)
+
+    def _show_help(self):
+        """ヘルプを表示"""
+        messagebox.showinfo(
+            "ヘルプ",
+            "MEKIKI Ver2 - クリエイティブ評価ツール\n\n"
+            "主な機能:\n"
+            "- Web/PDF比較\n"
+            "- AI OCR (Gemini)\n"
+            "- 自動マッチング\n"
+            "- Excel出力\n\n"
+            "ショートカット一覧: Ctrl+/\n"
+            "設定: Ctrl+,\n"
+            "ヘルプ: F1"
+        )
 
 
 if __name__ == "__main__":

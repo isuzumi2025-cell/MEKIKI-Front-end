@@ -212,7 +212,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
         ctk.CTkButton(
             toolbar, text="✨ 類似検出", width=80, fg_color="#E91E63",
-            command=lambda: self._open_region_editor('web')
+            command=self._find_similar_gemini
         ).pack(side="left", padx=3)
         
         # 🗂️ メタデータ出力ボタン (Phase 2)
@@ -3257,6 +3257,123 @@ Please provide:
              import traceback
              traceback.print_exc()
              self.status_label.configure(text=f"❌ 検出エラー: {e}")
+
+    def _find_similar_gemini(self):
+        """
+        ★ Gemini-Powered 類似検索
+        
+        選択中のテキストボックスの内容をテンプレートとして、
+        反対側のソース（PDF/Web）から類似テキストをGemini AIで検索
+        
+        Phase 1.5: SDK GeminiSimilarSearch 統合
+        """
+        import threading
+        
+        # テンプレートテキスト取得 (選択中のテキストボックスから)
+        try:
+            web_text = self.web_text_box.get("1.0", "end-1c").strip()
+            pdf_text = self.pdf_text_box.get("1.0", "end-1c").strip()
+        except:
+            web_text = ""
+            pdf_text = ""
+        
+        template_text = web_text if web_text else pdf_text
+        
+        if not template_text:
+            self.status_label.configure(text="⚠️ まず範囲を選択してテキストを抽出してください")
+            return
+        
+        # 検索対象: テンプレートがWebならPDFを検索、逆も同様
+        if web_text:
+            search_regions = self.pdf_regions
+            search_source = "PDF"
+        else:
+            search_regions = self.web_regions
+            search_source = "Web"
+        
+        if not search_regions:
+            self.status_label.configure(text=f"⚠️ {search_source}側に検索対象がありません")
+            return
+        
+        self.status_label.configure(text=f"✨ Gemini AI で {search_source} 内を類似検索中...")
+        self.update()
+        
+        def search_task():
+            try:
+                # SDK Import
+                from app.sdk.similarity import GeminiSimilarSearch
+                
+                searcher = GeminiSimilarSearch(
+                    model="gemini-2.0-flash",
+                    threshold=0.5
+                )
+                
+                # 候補リスト作成
+                candidates = []
+                for r in search_regions:
+                    candidates.append({
+                        'text': r.text,
+                        'id': r.area_code,
+                        'region': r
+                    })
+                
+                # Gemini類似検索実行
+                results = searcher.find_similar(template_text, candidates)
+                
+                # 結果をUIに反映
+                self.after(0, lambda: self._apply_gemini_results(results, search_source))
+                
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.after(0, lambda: self.status_label.configure(
+                    text=f"❌ Gemini検索エラー: {e}"
+                ))
+        
+        # バックグラウンドで実行
+        threading.Thread(target=search_task, daemon=True).start()
+    
+    def _apply_gemini_results(self, results, search_source: str):
+        """
+        Gemini検索結果をUI反映
+        - ステータス更新
+        - 類似領域をハイライト
+        - シートに反映
+        """
+        if not results:
+            self.status_label.configure(text=f"⚠️ {search_source}に類似テキストが見つかりませんでした")
+            return
+        
+        # 最も類似度の高い結果を反映
+        top_result = results[0]
+        
+        # テキストボックスに表示
+        if search_source == "PDF":
+            self.pdf_text_box.configure(state="normal")
+            self.pdf_text_box.delete("1.0", "end")
+            self.pdf_text_box.insert("1.0", top_result.candidate_text)
+        else:
+            self.web_text_box.configure(state="normal")
+            self.web_text_box.delete("1.0", "end")
+            self.web_text_box.insert("1.0", top_result.candidate_text)
+        
+        # 類似度表示
+        score_pct = top_result.similarity_score * 100
+        semantic = "🧠" if top_result.is_semantic_match else "📝"
+        
+        self.status_label.configure(
+            text=f"✅ {len(results)}件の類似発見！最高類似度: {score_pct:.0f}% {semantic} ({top_result.match_reason})"
+        )
+        
+        # 領域をハイライト (結果リストを持つ場合)
+        print(f"[GeminiSearch] Found {len(results)} similar regions in {search_source}")
+        for r in results[:5]:  # 上位5件をログ出力
+            print(f"  - Score: {r.similarity_score:.2f}, Reason: {r.match_reason}")
+        
+        # スプレッドシート更新
+        if hasattr(self, '_refresh_inline_spreadsheet'):
+            self._refresh_inline_spreadsheet()
+
     def _open_comparison_matrix(self):
         """比較マトリクスウィンドウを開く"""
         try:
