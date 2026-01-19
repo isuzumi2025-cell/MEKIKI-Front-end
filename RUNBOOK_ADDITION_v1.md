@@ -199,3 +199,65 @@ app/
 
 **優先度**: 🔴 最高
 **工数見積**: 7時間
+
+---
+
+## 7. Phase 1.6: Gemini対向パラグラフ自動検出 (2026-01-20)
+
+### 7.1 概要
+
+手動範囲選択後、抽出テキストを使用してGeminiが対向ソース（Web↔PDF）から類似パラグラフを自動検出し、シートに完全反映する。
+
+### 7.2 現状 (2026-01-19 終了時点)
+
+| 機能 | 状態 |
+|------|------|
+| 範囲選択→テキスト抽出 | ✅ 動作 |
+| シート行追加（サムネ・ID・テキスト） | ❌ 未反映 |
+| Gemini対向スキャン | ❌ 未動作 |
+
+### 7.3 目標仕様
+
+```
+[手動選択] → [CloudOCR抽出] → [シート行追加 (★)]
+                 ↓
+          [Gemini対向スキャン (★)]
+                 ↓
+          [マッチパラグラフ検出]
+                 ↓
+          [対向シート列に反映 (★)]
+           └─ サムネイル
+           └─ ユニークID
+           └─ テキスト
+```
+
+### 7.4 実装タスク
+
+1. **シート反映修正**
+   - `_refresh_inline_spreadsheet` デバッグ
+   - サムネイル生成（選択領域をクロップ）
+   - ユニークID表示（`SEL_001` 形式）
+   - テキスト表示
+
+2. **Gemini対向スキャン**
+   - HybridOCR結果（`web_regions`/`pdf_regions`）を活用
+   - 選択テキストと一致/類似するパラグラフをGeminiでスキャン
+   - マッチしたパラグラフを対向シート列に反映
+
+### 7.5 SDK
+
+```python
+# app/sdk/similarity/auto_matcher.py
+class GeminiAutoMatcher:
+    def find_matching_paragraphs(query_text, target_paragraphs) -> List[MatchResult]
+    def find_matching_async(query_text, target_paragraphs, callback)
+```
+
+### 7.6 検証手順
+
+1. HybridOCR実行（Web + PDF両方にリージョン生成）
+2. Web Sourceで範囲選択
+3. **確認**: シートにWeb側行追加（サムネ+ID+テキスト）
+4. **確認**: ステータス「対向検索中...」表示
+5. **確認**: シートにPDF側マッチ行追加（サムネ+ID+テキスト）
+6. **確認**: ステータス「○% マッチ」表示
