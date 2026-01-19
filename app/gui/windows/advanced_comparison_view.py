@@ -432,6 +432,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             # ★ B5: Crosshair Sanity Check
             canvas.bind("<Motion>", self._on_mouse_motion)
             canvas.bind("<Leave>", self._on_mouse_leave)
+        print(f"✅ Canvas events bound: click, drag, release, motion, leave")
     
     def _build_right_panel(self, parent):
         """右パネル: Sync Text Panel"""
@@ -2520,6 +2521,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     
     def _on_canvas_click(self, event):
         """キャンバスクリック - 選択開始 (SelectionMixin統合版)"""
+        print(f"[DEBUG] _on_canvas_click called at ({event.x}, {event.y})")  # デバッグログ
         canvas = event.widget
         
         # スクロール位置を考慮した実座標
@@ -2567,7 +2569,10 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     
     def _on_canvas_release(self, event):
         """キャンバスリリース - 選択完了→テキスト抽出 (SelectionMixin統合版)"""
+        print(f"[DEBUG] _on_canvas_release called")  # デバッグログ
+        
         if not hasattr(self, '_selection_start') or self._selection_start is None:
+            print("[DEBUG] No selection start, returning")
             return
         
         canvas = event.widget
@@ -2685,17 +2690,15 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     
     def _extract_text_with_gemini_ocr(self, rect, source: str) -> str:
         """
-        ★ Gemini Vision OCR で選択範囲から直接テキスト抽出
+        ★ CloudOCREngine で選択範囲から直接テキスト抽出
         
-        リージョンリストが空の場合のフォールバック
+        バックアップ(251220_Before_Change)から移植した動作確認済み実装
         """
-        import io
-        
         try:
             # 画像取得
             image = self.web_image if source == "web" else self.pdf_image
             if not image:
-                print("[GeminiOCR] No image available")
+                print("[PartialOCR] No image available")
                 return ""
             
             # 選択範囲を切り抜き
@@ -2706,32 +2709,32 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             sy2 = min(sy2, image.height)
             
             if sx2 <= sx1 or sy2 <= sy1:
-                print(f"[GeminiOCR] Invalid crop region: {rect}")
+                print(f"[PartialOCR] Invalid crop region: {rect}")
                 return ""
             
+            print(f"[PartialOCR] Cropping image: ({sx1}, {sy1}) -> ({sx2}, {sy2})")
             cropped = image.crop((sx1, sy1, sx2, sy2))
             
-            # Gemini Vision OCR
-            from app.sdk.llm import GeminiClient
-            client = GeminiClient(model="gemini-2.0-flash")
+            # CloudOCREngine で OCR 実行 (バックアップから移植)
+            from app.core.engine_cloud import CloudOCREngine
+            engine = CloudOCREngine(preprocess=False)
             
-            # 画像をbase64に変換
-            import base64
-            buffer = io.BytesIO()
-            cropped.save(buffer, format="PNG")
-            image_b64 = base64.b64encode(buffer.getvalue()).decode()
+            clusters, raw_words = engine.extract_text(cropped)
             
-            prompt = "この画像内のテキストをすべて正確に文字起こしてください。日本語のテキストの場合は日本語で出力してください。"
+            if not clusters:
+                print("[PartialOCR] No text found in selection")
+                return ""
             
-            result = client.generate_with_image(prompt, image_b64)
+            # テキストを結合
+            extracted_text = "\n".join([c["text"] for c in clusters])
             
-            print(f"[GeminiOCR] Extracted {len(result)} chars")
-            return result.strip()
+            print(f"[PartialOCR] Extracted {len(extracted_text)} chars from {len(clusters)} clusters")
+            return extracted_text.strip()
             
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"[GeminiOCR] Error: {e}")
+            print(f"[PartialOCR] Error: {e}")
             return ""
     
     def _rects_overlap(self, rect1, rect2) -> bool:
