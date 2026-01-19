@@ -27,6 +27,15 @@ import difflib
 from dataclasses import dataclass
 from app.pipeline.metadata_exporter import export_ocr_metadata
 
+# SelectionMixin 統合 (SDK Phase 2)
+try:
+    from app.gui.windows.comparison_mixins.selection_mixin import SelectionMixin
+    _HAS_SELECTION_MIXIN = True
+except ImportError:
+    _HAS_SELECTION_MIXIN = False
+    class SelectionMixin:
+        """Fallback stub"""
+        pass
 
 @dataclass 
 class EditableRegion:
@@ -44,10 +53,13 @@ class EditableRegion:
     canvas_text_id: Optional[int] = None
 
 
-class AdvancedComparisonView(ctk.CTkFrame):
+class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
     """
     高度な校正ワークスペース
     埋め込みフレーム版 (比較マトリクスを置き換え)
+    
+    Mixins:
+    - SelectionMixin: 範囲選択 (Quick/Fullモード、即座シート反映)
     """
     
     def __init__(self, parent, **kwargs):
@@ -102,6 +114,10 @@ class AdvancedComparisonView(ctk.CTkFrame):
         # ★ B5: Crosshair Sanity Check
         self._crosshair_enabled = True  # クロスヘア表示フラグ
         self._last_crosshair_pos = None  # 最後のクロスヘア位置
+
+        # ★ SDK Phase 2: SelectionMixin 初期化
+        if _HAS_SELECTION_MIXIN and hasattr(self, '_init_selection_manager'):
+            self._init_selection_manager()
 
     def _show_error(self, message: str, exception: Exception = None, show_traceback: bool = False):
         """統一エラー表示メソッド（B-004: 例外ハンドリング強化）"""
