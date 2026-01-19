@@ -1529,23 +1529,6 @@ class AdvancedComparisonView(ctk.CTkFrame):
             # 描画
             self._redraw_regions()
             
-            # デバッグ: 領域数とスケール確認
-            print(f"[AdvancedView] web_regions: {len(self.web_regions)}, pdf_regions: {len(self.pdf_regions)}")
-            print(f"[AdvancedView] web_canvas scale_x: {getattr(self.web_canvas, 'scale_x', 'NOT SET')}")
-            print(f"[AdvancedView] pdf_canvas scale_x: {getattr(self.pdf_canvas, 'scale_x', 'NOT SET')}")
-            
-            # ★ 詳細デバッグ: PDF座標変換の確認
-            if self.pdf_image and self.pdf_regions:
-                pdf_img_w, pdf_img_h = self.pdf_image.size
-                pdf_scale = getattr(self.pdf_canvas, 'scale_x', 1.0)
-                first_pdf_region = self.pdf_regions[0]
-                print(f"[DEBUG PDF Scale]")
-                print(f"  pdf_image.size: {pdf_img_w}x{pdf_img_h}")
-                print(f"  pdf_canvas.scale_x: {pdf_scale:.4f}")
-                print(f"  pdf_canvas.winfo_width(): {self.pdf_canvas.winfo_width()}")
-                print(f"  First region.rect: {first_pdf_region.rect}")
-                print(f"  Expected canvas coords: ({first_pdf_region.rect[0]*pdf_scale:.0f}, {first_pdf_region.rect[1]*pdf_scale:.0f})")
-            
             # ページサムネイル生成
             self._generate_thumbnails()
             
@@ -1873,18 +1856,16 @@ class AdvancedComparisonView(ctk.CTkFrame):
             # 古い矩形を削除
             canvas.delete("region")
             
-            # スケール情報取得
-            scale_x = getattr(canvas, 'scale_x', 1.0)
-            scale_y = getattr(canvas, 'scale_y', 1.0)
-            offset_x = getattr(canvas, 'offset_x', 0)
-            offset_y = getattr(canvas, 'offset_y', 0)
+            # ★ SDK統一: CanvasTransform経由で座標変換
+            from app.gui.sdk.coord_transform import get_canvas_transform
+            transform = get_canvas_transform(canvas)
             
             for region in regions:
-                # 元座標をキャンバス座標に変換
-                x1 = region.rect[0] * scale_x + offset_x
-                y1 = region.rect[1] * scale_y + offset_y
-                x2 = region.rect[2] * scale_x + offset_x
-                y2 = region.rect[3] * scale_y + offset_y
+                # ★ SDK: Source→View変換
+                x1, y1, x2, y2 = transform.src_rect_to_view(
+                    region.rect[0], region.rect[1],
+                    region.rect[2], region.rect[3]
+                )
                 
                 # 色決定 (sync_colorを使用)
                 outline = getattr(region, 'sync_color', '#F44336')
