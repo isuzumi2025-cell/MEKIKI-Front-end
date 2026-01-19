@@ -98,6 +98,10 @@ class AdvancedComparisonView(ctk.CTkFrame):
         self._resize_job = None  # 統合リサイズジョブ
         self._last_canvas_size = {}  # キャンバスサイズキャッシュ {"web": (w,h), "pdf": (w,h)}
         self._image_cache = {}  # スケール済み画像キャッシュ {"web": {size: photo}, "pdf": {size: photo}}
+        
+        # ★ B5: Crosshair Sanity Check
+        self._crosshair_enabled = True  # クロスヘア表示フラグ
+        self._last_crosshair_pos = None  # 最後のクロスヘア位置
 
     def _show_error(self, message: str, exception: Exception = None, show_traceback: bool = False):
         """統一エラー表示メソッド（B-004: 例外ハンドリング強化）"""
@@ -379,6 +383,9 @@ class AdvancedComparisonView(ctk.CTkFrame):
             canvas.bind("<ButtonPress-1>", self._on_canvas_click)
             canvas.bind("<B1-Motion>", self._on_canvas_drag)
             canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
+            # ★ B5: Crosshair Sanity Check
+            canvas.bind("<Motion>", self._on_mouse_motion)
+            canvas.bind("<Leave>", self._on_mouse_leave)
     
     def _build_right_panel(self, parent):
         """右パネル: Sync Text Panel"""
@@ -2942,6 +2949,82 @@ Please provide:
             menu.tk_popup(event.x_root, event.y_root)
         except Exception as e:
             print(f"Right click menu error: {e}")
+
+    # ============================================================
+    # B5: Crosshair Sanity Check
+    # ============================================================
+    
+    def _on_mouse_motion(self, event):
+        """マウス移動時にクロスヘアと座標を表示（B5: Sanity Check）"""
+        if not self._crosshair_enabled:
+            return
+        
+        canvas = event.widget
+        
+        # スクロール位置を考慮したキャンバス座標
+        vx = canvas.canvasx(event.x)
+        vy = canvas.canvasy(event.y)
+        
+        # SDK経由でSource座標を取得
+        from app.gui.sdk.coord_transform import get_canvas_transform
+        transform = get_canvas_transform(canvas)
+        sx, sy = transform.view_to_src(int(vx), int(vy))
+        
+        # Round-trip検証
+        error_x, error_y = transform.round_trip_error(sx, sy)
+        
+        # 古いクロスヘアを削除
+        canvas.delete("crosshair")
+        canvas.delete("coord_label")
+        
+        # スクロール領域を取得
+        scrollregion = canvas.cget('scrollregion')
+        if scrollregion:
+            try:
+                parts = scrollregion.split()
+                max_x = float(parts[2]) if len(parts) >= 3 else canvas.winfo_width()
+                max_y = float(parts[3]) if len(parts) >= 4 else canvas.winfo_height()
+            except:
+                max_x = canvas.winfo_width()
+                max_y = canvas.winfo_height()
+        else:
+            max_x = canvas.winfo_width()
+            max_y = canvas.winfo_height()
+        
+        # クロスヘア描画（半透明のライン）
+        canvas.create_line(0, vy, max_x, vy, fill="#00FF00", width=1, dash=(2, 2), tags="crosshair")
+        canvas.create_line(vx, 0, vx, max_y, fill="#00FF00", width=1, dash=(2, 2), tags="crosshair")
+        
+        # 座標ラベル（誤差込み）
+        source_type = "Web" if canvas == self.web_canvas else "PDF"
+        error_text = f"Δ{error_x:.0f},{error_y:.0f}" if (error_x > 0 or error_y > 0) else "✓"
+        coord_text = f"{source_type} V({int(vx)},{int(vy)}) → S({sx},{sy}) {error_text}"
+        
+        # ラベル位置をカーソル近くに（オフセット付き）
+        label_x = vx + 15
+        label_y = vy - 15
+        
+        # 背景付きテキスト
+        canvas.create_rectangle(
+            label_x - 2, label_y - 10,
+            label_x + len(coord_text) * 6 + 2, label_y + 12,
+            fill="#1E1E1E", outline="#00FF00", tags="coord_label"
+        )
+        canvas.create_text(
+            label_x, label_y,
+            text=coord_text, fill="#00FF00", anchor="nw",
+            font=("Consolas", 9), tags="coord_label"
+        )
+        
+        self._last_crosshair_pos = (vx, vy)
+    
+    def _on_mouse_leave(self, event):
+        """マウスがキャンバスから離れたらクロスヘアを消去"""
+        canvas = event.widget
+        canvas.delete("crosshair")
+        canvas.delete("coord_label")
+        self._last_crosshair_pos = None
+
 
     def _split_page_at_cursor(self, y_pos, source):
         """指定位置でページ分割"""
