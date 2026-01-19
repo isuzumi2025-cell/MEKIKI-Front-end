@@ -138,6 +138,9 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # ★ Phase 1.5: EditMixin 初期化
         if _HAS_EDIT_MIXIN and hasattr(self, '_init_edit_mixin'):
             self._init_edit_mixin()
+        
+        # ★ 遅延イベント再バインド（ウィジェット完全表示後に確実にバインド）
+        self.after(1000, self._bind_canvas_events)
 
     def _show_error(self, message: str, exception: Exception = None, show_traceback: bool = False):
         """統一エラー表示メソッド（B-004: 例外ハンドリング強化）"""
@@ -433,6 +436,25 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             canvas.bind("<Motion>", self._on_mouse_motion)
             canvas.bind("<Leave>", self._on_mouse_leave)
         print(f"✅ Canvas events bound: click, drag, release, motion, leave")
+    
+    def _bind_canvas_events(self):
+        """キャンバスイベントを再バインド（タブ切替時に必要）"""
+        for canvas in [self.web_canvas, self.pdf_canvas]:
+            # 既存のバインドをクリアして再バインド
+            canvas.bind("<ButtonPress-1>", self._on_canvas_click)
+            canvas.bind("<B1-Motion>", self._on_canvas_drag)
+            canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
+            canvas.bind("<Motion>", self._on_mouse_motion)
+            canvas.bind("<Leave>", self._on_mouse_leave)
+        print("[EventBind] Canvas events rebound")
+    
+    def _on_source_tab_change(self):
+        """タブ切替時のコールバック"""
+        current_tab = self.view_tabs.get()
+        print(f"[TabChange] Switched to: {current_tab}")
+        
+        # イベントを再バインド
+        self._bind_canvas_events()
     
     def _build_right_panel(self, parent):
         """右パネル: Sync Text Panel"""
