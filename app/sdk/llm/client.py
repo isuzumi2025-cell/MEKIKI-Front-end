@@ -96,6 +96,38 @@ class GeminiClient(LLMClient):
     def analyze(self, text: str, instruction: str) -> Optional[str]:
         prompt = f"{instruction}\n\nTarget Text:\n{text}"
         return self.generate(prompt)
+    
+    def generate_with_image(self, prompt: str, image_b64: str) -> Optional[str]:
+        """
+        Base64エンコード画像を使用してテキスト生成
+        
+        Args:
+            prompt: プロンプト
+            image_b64: Base64エンコードされた画像データ
+            
+        Returns:
+            生成されたテキスト
+        """
+        if not self.model:
+            return None
+        try:
+            import base64
+            import io
+            from PIL import Image
+            
+            # Base64デコード
+            image_data = base64.b64decode(image_b64)
+            image = Image.open(io.BytesIO(image_data))
+            
+            # Gemini APIで画像を含めて送信
+            response = self.model.generate_content([prompt, image])
+            print(f"[GeminiClient] Vision OCR response: {len(response.text)} chars")
+            return response.text
+        except Exception as e:
+            print(f"❌ Gemini Vision error: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
 
 
 class ChatGPTClient(LLMClient):
