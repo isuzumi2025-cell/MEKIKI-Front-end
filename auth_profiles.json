@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "JRQ1": {
+      "name": "JRQ1",
+      "url": "https://www.portcafe.net/demo/jrkyushu/jisha-meguri/",
+      "username": "jrq",
+      "password": "testga",
+      "auth_type": "basic",
+      "created_at": "2026-01-06T19:26:58.118488"
+    },
+    "jrq": {
+      "name": "jrq",
+      "url": "https://www.portcafe.net/demo/jrkyushu/jisha-meguri/",
+      "username": "jrq",
+      "password": "testga",
+      "auth_type": "basic",
+      "created_at": "2026-01-17T04:18:00.500301"
+    }
+  }
+}

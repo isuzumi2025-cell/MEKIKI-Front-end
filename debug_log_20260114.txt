@@ -1,0 +1,21 @@
+[AI Mode] Done - Web columns: 0=550, 1=0 | PDF columns: 0=740, 1=0
+[AI Mode] Display in progress flag cleared
+[AI Mode +500ms] web_canvas: total=1101, images=1, regions=1100
+[AI Mode +500ms] web_canvas scroll: xview=(0.0, 1.0), yview=(0.0, 0.00338)
+[AI Mode +500ms] web_canvas scrollregion=0 0 1021 50000
+[AI Mode +500ms] web_canvas scale_x=0.2661
+[AI Mode +500ms] pdf_canvas: total=1481, images=1, regions=1480
+[_display_image] canvas_width=1295, image=(3840, 187920)
+[_display_image] Canvas items: total=1101, image_tags=1
+[_redraw_regions] web_regions=550, pdf_regions=740
+[_redraw_regions] web: scale=(0.2661,0.2661), offset=(0,0)
+[_redraw_regions] web: 1100 region items drawn
+[_redraw_regions] pdf: scale=(0.2437,0.2437), offset=(0,0)
+[_redraw_regions] pdf: 1480 region items drawn
+[_display_image] canvas_width=1295, image=(5315, 36001)
+[_display_image] Canvas items: total=1481, image_tags=1
+[_redraw_regions] web_regions=550, pdf_regions=740
+[_redraw_regions] web: scale=(0.2661,0.2661), offset=(0,0)
+[_redraw_regions] web: 1100 region items drawn
+[_redraw_regions] pdf: scale=(0.2437,0.2437), offset=(0,0)
+[_redraw_regions] pdf: 1480 region items drawn

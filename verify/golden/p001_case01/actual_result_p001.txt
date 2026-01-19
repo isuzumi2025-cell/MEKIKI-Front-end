@@ -1,0 +1,4 @@
+Image Loaded: (2693, 1957)
+clusters=21
+rect_ok=21/21
+PASS: P-001 smoke check (image+json+rect)

@@ -1,0 +1,7 @@
+System Check...
+OK:   Project root = C:\Users\raiko\OneDrive\Desktop\26\OCR
+OK:   import app: C:\Users\raiko\OneDrive\Desktop\26\OCR\app\__init__.py
+OK:   import app.core.engine: C:\Users\raiko\OneDrive\Desktop\26\OCR\app\core\engine\__init__.py
+WARN: FastEngine symbol NOT present (this is OK).
+OK:   HTTP fetch example.com status=200
+OK:   Verification Complete. Ready to run `uvicorn app.main:app --reload`

@@ -1,0 +1,237 @@
+============================================================
+[Web] ✅ Crawling Complete
+  Total Pages: 4
+  Successful: 4
+  Failed: 0
+  Max Depth Reached: 2
+============================================================
+
+📄 PDF読み込み: 6ページ検出
+📄 PDF合計: 6ページ
+[_display_image] canvas_width=812, image=(3827, 16686)
+[_display_image] Canvas items: total=1, image_tags=1
+[_load_from_queue] ⭐ Web画像ロード: size=(3840, 36720), mode=RGB
+[_display_image] canvas_width=1295, image=(3840, 36720)
+[_display_image] Canvas items: total=1, image_tags=1
+[_display_image] canvas_width=1295, image=(3840, 36720)
+[_display_image] Canvas items: total=1, image_tags=1
+[Overview] Selected Page 2
+[_display_image] canvas_width=1295, image=(3840, 51840)
+[_display_image] Canvas items: total=1, image_tags=1
+[_redraw_regions] web_regions=0, pdf_regions=0
+[_redraw_regions] web has no regions, skipping
+[_redraw_regions] pdf has no regions, skipping
+[_display_image] canvas_width=1295, image=(3840, 51840)
+[_display_image] Canvas items: total=1, image_tags=1
+📐 縦長画像検出 (アスペクト比: 13.5) - チャンクOCRモード
+📐 チャンクOCR: 5チャンク (各10368px)
+  チャンク1/5: 117ブロック検出
+  チャンク2/5: 239ブロック検出
+  チャンク3/5: 370ブロック検出
+  チャンク4/5: 497ブロック検出
+  チャンク5/5: 613ブロック検出
+✅ チャンクOCR完了: 207クラスタ, 5059単語
+[AdvancedView] ★ Web OCR完了: clusters=207, raw_words=5059
+[AdvancedView] ★ ページ検出: 71ページ
+📐 画像リサイズ: 939x4096 (比率: 0.245)
+🔄 座標変換: scale_ratio=0.245, preprocess_scale=1.0, inverse_ratio=4.074
+📤 OCR送信サイズ: 4.79MB
+[OCR] First cluster: OCR rect=[72, 81, 430, 604] → scaled rect=[293, 329, 1751, 2460] (inverse_ratio=4.074)
+[OCR] original_size=(3827x16686)
+🔄 座標逆変換適用 (inverse_ratio: 4.074)
+[_display_image] canvas_width=1295, image=(3840, 51840)
+[_display_image] Canvas items: total=1, image_tags=1
+[_display_image] canvas_width=812, image=(3827, 16686)
+[_display_image] Canvas items: total=1, image_tags=1
+[_redraw_regions] web_regions=207, pdf_regions=94
+[_redraw_regions] web: scale=(0.3372,0.3372), offset=(0,0)
+[_redraw_regions] web: 414 region items drawn
+[_redraw_regions] pdf: scale=(0.2122,0.2122), offset=(0,0)
+[_redraw_regions] pdf: 188 region items drawn
+[AdvancedView] web_regions: 207, pdf_regions: 94
+[AdvancedView] web_canvas scale_x: 0.3372395833333333
+[AdvancedView] pdf_canvas scale_x: 0.21217663966553435
+[DEBUG PDF Scale]
+  pdf_image.size: 3827x16686
+  pdf_canvas.scale_x: 0.2122
+  pdf_canvas.winfo_width(): 1
+  First region.rect: [293, 329, 1751, 2460]
+  Expected canvas coords: (62, 70)
+[Integrity Check] web_map created with 207 entries
+[Integrity Check] ✓ All web_map keys match region.area_code
+[Image Info] web_image size: (3840, 51840)
+[Image Info] pdf_image size: (3827, 16686)
+[ParagraphMatcher] マッチング開始: Web 207件 x PDF 94件
+[ParagraphMatcher] マッチング完了:
+  🟢 高マッチ (50%+): 7件
+  🟡 部分マッチ (30-50%): 87件
+  🔴 低マッチ (<30%): 0件
+  ⚪ 未マッチ Web: 113件, PDF: 0件
+[GeniusEngine] Starting Hybrid Optimization...
+[RangeOptimizer] 対象ペア: 94件 (20%+)
+[RangeOptimizer] 最適化完了: 5件改善
+[GeniusEngine] Range Optimized: 5 pairs
+[AnchorMatcher] アンカーを抽出中...
+[AnchorMatcher] インデックス作成完了: 17エントリ
+[AnchorMatcher] 0件のアンカーマッチを検出 (高速化版)
+[AutoSync] Genius Engine execution completed.
+[Integrity Check] web_map created with 207 entries
+[Integrity Check] ✓ All web_map keys match region.area_code
+[BBOX Data] First pair:
+  web_id=P36-100, web_bbox=None
+  pdf_id=PDF-86, pdf_bbox=None
+[Image Info] web_image size: (3840, 51840)
+[Image Info] pdf_image size: (3827, 16686)
+[Row 0] web_id=P36-100, pdf_id=PDF-86, sim=0.57
+  web_bbox=[2709, 25360, 2759, 25502], pdf_bbox=[1605, 15027, 1662, 15211]
+  web_image=True, pdf_image=True
+  Score: 57%, color=#FFC107
+  Web ID: P36-100
+  Web Thumb created: True
+[Row 1] web_id=P30-82, pdf_id=PDF-30, sim=0.55
+  web_bbox=[2233, 21187, 2377, 21382], pdf_bbox=[1641, 6623, 1772, 6852]
+  web_image=True, pdf_image=True
+  Score: 55%, color=#FFC107
+  Web ID: P30-82
+  Web Thumb created: True
+[Row 2] web_id=P44-122, pdf_id=PDF-26, sim=0.53
+  web_bbox=[2128, 31785, 2284, 31849], pdf_bbox=[635, 6424, 778, 6505]
+  web_image=True, pdf_image=True
+  Score: 52%, color=#FFC107
+  Web ID: P44-122
+  Web Thumb created: True
+[AI Mode] ✓ State initialized (clean slate)
+[AI Mode] web_pages から 4 画像取得
+[AI Mode] pdf_pages_list から 6 画像取得
+[AI Mode] Found - Web: 4, PDF path: C:/Users/raiko/OneDrive/Desktop/AdPDF/2502_寺社_パンフ_07 (1).pdf, PDF images: 6
+📐 縦長画像検出 (アスペクト比: 9.6) - チャンクOCRモード
+📐 チャンクOCR: 3チャンク (各12240px)
+  チャンク1/3: 108ブロック検出
+  チャンク2/3: 211ブロック検出
+  チャンク3/3: 555ブロック検出
+✅ チャンクOCR完了: 59クラスタ, 3690単語
+   Web page 1: 59 clusters → 53 paragraphs (engine_cloud, y_offset=0)
+📐 縦長画像検出 (アスペクト比: 13.5) - チャンクOCRモード
+📐 チャンクOCR: 5チャンク (各10368px)
+  チャンク1/5: 117ブロック検出
+  チャンク2/5: 239ブロック検出
+  チャンク3/5: 370ブロック検出
+  チャンク4/5: 497ブロック検出
+  チャンク5/5: 613ブロック検出
+✅ チャンクOCR完了: 207クラスタ, 5060単語
+   Web page 2: 207 clusters → 195 paragraphs (engine_cloud, y_offset=88560)
+📐 縦長画像検出 (アスペクト比: 16.3) - チャンクOCRモード
+📐 チャンクOCR: 5チャンク (各12528px)
+  チャンク1/5: 148ブロック検出
+  チャンク2/5: 311ブロック検出
+  チャンク3/5: 466ブロック検出
+  チャンク4/5: 600ブロック検出
+  チャンク5/5: 740ブロック検出
+✅ チャンクOCR完了: 269クラスタ, 5745単語
+   Web page 3: 269 clusters → 253 paragraphs (engine_cloud, y_offset=88560)
+📐 縦長画像検出 (アスペクト比: 9.6) - チャンクOCRモード
+📐 チャンクOCR: 3チャンク (各12240px)
+  チャンク1/3: 108ブロック検出
+  チャンク2/3: 211ブロック検出
+  チャンク3/3: 554ブロック検出
+✅ チャンクOCR完了: 60クラスタ, 3686単語
+   Web page 4: 60 clusters → 53 paragraphs (engine_cloud, y_offset=151200)
+   PDF page 1: rendered (5315, 3863)
+   PDF page 1: 45 paragraphs (埋め込みテキスト, y_offset=0)
+   PDF page 2: rendered (5315, 3863)
+   PDF page 2: 337 paragraphs (埋め込みテキスト, y_offset=3862)
+   PDF page 3: rendered (5315, 3863)
+   PDF page 3: 121 paragraphs (埋め込みテキスト, y_offset=7724)
+   PDF page 4: rendered (5315, 3863)
+   PDF page 4: 120 paragraphs (埋め込みテキスト, y_offset=11586)
+   PDF page 5: rendered (5315, 3863)
+   PDF page 5: 117 paragraphs (埋め込みテキスト, y_offset=15448)
+[AI Mode] ✅ PDF埋め込みテキスト使用: 19212 chars, 740 paragraphs (DPI scale: 4.17)
+[AI Mode] Extracted - Web: 554, PDF: 740
+[AI Mode] Matched: 473 pairs
+[AI Mode] Regions created - Web: 554, PDF: 740
+[AI Mode] Images - Web: (3840, 187920), PDF: (5315, 36001)
+[AI Mode] Regions - Web: 554, PDF: 740
+[AI Mode] View state check:
+  - web_canvas exists: True
+  - pdf_canvas exists: True
+  - spreadsheet_panel exists: True
+  Web[0]: Col0-W1_P-1 rect=[1196, 182, 2227, 460] sim=0.70
+  Web[1]: Col0-W1_P-2 rect=[1734, 675, 2128, 1091] sim=0.56
+  Web[2]: Col0-W1_P-3 rect=[1398, 1385, 2729, 1760] sim=0.40
+  PDF[0]: Col0-P1_emb_1 rect=[1309, 3002, 2242, 3156] sim=0.00
+  PDF[1]: Col0-P1_emb_2 rect=[3582, 508, 4216, 725] sim=0.70
+  PDF[2]: Col0-P1_emb_3 rect=[3552, 1399, 4242, 2328] sim=0.56
+[Integrity Check] web_map created with 554 entries
+[Integrity Check] ✓ All web_map keys match region.area_code
+[BBOX Data] First pair:
+  web_id=Col0-W1_P-8, web_bbox=[880, 4150, 1136, 4272]
+  pdf_id=Col0-P1_emb_34, pdf_bbox=[510, 1241, 883, 1388]
+[Image Info] web_image size: (3840, 187920)
+[Image Info] pdf_image size: (5315, 36001)
+[Row 0] web_id=Col0-W1_P-8, pdf_id=Col0-P1_emb_34, sim=0.93
+  web_bbox=[880, 4150, 1136, 4272], pdf_bbox=[510, 1241, 883, 1388]
+  web_image=True, pdf_image=True
+  Score: 93%, color=#4CAF50
+  Web ID: Col0-W1_P-8
+  Web Thumb created: True
+[Row 1] web_id=Col0-W1_P-13, pdf_id=Col0-P1_emb_32, sim=0.93
+  web_bbox=[899, 6070, 1456, 6185], pdf_bbox=[1081, 1203, 1446, 1354]
+  web_image=True, pdf_image=True
+  Score: 93%, color=#4CAF50
+  Web ID: Col0-W1_P-13
+  Web Thumb created: True
+[Row 2] web_id=Col0-W1_P-30, pdf_id=Col0-P1_emb_37, sim=0.92
+  web_bbox=[1881, 18889, 1939, 19276], pdf_bbox=[563, 1027, 830, 1087]
+  web_image=True, pdf_image=True
+  Score: 92%, color=#4CAF50
+  Web ID: Col0-W1_P-30
+  Web Thumb created: True
+[AI Mode] Spreadsheet updated
+[AI Mode] Pre-switched to Web Source tab
+[_display_image] canvas_width=1295, image=(3840, 187920)
+[_display_image] Canvas items: total=415, image_tags=1
+[AI Mode] Web canvas displayed, scale=0.2660706683695189
+[Configure] PDF resize triggered, width=1295
+[_display_image] canvas_width=1295, image=(5315, 36001)
+[_display_image] Canvas items: total=189, image_tags=1
+[AI Mode] PDF canvas displayed, scale=0.2436500470366886
+[_redraw_regions] web_regions=554, pdf_regions=740
+[_redraw_regions] web: scale=(0.2661,0.2661), offset=(0,0)
+[_redraw_regions] web: 1108 region items drawn
+[_redraw_regions] pdf: scale=(0.2437,0.2437), offset=(0,0)
+[_redraw_regions] pdf: 1480 region items drawn
+[AI Mode] Regions redrawn on canvas
+[_display_image] canvas_width=1295, image=(5315, 36001)
+[_display_image] Canvas items: total=1481, image_tags=1
+[_redraw_regions] web_regions=554, pdf_regions=740
+[_redraw_regions] web: scale=(0.2661,0.2661), offset=(0,0)
+[_redraw_regions] web: 1108 region items drawn
+[_redraw_regions] pdf: scale=(0.2437,0.2437), offset=(0,0)
+[_redraw_regions] pdf: 1480 region items drawn
+[AI Mode] Final web_canvas items: 1109
+[AI Mode] Final tab switch to Web Source
+[AI Mode] Done - Web columns: 0=554, 1=0 | PDF columns: 0=740, 1=0
+[AI Mode] Display in progress flag cleared
+[AI Mode +500ms] web_canvas: total=1109, images=1, regions=1108
+[AI Mode +500ms] web_canvas scroll: xview=(0.0, 1.0), yview=(0.0, 0.00338)
+[AI Mode +500ms] web_canvas scrollregion=0 0 1021 50000
+[AI Mode +500ms] web_canvas scale_x=0.2661
+[AI Mode +500ms] pdf_canvas: total=1481, images=1, regions=1480
+
+---
+## 問題の概要
+Live Comparison Sheet において:
+- **Score列**: 空（93%等が表示されない）
+- **Web ID/Thumb列**: 空（IDもサムネイルも表示されない）  
+- **PDF ID/Thumb列**: サムネイルは表示されている
+- **Web Text/PDF Text列**: 正常に表示
+
+デバッグログは「Score: 93%」「Web Thumb created: True」を示しており、データは全て正常に作成されています。
+問題はUIウィジェットの表示（レイアウト）にあります。
+
+## 対象ファイル
+`C:/Users/raiko/OneDrive/Desktop/26/OCR/app/gui/panels/spreadsheet_panel.py`
+
+## 推定原因
+`pack_propagate(False)` と `CTkFrame` の組み合わせが正しく動作していない可能性があります。

@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "run_id": "20260110_031424",
+    "start_url": "https://example.com",
+    "timestamp": "2026-01-10T03:14:25.154123",
+    "total_pages": 1
+  },
+  "config": {
+    "START_URL": "https://example.com",
+    "ALLOWED_DOMAINS": [
+      "example.com"
+    ],
+    "MAX_PAGES": 1,
+    "CONCURRENCY": 4,
+    "HEADLESS": true,
+    "TIMEOUT_SECONDS": 30,
+    "WAIT_FOR_SELECTOR": "body",
+    "USER_AGENT": "SitemapPro/0.1.0 (Compatible; Playwright)",
+    "RESPECT_ROBOTS": true,
+    "REQUEST_DELAY": 0.0,
+    "AUTH_TYPE": "none",
+    "AUTH_USER": "",
+    "AUTH_PASS": "***",
+    "LOGIN_URL": "",
+    "AUTH_SELECTORS": {
+      "user": "#username",
+      "pass": "#password",
+      "submit": "button[type='submit']"
+    },
+    "COOKIES": "***",
+    "OUTPUT_DIR": "outputs"
+  },
+  "nodes": [
+    {
+      "id": "c984d06aafbecf6bc55569f964148ea3",
+      "url": "https://example.com",
+      "title": "Example Domain",
+      "status": 200,
+      "screenshot": "images/c984d06aafbecf6bc55569f964148ea3.png",
+      "thumbnail": "images/c984d06aafbecf6bc55569f964148ea3_thumb.png",
+      "h1": "Example Domain",
+      "meta_desc": "",
+      "canonical": "",
+      "links": [],
+      "links_count": 1
+    }
+  ],
+  "edges": [
+    {
+      "source": "c984d06aafbecf6bc55569f964148ea3",
+      "target": "627c563fbd0cd06f296d2bb8d790ed4f",
+      "type": "external"
+    }
+  ]
+}

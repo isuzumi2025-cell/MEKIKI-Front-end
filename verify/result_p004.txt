@@ -1,0 +1,108 @@
+=== P-004 Verification: Template Propagation (Page 4 Adaptation) ===
+Loaded 20 clusters from project_data.json
+Template Selected: {'rect': [115, 665, 457, 792], 'text': '30. Mizuta Tenmangu'}
+Image Loaded: (1790, 1301)
+[Propagator] Template Rect: [115, 665, 457, 792]
+[Propagator] Header Pattern: [0-9０-９]{1,2}
+[VisualPropagator] Found 1 visual anchors (threshold=0.85)
+[VisualPropagator] Found 1 visual anchors (threshold=0.75)
+[VisualPropagator] Found 1 visual anchors (threshold=0.65)
+[Propagator] Candidates before NMS: 20
+
+Propagation Results: 15 items found.
+ - [1] [1327, 92, 1669, 219] Anchor: 经商
+住吉三神と神田宗次とを祀る、白い鳥層が印象的な神社。唐津最大の祭り「唐津くんち」は、唐津神社の秋季例大祭として毎年11月2日から4日に行われ、14台の曳山が唐津の町を遂行する。JR唐津駅から徒歩約10分佐賀県唐津市南城内3-13
+からつじんじゃ
+特別御朱印あり
+駅山川駅長 (Matched Original ID: 4)
+ - [2] [105, 94, 447, 221] Anchor: 岡
+さくらいじんじゃ26櫻井神社
+特別御朱印あり1632年に福岡藩二代藩主・黒田忠之公が岩戸に出現した神様をるために櫻井神社を造営。社殿は修復を重ねて、創建当時の今日まで守っており、2023年に国の重要文化財に指定された。JR筑前前原駅からバスで「桜井」下車、徒歩約10分福岡県糸島市志摩桜井4227
+筑前前原駅鹿島駅長 (Matched Original ID: 1)
+ - [3] [493, 94, 835, 221] Anchor: 岡
+らいざんせんにょじっごいひおういん雷山千如寺大悲王院特別朱印あり178年、天竺山より来した、賀上人の間と伝えられる。本尊の観音像は鎌倉時代の作、歴代天皇や多くの武将豪族が厚く信仰した。樹齢400年の大力エデの紅葉が見事。
+JR筑前前原駅からバスで「富山観音前」下車、徒歩約7分福岡県糸島市富山626
+27
+前前駅島駅長 (Matched Original ID: 2)
+ - [4] [940, 104, 1282, 231] Anchor: さがじんじゃ
+佐賀藩10代藩主島直正、11代島直大公を祀る神社。境内に藩が日本で初めて造った鉄製カノン砲やアームストロング砲が復元されている。
+JR佐賀駅からバスで「佐嘉神社前」下車、徒歩すぐ佐賀県佐賀市松原2-10-43
+34佐嘉神社
+佐賀駅一ノ瀬駅長
+金佐奉 (Matched Original ID: 3)
+ - [5] [940, 373, 1282, 500] Anchor: 佐賀
+おおえがみだいじんぐう36大江神大神宮731(天平3年)建立、御祭神は天照大御神、豊受姫大神。佐賀を上げた武将たちに譲られてきた神社。江北駅(旧肥前山口駅)の歴史も保存され、知ることができる。
+特別あり
+JR江北駅から徒歩約25分
+佐賀県杵島郡江北町山口5034-2
+江北駅鴨川駅長 (Matched Original ID: 7)
+ - [6] [1328, 374, 1670, 501] Anchor: 佐賀
+天平7年に、武内を主神とする九州五社の一つに由来する武流馬など源氏と深いがある。御神木と共に信仰を集めている。
+JR武雄温泉駅から徒歩約25分佐賀県武雄市武雄町大字武雄5327
+たけおじんじゃ
+37武雄神社
+武雄温泉駅駅長 (Matched Original ID: 8)
+ - [7] [105, 385, 447, 512] Anchor: ふつかいちはちまんぐう28二日市八幡宮
+1500年を越える神社で、縁結び・安産・開運の神として尊崇されている。御神木の公孫樹(いちょう)には災厄除けの経験があるとされ、境内の銀杏は黄業すると辺り一面を黄金色に染め上げる。JR二日市駅から徒歩約4分
+福岡県筑紫野市二日市中央3-6-35
+特別御朱印あり
+二日市駅山口駅長 (Matched Original ID: 9)
+ - [8] [939, 653, 1281, 780] Anchor: 佐賀
+嬉野温泉に座する美肌の神豊玉姫を祀る神社。嬉野温泉の湯で手水を使い、豊玉姫の通い、白なまずに水をかけ美肌祈願を行う。絵馬納や美肌など特製の授与品も人気。
+JR野温泉駅から徒歩約25分佐賀県嬉野市嬉野町大字下宿乙2231-2
+とよたまひめじんじゃ
+特別朱印あり
+野温泉駅中野駅長 (Matched Original ID: 12)
+ - [9] [1328, 653, 1670, 780] Anchor: 佐賀
+すえや紊じんじゃ39陶山神社
+応神天皇を祀る陶山神社は、1658年「有田皿山宗八幡宮」とし白の鳥狛犬・灯能など名品が点在し「野外ト美術」と称される。境内をJR佐世保本線が通ることでも有名。JR上有田駅から徒歩約10分佐賀県西松浦郡有田町大2-5-1
+特別御朱印あり
+武雄温泉駅村子駅長 (Matched Original ID: 14)
+ - [10] [105, 655, 447, 782] Anchor: 福岡
+学問・武芸の神様として親しまれている菅原道真公を祭神とした神社。境内には、末社である恋木神社があり、良幸福の神様とし恋(こいのみこと)が進している。海外からの参拝者も多い。
+JR羽犬塚駅から徒歩約20分
+福岡県筑後市水田62-1
+みずてんまんぐう
+30水田天満宮
+特別御朱印あり
+讫後船小猫駅北長 (Matched Original ID: 11)
+ - [11] [1328, 936, 1670, 1063] Anchor: 長崎
+41福石観音清岩寺特別御朱印あり名行基が刻んだと伝わる十一面観音と弘法大使によるに五百漢を安置されている九州七観音の一つ。毎年8月8日~10日「四万六千日祭」が行われ終日で賑わう。
+JR佐世保駅から徒歩約19分長崎県佐世保市石町24-5
+ふくいしかんのんせいがんじ
+佐世保駅神田駅長 (Matched Original ID: 18)
+ - [12] [493, 943, 835, 1070] Anchor: とすやざじんじゃ
+1299年(正安元年)に京都の祇園神院(現在の八坂神社)が明治元年、神仏判然令により八坂神社に改称。毎年7月には大学である祇園祭に山笠が奉納される。
+JR鳥栖駅から徒歩約15分
+佐賀県鳥栖市本町1-867
+別
+33鳥栖八坂神社
+特別朱印あり
+久長 (Matched Original ID: 16)
+ - [13] [940, 943, 1282, 1070] Anchor: かめやまはちまんぐう
+平戸藩主松菜の代々の守護神としてめられ、佐世保・旧海軍の武神としてのも集めた。家内安全や安産などのご神徳があり、地域の氏神さま「八幡さん」として親しまれている。JR佐世保駅から徒歩約35分
+長崎県佐世保市八幡町3-3
+40亀山八幡宮
+特別印あり
+佐世保田駅長 (Matched Original ID: 17)
+ - [14] [104, 946, 446, 1073] Anchor: おおむたじんじゃ32大牟田神社
+1538年、庄屋と村人が卵神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇国際の御祭神2柱を京都八坂神社より。大牟田の守護神として親しまれている。
+JR大牟田駅から徒歩約10分
+福岡県大牟田市本町1-2-22
+特別御朱印あり
+大幸田駅松駅長 (Matched Original ID: 15)
+ - [15] [1369, 1203, 1711, 1330] Anchor: ※初、問い合わせなどは公式サイトでご確認ください。画像はイメージです。
+6 (Matched Original ID: New/Unknown)
+
+[Debug] Default visual saved to: c:\Users\raiko\OneDrive\Desktop\26\OCR\verify\debug\p004_detected.png
+
+--- Running Post-attach & Rescue ---
+Saved classification report: c:\Users\raiko\OneDrive\Desktop\26\OCR\verify\debug\p004_missing_to_detected_report.txt
+Classification Results: DETECTED=19, MISS_PROFILE=0
+
+PASS: All items classified correctly (MISS_PROFILE=0).
+Telemetry: Found 19 items (Target >= 15, Miss=0).
+[Debug] Visual saved to: c:\Users\raiko\OneDrive\Desktop\26\OCR\verify\debug\p004_detected.png (Missing: 0 in Blue)
+
+PASS: Found signficant items and no MISS_PROFILE.
+Telemetry: Found 19 items (Target >= 15, Miss=0).

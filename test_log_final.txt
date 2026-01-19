@@ -1,0 +1,29 @@
+C:\Users\raiko\OneDrive\Desktop\26\OCR\app\core\llm_client.py:1: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+============================================================
+🧪 Testing Gemini OCR Integration
+============================================================
+✅ LLM Client initialized with model: gemini-flash-latest
+✅ Engine Initialized
+
+🔄 Testing Path-based OCR: test.jpg
+🔍 Gemini OCR Processing: test.jpg
+✅ Gemini OCR Complete: 219 blocks extracted
+✅ Path-based Result: 219 blocks
+   Full Text Preview: JR九州の駅長が
+おすすめする九州の寺社
+九州
+寺社めぐり
+2025年2月1日(土)~10月31日(...
+
+🔄 Testing Image-based OCR (PIL Object)
+🔍 Gemini OCR Processing: In-memory Image
+✅ Gemini OCR Complete: 61 blocks extracted
+✅ Image-based Result: 61 blocks

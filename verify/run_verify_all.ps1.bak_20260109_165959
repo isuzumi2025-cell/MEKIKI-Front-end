@@ -1,0 +1,24 @@
+﻿$ErrorActionPreference = "Stop"
+$env:PYTHONUTF8="1"
+$env:PYTHONIOENCODING="utf-8"
+chcp 65001 | Out-Null
+
+$root = "C:\Users\raiko\OneDrive\Desktop\26\OCR"
+$verify = Join-Path $root "verify"
+
+Write-Host "== Verify: Setup =="
+py -3 (Join-Path $verify "verify_setup.py") 2>&1 | Out-File -FilePath (Join-Path $verify "result_setup.txt") -Encoding utf8
+
+Write-Host "== Verify: Jobs Endpoint =="
+$conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 8000 -InformationLevel Quiet
+if (-not $conn) {
+    Write-Warning "Server not running on 127.0.0.1:8000. Skipping Jobs verification."
+    "FAIL: Server not running" | Out-File -FilePath (Join-Path $verify "result_jobs.txt") -Encoding utf8
+} else {
+    py -3 (Join-Path $verify "verify_jobs_endpoint.py") 2>&1 | Out-File -FilePath (Join-Path $verify "result_jobs.txt") -Encoding utf8
+}
+
+Write-Host "== Verify: Propagation Page4 (P-004) =="
+py -3 (Join-Path $root "verify_propagation_page4.py") 2>&1 | Out-File -FilePath (Join-Path $verify "result_p004.txt") -Encoding utf8
+
+Write-Host "DONE. See verify\result_*.txt"

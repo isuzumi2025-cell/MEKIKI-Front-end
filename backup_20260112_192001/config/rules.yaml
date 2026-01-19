@@ -1,0 +1,121 @@
+# Advanced Proofing System - Rules Configuration
+# 差分判定ルール・重大度判定・マッチングウェイト
+
+# マッチングスコア重み
+match_weights:
+  alpha_text: 0.4    # テキスト類似度
+  beta_embed: 0.2    # 埋め込み類似度
+  gamma_layout: 0.2  # レイアウト類似度
+  delta_visual: 0.2  # 視覚整合性
+
+# フィールド差分ルール
+field_rules:
+  - field_type: price
+    tolerance: 0.0         # 価格は完全一致
+    normalize_currency: true
+    normalize_tax: true    # 税込/税抜正規化
+    severity_on_diff: CRITICAL
+    
+  - field_type: date
+    tolerance: 0           # 日付は完全一致
+    normalize_format: true # 和暦→西暦
+    severity_on_diff: MAJOR
+    
+  - field_type: percent
+    tolerance: 0.01        # 1%まで許容
+    severity_on_diff: MAJOR
+    
+  - field_type: url
+    ignore_protocol: true  # http/httpsは無視
+    ignore_trailing_slash: true
+    severity_on_diff: MAJOR
+    
+  - field_type: phone
+    normalize_hyphens: true
+    severity_on_diff: MAJOR
+    
+  - field_type: sku
+    ignore_case: true
+    severity_on_diff: MAJOR
+
+# 重大度判定ルール（上から順に評価）
+severity_rules:
+  # CRITICAL
+  - name: "legal_missing"
+    condition: "diff_type == 'missing' and role == 'legal'"
+    severity: CRITICAL
+    risk_reason: "法務文言が欠落"
+    
+  - name: "brand_misspelling"
+    condition: "field_type == 'brand' and has_diff"
+    severity: CRITICAL
+    risk_reason: "ブランド名の誤表記"
+    
+  - name: "price_diff"
+    condition: "field_type == 'price' and has_diff"
+    severity: CRITICAL
+    risk_reason: "価格の相違"
+    
+  - name: "table_row_removed"
+    condition: "diff_type == 'table_diff' and sub_type == 'row_removed'"
+    severity: CRITICAL
+    risk_reason: "表の行が削除"
+    
+  # MAJOR
+  - name: "date_diff"
+    condition: "field_type == 'date' and has_diff"
+    severity: MAJOR
+    risk_reason: "日付の相違"
+    
+  - name: "url_diff"
+    condition: "field_type == 'url' and has_diff"
+    severity: MAJOR
+    risk_reason: "URLの相違"
+    
+  - name: "sku_diff"
+    condition: "field_type == 'sku' and has_diff"
+    severity: MAJOR
+    risk_reason: "型番の相違"
+    
+  - name: "percent_diff"
+    condition: "field_type == 'percent' and abs_diff > 0.01"
+    severity: MAJOR
+    risk_reason: "割合の相違(1%超)"
+    
+  - name: "heading_diff"
+    condition: "role == 'headline' and has_text_diff"
+    severity: MAJOR
+    risk_reason: "見出しの相違"
+    
+  # MINOR
+  - name: "whitespace_only"
+    condition: "diff_type == 'text_diff' and is_whitespace_only"
+    severity: MINOR
+    risk_reason: "空白のみの差分"
+    
+  - name: "punctuation_only"
+    condition: "diff_type == 'text_diff' and is_punctuation_only"
+    severity: MINOR
+    risk_reason: "句読点のみの差分"
+
+# ロール推定パラメータ
+role_estimation:
+  headline_size_ratio: 1.5      # 平均の1.5倍以上
+  caption_size_ratio: 0.8       # 平均の0.8倍以下
+  price_digit_ratio: 0.3        # 30%以上が数字/記号
+  legal_keywords:
+    - "規約"
+    - "注意"
+    - "※"
+    - "条項"
+    - "免責"
+    - "ご注意"
+    - "お問い合わせ"
+
+# 正規化オプション
+normalization:
+  fullwidth_to_halfwidth: true  # 全角→半角
+  remove_zero_width: true       # ゼロ幅文字除去
+  normalize_spaces: true        # 連続空白を1つに
+  normalize_newlines: true      # 改行を空白に
+  remove_ruby: true             # ルビ削除

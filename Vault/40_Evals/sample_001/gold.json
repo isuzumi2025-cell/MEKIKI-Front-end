@@ -1,0 +1,49 @@
+{
+    "document_id": "sample_001_lp",
+    "source_type": "web",
+    "source_url": "example_landing_page",
+    "description": "ランディングページ - 段落検出サンプル",
+    "created": "2026-01-13",
+    "paragraphs": [
+        {
+            "id": "P1",
+            "start_line": 1,
+            "end_line": 3,
+            "text": "ヘッダーテキスト / キャッチコピー",
+            "bbox": [
+                0,
+                0,
+                1920,
+                100
+            ],
+            "type": "header"
+        },
+        {
+            "id": "P2",
+            "start_line": 4,
+            "end_line": 8,
+            "text": "サービス説明文の本文段落",
+            "bbox": [
+                0,
+                100,
+                1920,
+                300
+            ],
+            "type": "body"
+        },
+        {
+            "id": "P3",
+            "start_line": 9,
+            "end_line": 12,
+            "text": "特徴・ベネフィットの箇条書き",
+            "bbox": [
+                0,
+                300,
+                1920,
+                450
+            ],
+            "type": "list"
+        }
+    ],
+    "notes": "TODO: 実際のWebページから段落境界を手動アノテーション"
+}

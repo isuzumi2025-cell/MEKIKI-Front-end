@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\debug_startup.py", line 8, in <module>
+    import app.main
+ModuleNotFoundError: No module named 'app.main'

@@ -1,0 +1,16 @@
+cluster_id 1 -> attached_to_detected_idx 1
+cluster_id 2 -> attached_to_detected_idx 2
+cluster_id 4 -> attached_to_detected_idx 0
+cluster_id 5 -> attached_to_detected_idx 0
+cluster_id 7 -> attached_to_detected_idx 4
+cluster_id 8 -> attached_to_detected_idx 5
+cluster_id 9 -> attached_to_detected_idx 6
+cluster_id 10 -> attached_to_detected_idx 5
+cluster_id 11 -> attached_to_detected_idx 9
+cluster_id 12 -> attached_to_detected_idx 7
+cluster_id 13 -> attached_to_detected_idx 7
+cluster_id 14 -> attached_to_detected_idx 8
+cluster_id 15 -> attached_to_detected_idx 13
+cluster_id 17 -> attached_to_detected_idx 12
+cluster_id 18 -> attached_to_detected_idx 10
+cluster_id 20 -> attached_to_detected_idx 14

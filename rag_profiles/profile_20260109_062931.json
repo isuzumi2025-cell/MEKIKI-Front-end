@@ -1,0 +1,749 @@
+{
+  "timestamp": "2026-01-09T06:29:31.851664",
+  "overall_score": 0.303280392514909,
+  "pair_count": 74,
+  "web_pattern_groups": 9,
+  "pdf_pattern_groups": 4,
+  "pairs": [
+    {
+      "web_id": "P7-20",
+      "pdf_id": "PDF-7",
+      "fusion_score": 0.5007982709648454,
+      "text_score": 0.3496665398757449,
+      "layout_score": 0.8141401826685281,
+      "syntax_score": 0.9750000000000001,
+      "image_score": 0.055733046737077,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P5-14",
+      "pdf_id": "PDF-9",
+      "fusion_score": 0.4777168654788522,
+      "text_score": 0.35871177618737804,
+      "layout_score": 0.72793673269045,
+      "syntax_score": 1.0,
+      "image_score": 0.011239859156442603,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P28-79",
+      "pdf_id": "PDF-28",
+      "fusion_score": 0.47486365640474304,
+      "text_score": 0.397845536816125,
+      "layout_score": 0.7185908822062106,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.03038860563370174,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P9-25",
+      "pdf_id": "PDF-10",
+      "fusion_score": 0.4522688959123017,
+      "text_score": 0.4128827170821482,
+      "layout_score": 0.7584632363177697,
+      "syntax_score": 0.65,
+      "image_score": 0.0,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P30-85",
+      "pdf_id": "PDF-29",
+      "fusion_score": 0.4389287562200027,
+      "text_score": 0.28912863070539424,
+      "layout_score": 0.6516989967442117,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.1517627737589606,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P16-44",
+      "pdf_id": "PDF-48",
+      "fusion_score": 0.43203082616032373,
+      "text_score": 0.08553846153846154,
+      "layout_score": 0.9055909699332014,
+      "syntax_score": 1.0,
+      "image_score": 0.10708849530819403,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P26-74",
+      "pdf_id": "PDF-72",
+      "fusion_score": 0.43020876654938106,
+      "text_score": 0.07086340794883508,
+      "layout_score": 0.7628994159962464,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.4056927468539271,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P5-15",
+      "pdf_id": "PDF-14",
+      "fusion_score": 0.39932464738478046,
+      "text_score": 0.01103448275862069,
+      "layout_score": 0.9209786406196384,
+      "syntax_score": 1.0,
+      "image_score": 0.07333097063211269,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P14-38",
+      "pdf_id": "PDF-56",
+      "fusion_score": 0.392942907065908,
+      "text_score": 0.044072228374553955,
+      "layout_score": 0.8667598081705318,
+      "syntax_score": 0.9750000000000001,
+      "image_score": 0.06187031836726726,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P24-68",
+      "pdf_id": "PDF-38",
+      "fusion_score": 0.3834957090709623,
+      "text_score": 0.06894351889475824,
+      "layout_score": 0.6571766076090637,
+      "syntax_score": 1.0,
+      "image_score": 0.2081207480539655,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P52-146",
+      "pdf_id": "PDF-37",
+      "fusion_score": 0.3824015616825827,
+      "text_score": 0.3669450345518033,
+      "layout_score": 0.48403704994627184,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.0730714268764674,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P23-62",
+      "pdf_id": "PDF-18",
+      "fusion_score": 0.372498923801092,
+      "text_score": 0.22583976213436197,
+      "layout_score": 0.6326819951032385,
+      "syntax_score": 0.5,
+      "image_score": 0.24496260085768803,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P60-171",
+      "pdf_id": "PDF-47",
+      "fusion_score": 0.3655966721263523,
+      "text_score": 0.3841180948238365,
+      "layout_score": 0.4016830859255671,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.057643313577129436,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P56-159",
+      "pdf_id": "PDF-41",
+      "fusion_score": 0.364617484214145,
+      "text_score": 0.40034079844206427,
+      "layout_score": 0.39043452654145827,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.03436266600977362,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P36-99",
+      "pdf_id": "PDF-63",
+      "fusion_score": 0.36444961525309477,
+      "text_score": 0.03774475524475525,
+      "layout_score": 0.6753244313029161,
+      "syntax_score": 1.0,
+      "image_score": 0.1526030266473184,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P12-34",
+      "pdf_id": "PDF-26",
+      "fusion_score": 0.35953071880148324,
+      "text_score": 0.047148541114058355,
+      "layout_score": 0.8426852094234396,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.0,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P14-39",
+      "pdf_id": "PDF-54",
+      "fusion_score": 0.3578281407422777,
+      "text_score": 0.013114754098360657,
+      "layout_score": 0.885273959196168,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.0063187465194573635,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P3-9",
+      "pdf_id": "PDF-51",
+      "fusion_score": 0.35678956740145695,
+      "text_score": 0.0,
+      "layout_score": 0.8150241946941055,
+      "syntax_score": 1.0,
+      "image_score": 0.015167593639652865,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P16-45",
+      "pdf_id": "PDF-71",
+      "fusion_score": 0.3516000143028103,
+      "text_score": 0.035555555555555556,
+      "layout_score": 0.8295111683223522,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.0,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P9-26",
+      "pdf_id": "PDF-55",
+      "fusion_score": 0.34726655467951056,
+      "text_score": 0.031796883513130654,
+      "layout_score": 0.8181912050970332,
+      "syntax_score": 0.8666666666666667,
+      "image_score": 0.0,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P12-33",
+      "pdf_id": "PDF-12",
+      "fusion_score": 0.3450948860952809,
+      "text_score": 0.26161985301520185,
+      "layout_score": 0.6670381336554901,
+      "syntax_score": 0.4,
+      "image_score": 0.06843705737663784,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P17-47",
+      "pdf_id": "PDF-35",
+      "fusion_score": 0.34044399689226107,
+      "text_score": 0.04084511172365257,
+      "layout_score": 0.7749445275314406,
+      "syntax_score": 0.78,
+      "image_score": 0.06684910159969949,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P58-165",
+      "pdf_id": "PDF-42",
+      "fusion_score": 0.3387473213216634,
+      "text_score": 0.36369561464088396,
+      "layout_score": 0.4199441303887763,
+      "syntax_score": 0.5,
+      "image_score": 0.06641521434057865,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P20-53",
+      "pdf_id": "PDF-4",
+      "fusion_score": 0.3370979374702066,
+      "text_score": 0.0,
+      "layout_score": 0.6872735300717974,
+      "syntax_score": 1.0,
+      "image_score": 0.07639777476128623,
+      "syntax_type": "COPY"
+    },
+    {
+      "web_id": "P32-89",
+      "pdf_id": "PDF-32",
+      "fusion_score": 0.33565402864526966,
+      "text_score": 0.3200806956664579,
+      "layout_score": 0.5131457024139938,
+      "syntax_score": 0.42857142857142855,
+      "image_score": 0.07524805244736897,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P15-41",
+      "pdf_id": "PDF-62",
+      "fusion_score": 0.33382636044384484,
+      "text_score": 0.03893638716762099,
+      "layout_score": 0.9110860429403066,
+      "syntax_score": 0.6,
+      "image_score": 0.002401474208599015,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P23-64",
+      "pdf_id": "PDF-59",
+      "fusion_score": 0.33291242999197956,
+      "text_score": 0.07443493018591375,
+      "layout_score": 0.7660864196460151,
+      "syntax_score": 0.65,
+      "image_score": 0.07058426503055171,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P21-56",
+      "pdf_id": "PDF-70",
+      "fusion_score": 0.3275674061573366,
+      "text_score": 0.07171128513324834,
+      "layout_score": 0.7304494434179798,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.08135265624771142,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P3-8",
+      "pdf_id": "PDF-39",
+      "fusion_score": 0.3219319862402293,
+      "text_score": 0.10948137012777838,
+      "layout_score": 0.7433267626774942,
+      "syntax_score": 0.5,
+      "image_score": 0.08653873759872208,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P10-28",
+      "pdf_id": "PDF-30",
+      "fusion_score": 0.3169078363074855,
+      "text_score": 0.05695744933033069,
+      "layout_score": 0.851797401526811,
+      "syntax_score": 0.52,
+      "image_score": 0.015877530968252142,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P65-184",
+      "pdf_id": "PDF-52",
+      "fusion_score": 0.31511506452144017,
+      "text_score": 0.4129888712241654,
+      "layout_score": 0.37306837105218416,
+      "syntax_score": 0.3333333333333333,
+      "image_score": 0.033262116343639625,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P19-51",
+      "pdf_id": "PDF-66",
+      "fusion_score": 0.3113695016525466,
+      "text_score": 0.08803009575923394,
+      "layout_score": 0.8074352014763522,
+      "syntax_score": 0.4,
+      "image_score": 0.07149331489882517,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P33-92",
+      "pdf_id": "PDF-45",
+      "fusion_score": 0.31120362327423845,
+      "text_score": 0.032023809523809524,
+      "layout_score": 0.5935763978588586,
+      "syntax_score": 1.0,
+      "image_score": 0.0,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P33-91",
+      "pdf_id": "PDF-43",
+      "fusion_score": 0.3101978104027133,
+      "text_score": 0.011267605633802818,
+      "layout_score": 0.6227630725967688,
+      "syntax_score": 1.0,
+      "image_score": 0.0,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P1-1",
+      "pdf_id": "PDF-1",
+      "fusion_score": 0.30407534551441223,
+      "text_score": 0.033569952016112854,
+      "layout_score": 0.7875894588318684,
+      "syntax_score": 0.625,
+      "image_score": 0.0,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P21-57",
+      "pdf_id": "PDF-68",
+      "fusion_score": 0.29857838209211796,
+      "text_score": 0.025806451612903226,
+      "layout_score": 0.6772636355170241,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.09469946283850345,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P19-52",
+      "pdf_id": "PDF-57",
+      "fusion_score": 0.2919445430022047,
+      "text_score": 0.020652576937337786,
+      "layout_score": 0.7347340489090783,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.0,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P49-135",
+      "pdf_id": "PDF-49",
+      "fusion_score": 0.2862997644114929,
+      "text_score": 0.03734703361387928,
+      "layout_score": 0.4780376334744917,
+      "syntax_score": 1.0,
+      "image_score": 0.009257712986591407,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P6-17",
+      "pdf_id": "PDF-34",
+      "fusion_score": 0.2816583773536507,
+      "text_score": 0.04814553161427058,
+      "layout_score": 0.8496006588317697,
+      "syntax_score": 0.3333333333333333,
+      "image_score": 0.0,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P25-72",
+      "pdf_id": "PDF-11",
+      "fusion_score": 0.28054089061238124,
+      "text_score": 0.04189075630252101,
+      "layout_score": 0.6275888631221799,
+      "syntax_score": 0.65,
+      "image_score": 0.04693686155413936,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P31-86",
+      "pdf_id": "PDF-50",
+      "fusion_score": 0.27954865968653325,
+      "text_score": 0.04107918476445039,
+      "layout_score": 0.6788502592297183,
+      "syntax_score": 0.43333333333333335,
+      "image_score": 0.14202210486661757,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P46-129",
+      "pdf_id": "PDF-31",
+      "fusion_score": 0.27843004575954333,
+      "text_score": 0.3158758927368279,
+      "layout_score": 0.21885433211478644,
+      "syntax_score": 0.42857142857142855,
+      "image_score": 0.16540195675200645,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P34-95",
+      "pdf_id": "PDF-53",
+      "fusion_score": 0.2756780440649096,
+      "text_score": 0.06850202429149797,
+      "layout_score": 0.6930919840338923,
+      "syntax_score": 0.4,
+      "image_score": 0.07502119169918656,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P8-22",
+      "pdf_id": "PDF-21",
+      "fusion_score": 0.27415330656148595,
+      "text_score": 0.04117803837953092,
+      "layout_score": 0.8499297586530135,
+      "syntax_score": 0.21666666666666667,
+      "image_score": 0.06349825773210097,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P23-63",
+      "pdf_id": "PDF-73",
+      "fusion_score": 0.2665937320963567,
+      "text_score": 0.038461538461538464,
+      "layout_score": 0.6048364668469652,
+      "syntax_score": 0.6666666666666666,
+      "image_score": 0.0,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P3-5",
+      "pdf_id": "PDF-8",
+      "fusion_score": 0.2661725319233761,
+      "text_score": 0.04000000000000001,
+      "layout_score": 0.9630299738134033,
+      "syntax_score": 0.0,
+      "image_score": 0.04707519235012635,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P51-143",
+      "pdf_id": "PDF-22",
+      "fusion_score": 0.26350118141470086,
+      "text_score": 0.035454545454545454,
+      "layout_score": 0.35973702563498544,
+      "syntax_score": 1.0,
+      "image_score": 0.04692553412068185,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P10-30",
+      "pdf_id": "PDF-44",
+      "fusion_score": 0.2631363996977277,
+      "text_score": 0.047058823529411764,
+      "layout_score": 0.902073693202144,
+      "syntax_score": 0.0,
+      "image_score": 0.09397223492713483,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P2-3",
+      "pdf_id": "PDF-3",
+      "fusion_score": 0.2569047601519904,
+      "text_score": 0.0,
+      "layout_score": 0.7276190406079615,
+      "syntax_score": 0.5,
+      "image_score": 0.0,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P24-69",
+      "pdf_id": "PDF-64",
+      "fusion_score": 0.25512873592534974,
+      "text_score": 0.016161616161616165,
+      "layout_score": 0.7733082839321819,
+      "syntax_score": 0.3333333333333333,
+      "image_score": 0.026685092388289047,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P13-35",
+      "pdf_id": "PDF-58",
+      "fusion_score": 0.2546910574505748,
+      "text_score": 0.018604651162790697,
+      "layout_score": 0.9367762233663977,
+      "syntax_score": 0.0,
+      "image_score": 0.06527570571929552,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P22-59",
+      "pdf_id": "PDF-23",
+      "fusion_score": 0.2542285760356798,
+      "text_score": 0.05714285714285714,
+      "layout_score": 0.8149556069327891,
+      "syntax_score": 0.0,
+      "image_score": 0.13816265722669818,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P52-148",
+      "pdf_id": "PDF-6",
+      "fusion_score": 0.25248481623106694,
+      "text_score": 0.2093627450980392,
+      "layout_score": 0.0,
+      "syntax_score": 1.0,
+      "image_score": 0.09369859095925638,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P17-48",
+      "pdf_id": "PDF-61",
+      "fusion_score": 0.250636860008231,
+      "text_score": 0.025806451612903226,
+      "layout_score": 0.8512111254992591,
+      "syntax_score": 0.0,
+      "image_score": 0.1375574899412747,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P11-31",
+      "pdf_id": "PDF-60",
+      "fusion_score": 0.24956568293910153,
+      "text_score": 0.08421052631578947,
+      "layout_score": 0.7880823715111951,
+      "syntax_score": 0.0,
+      "image_score": 0.09430439767493486,
+      "syntax_type": "UNKNOWN"
+    },
+    {
+      "web_id": "P3-6",
+      "pdf_id": "PDF-15",
+      "fusion_score": 0.2471036926550356,
+      "text_score": 0.043835616438356165,
+      "layout_score": 0.8716078163377421,
+      "syntax_score": 0.0,
+      "image_score": 0.05833745997628802,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P2-2",
+      "pdf_id": "PDF-19",
+      "fusion_score": 0.24525701396125693,
+      "text_score": 0.032,
+      "layout_score": 0.8806787870687175,
+      "syntax_score": 0.0,
+      "image_score": 0.06143658597038772,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P40-112",
+      "pdf_id": "PDF-40",
+      "fusion_score": 0.2442529153682788,
+      "text_score": 0.054175236528177705,
+      "layout_score": 0.47612864796157506,
+      "syntax_score": 0.5,
+      "image_score": 0.14275329383306978,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P7-18",
+      "pdf_id": "PDF-27",
+      "fusion_score": 0.2420892989992761,
+      "text_score": 0.015384615384615385,
+      "layout_score": 0.9045747424502267,
+      "syntax_score": 0.0,
+      "image_score": 0.04895883616436627,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P16-43",
+      "pdf_id": "PDF-69",
+      "fusion_score": 0.24094777837330233,
+      "text_score": 0.02800552104899931,
+      "layout_score": 0.9189822798148104,
+      "syntax_score": 0.0,
+      "image_score": 0.0,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P3-7",
+      "pdf_id": "PDF-13",
+      "fusion_score": 0.239675699866714,
+      "text_score": 0.01889763779527559,
+      "layout_score": 0.90682318198053,
+      "syntax_score": 0.0,
+      "image_score": 0.027054246267356356,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P54-154",
+      "pdf_id": "PDF-67",
+      "fusion_score": 0.23872823427032033,
+      "text_score": 0.036923076923076927,
+      "layout_score": 0.5058360140043583,
+      "syntax_score": 0.65,
+      "image_score": 0.0,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P42-117",
+      "pdf_id": "PDF-24",
+      "fusion_score": 0.23720929987536266,
+      "text_score": 0.2502519909206325,
+      "layout_score": 0.48208808832355865,
+      "syntax_score": 0.0,
+      "image_score": 0.08293240713109998,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P9-24",
+      "pdf_id": "PDF-2",
+      "fusion_score": 0.23669893345310586,
+      "text_score": 0.0,
+      "layout_score": 0.8261094084149573,
+      "syntax_score": 0.2,
+      "image_score": 0.0008579067468326959,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P4-10",
+      "pdf_id": "PDF-25",
+      "fusion_score": 0.23635228550507634,
+      "text_score": 0.039024390243902446,
+      "layout_score": 0.848175102377906,
+      "syntax_score": 0.0,
+      "image_score": 0.0434937690651942,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P3-4",
+      "pdf_id": "PDF-20",
+      "fusion_score": 0.2286908951280235,
+      "text_score": 0.027906976744186046,
+      "layout_score": 0.8701124177213964,
+      "syntax_score": 0.0,
+      "image_score": 0.0,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P20-55",
+      "pdf_id": "PDF-65",
+      "fusion_score": 0.22699897532220734,
+      "text_score": 0.023529411764705882,
+      "layout_score": 0.8415485171512792,
+      "syntax_score": 0.0,
+      "image_score": 0.036000406642525934,
+      "syntax_type": "ADDRESS"
+    },
+    {
+      "web_id": "P7-19",
+      "pdf_id": "PDF-46",
+      "fusion_score": 0.22593407150893197,
+      "text_score": 0.0380952380952381,
+      "layout_score": 0.7561242073407848,
+      "syntax_score": 0.0,
+      "image_score": 0.10832462217820256,
+      "syntax_type": "PRICE"
+    },
+    {
+      "web_id": "P7-21",
+      "pdf_id": "PDF-33",
+      "fusion_score": 0.22340638100532165,
+      "text_score": 0.15601875977071392,
+      "layout_score": 0.0,
+      "syntax_score": 1.0,
+      "image_score": 0.05499438548518043,
+      "syntax_type": "PROPER_NOUN"
+    },
+    {
+      "web_id": "P28-80",
+      "pdf_id": "PDF-16",
+      "fusion_score": 0.2217988947065183,
+      "text_score": 0.018823529411764708,
+      "layout_score": 0.6055025570776862,
+      "syntax_score": 0.3333333333333333,
+      "image_score": 0.06446921836195438,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P32-90",
+      "pdf_id": "PDF-5",
+      "fusion_score": 0.19010920576315085,
+      "text_score": 0.0064005209598022115,
+      "layout_score": 0.5037538847092387,
+      "syntax_score": 0.4,
+      "image_score": 0.00805263100960155,
+      "syntax_type": "NAME"
+    },
+    {
+      "web_id": "P44-123",
+      "pdf_id": "PDF-74",
+      "fusion_score": 0.16767610228780977,
+      "text_score": 0.033566433566433566,
+      "layout_score": 0.0,
+      "syntax_score": 1.0,
+      "image_score": 0.021247644306181864,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P67-190",
+      "pdf_id": "PDF-17",
+      "fusion_score": 0.1575294117647059,
+      "text_score": 0.018823529411764708,
+      "layout_score": 0.0,
+      "syntax_score": 1.0,
+      "image_score": 0.0,
+      "syntax_type": "DESCRIPTION"
+    },
+    {
+      "web_id": "P54-155",
+      "pdf_id": "PDF-36",
+      "fusion_score": 0.12510951972258266,
+      "text_score": 0.010389610389610391,
+      "layout_score": 0.09003830226230103,
+      "syntax_score": 0.5,
+      "image_score": 0.11722050000581632,
+      "syntax_type": "PROPER_NOUN"
+    }
+  ]
+}

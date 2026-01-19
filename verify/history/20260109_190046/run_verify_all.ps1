@@ -1,0 +1,36 @@
+﻿# NOTE: Jobs endpoint verify requires uvicorn running on http://127.0.0.1:8000
+
+$ErrorActionPreference = "Continue"
+$env:PYTHONUTF8="1"
+$env:PYTHONIOENCODING="utf-8"
+chcp 65001 | Out-Null
+
+$root   = "C:\Users\raiko\OneDrive\Desktop\26\OCR"
+$env:PYTHONPATH = $root
+$verify = Join-Path $root "verify"
+
+function RunPyToFile([string]$scriptPath, [string]$outFile) {
+    # Always run from $root so `import app...` works regardless of current directory
+    cmd /c "cd /d ""$root"" && py -3 ""$scriptPath"" > ""$outFile"" 2>&1" | Out-Null
+    return $LASTEXITCODE
+}
+
+Write-Host "== Verify: Setup =="
+$code = RunPyToFile (Join-Path $verify "verify_setup.py") (Join-Path $verify "result_setup.txt")
+if ($code -ne 0) { Write-Warning "Setup failed (exit=$code). See result_setup.txt" }
+
+Write-Host "== Verify: Jobs Endpoint =="
+$conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 8000 -InformationLevel Quiet
+if (-not $conn) {
+    Write-Warning "Server not running on 127.0.0.1:8000. Skipping Jobs verification."
+    "SKIP: Server not running on 127.0.0.1:8000" | Out-File -FilePath (Join-Path $verify "result_jobs.txt") -Encoding utf8
+} else {
+    $code = RunPyToFile (Join-Path $verify "verify_jobs_endpoint.py") (Join-Path $verify "result_jobs.txt")
+    if ($code -ne 0) { Write-Warning "Jobs verify failed (exit=$code). See result_jobs.txt" }
+}
+
+Write-Host "== Verify: Propagation Page4 (P-004) =="
+$code = RunPyToFile (Join-Path $root "verify_propagation_page4.py") (Join-Path $verify "result_p004.txt")
+if ($code -ne 0) { Write-Warning "P-004 failed (exit=$code). See result_p004.txt" }
+
+Write-Host "DONE. See verify\result_*.txt"

@@ -1,0 +1,44 @@
+﻿py : Traceback (most r
+ecent call last):
+発生場所 行:1 文字:1
++ py -3 "$script" 2>&1
+ | Out-File -FilePath 
+result.txt -Encoding u
+tf8
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (Traceback    
+ (most recent call    
+ last)::String) [    ]
+, RemoteExceptio    n
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+  File "C:\Users\raiko
+\OneDrive\Desktop\26\O
+CR\verify_propagation_
+page4.py", line 89, in
+ verify_page4_propagat
+ion
+    print(f" - [{i+1}]
+ {r['rect']} Anchor: {
+r.get('anchor_word')} 
+(Matched Original ID: 
+{matched_id})")
+UnicodeEncodeError: 'c
+p932' codec can't enco
+de character '\u7ecf' 
+in position 37: illega
+l multibyte sequence
+=== P-004 Verification: Template Propagation (Page 4 Adaptation) ===
+Loaded 20 clusters from project_data.json
+Template Selected: {'rect': [115, 665, 457, 792], 'text': '30. Mizuta Tenmangu'}
+Image Loaded: (1790, 1301)
+[Propagator] Template Rect: [115, 665, 457, 792]
+[Propagator] Header Pattern: [0-9０-９]{1,2}
+[VisualPropagator] Found 1 visual anchors (threshold=0.75)
+
+Propagation Results: 15 items found.
+FAIL: Exception during propagation: 'cp932' codec can't encode character '\u7ecf' in position 37: illegal multibyte sequence

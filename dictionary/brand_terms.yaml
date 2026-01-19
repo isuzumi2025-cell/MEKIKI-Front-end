@@ -1,0 +1,63 @@
+# 広告ドメイン辞書 - ブランド用語
+# brand_terms.yaml
+
+# ブランド名の正規表記と許容表記
+brands:
+  - id: "BRAND_001"
+    canonical: "サンプル株式会社"
+    allowed:
+      - "サンプル（株）"
+      - "サンプル(株)"
+      - "㈱サンプル"
+    forbidden:
+      - "サンプル社"  # 社は使わない
+    notes: "株式会社は後置"
+    
+  - id: "BRAND_002"
+    canonical: "Example Corp."
+    allowed:
+      - "Example Corporation"
+      - "Example Co."
+    forbidden:
+      - "example corp"  # 大文字必須
+    notes: "英語表記は大文字小文字を守る"
+
+# 製品シリーズ
+product_series:
+  - id: "PROD_001"
+    canonical: "モデルX-2000"
+    allowed:
+      - "X-2000"
+      - "モデルX2000"
+    pattern: "X-?\\d{4}"  # regex
+
+# 禁止ワード
+forbidden_terms:
+  - term: "無料"
+    context: "価格表示"
+    reason: "景表法：条件なしの無料表記は禁止"
+    
+  - term: "最安"
+    context: "比較広告"
+    reason: "景表法：根拠なしの最安表記は禁止"
+    
+  - term: "絶対"
+    context: "効果効能"
+    reason: "薬機法：絶対的表現は禁止"
+
+# 表記揺れ辞書（正規化用）
+variants:
+  # 通貨
+  - canonical: "円"
+    variants: ["¥", "￥", "YEN", "yen"]
+    
+  # 税表記
+  - canonical: "(税込)"
+    variants: ["税込", "税込み", "税込価格", "税込み価格", "(税込み)"]
+    
+  - canonical: "(税抜)"
+    variants: ["税抜", "税抜き", "税別", "本体価格", "(税抜き)", "(税別)"]
+    
+  # 送料
+  - canonical: "送料無料"
+    variants: ["送料込", "送料込み", "配送無料", "送料0円"]
