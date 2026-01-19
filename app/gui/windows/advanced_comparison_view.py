@@ -2661,7 +2661,66 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 extracted_parts.append(para.text)
         
         print(f"[_extract_text_from_region] Matched {len(extracted_parts)} paragraphs")
+        
+        # ★ Phase 1.5: リージョンが空の場合、Gemini Vision OCRで直接抽出
+        if not extracted_parts:
+            print("[_extract_text_from_region] No regions matched, trying Gemini Vision OCR...")
+            extracted_text = self._extract_text_with_gemini_ocr(selection_rect, source)
+            if extracted_text:
+                return extracted_text
+        
         return '\n'.join(extracted_parts)
+    
+    def _extract_text_with_gemini_ocr(self, rect, source: str) -> str:
+        """
+        ★ Gemini Vision OCR で選択範囲から直接テキスト抽出
+        
+        リージョンリストが空の場合のフォールバック
+        """
+        import io
+        
+        try:
+            # 画像取得
+            image = self.web_image if source == "web" else self.pdf_image
+            if not image:
+                print("[GeminiOCR] No image available")
+                return ""
+            
+            # 選択範囲を切り抜き
+            sx1, sy1, sx2, sy2 = [int(max(0, v)) for v in rect]
+            
+            # 画像サイズでクリップ
+            sx2 = min(sx2, image.width)
+            sy2 = min(sy2, image.height)
+            
+            if sx2 <= sx1 or sy2 <= sy1:
+                print(f"[GeminiOCR] Invalid crop region: {rect}")
+                return ""
+            
+            cropped = image.crop((sx1, sy1, sx2, sy2))
+            
+            # Gemini Vision OCR
+            from app.sdk.llm import GeminiClient
+            client = GeminiClient(model="gemini-2.0-flash")
+            
+            # 画像をbase64に変換
+            import base64
+            buffer = io.BytesIO()
+            cropped.save(buffer, format="PNG")
+            image_b64 = base64.b64encode(buffer.getvalue()).decode()
+            
+            prompt = "この画像内のテキストをすべて正確に文字起こしてください。日本語のテキストの場合は日本語で出力してください。"
+            
+            result = client.generate_with_image(prompt, image_b64)
+            
+            print(f"[GeminiOCR] Extracted {len(result)} chars")
+            return result.strip()
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[GeminiOCR] Error: {e}")
+            return ""
     
     def _rects_overlap(self, rect1, rect2) -> bool:
         """2つの矩形が重なっているか判定"""
