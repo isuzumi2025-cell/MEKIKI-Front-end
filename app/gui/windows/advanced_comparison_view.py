@@ -26,6 +26,8 @@ import base64
 import difflib
 from dataclasses import dataclass
 from app.pipeline.metadata_exporter import export_ocr_metadata
+from app.utils.image_cache import LRUImageCache
+from app.gui.sdk.scroll_sync import ScrollSyncManager
 
 # SelectionMixin 統合 (SDK Phase 2)
 try:
@@ -109,7 +111,10 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         # スマートリサイズ管理
         self._resize_job = None  # 統合リサイズジョブ
         self._last_canvas_size = {}  # キャンバスサイズキャッシュ {"web": (w,h), "pdf": (w,h)}
-        self._image_cache = {}  # スケール済み画像キャッシュ {"web": {size: photo}, "pdf": {size: photo}}
+
+        # LRU画像キャッシュ（業務配布対応: 高速化 + メモリ効率化）
+        self._image_cache_web = LRUImageCache(max_size=20, max_memory_mb=250)
+        self._image_cache_pdf = LRUImageCache(max_size=20, max_memory_mb=250)
         
         # ★ B5: Crosshair Sanity Check
         self._crosshair_enabled = True  # クロスヘア表示フラグ
@@ -393,7 +398,17 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         self.web_canvas.bind("<Configure>", lambda e: self._on_canvas_configure(e, "web"))
         self.pdf_canvas.bind("<Configure>", lambda e: self._on_canvas_configure(e, "pdf"))
 
-        
+        # スクロール同期マネージャー（業務配布対応: UX向上）
+        self._scroll_sync_manager = ScrollSyncManager(
+            self.web_canvas,
+            self.pdf_canvas,
+            debounce_ms=50,
+            on_sync=lambda msg: print(f"  🔗 {msg}")
+        )
+        # デフォルトでON
+        self._scroll_sync_manager.enable()
+        print("✅ Scroll sync enabled by default")
+
         # キャンバスイベント
         for canvas in [self.web_canvas, self.pdf_canvas]:
             canvas.bind("<ButtonPress-1>", self._on_canvas_click)
@@ -655,9 +670,9 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
     
     def _on_canvas_configure(self, event, source: str):
         """
-        スマートリサイズハンドラ（統合版）
+        スマートリサイズハンドラ（最適化版）
         - サイズ変化を検知して必要な場合のみ再描画
-        - 300msのデバウンスでリサイズ完了を待機
+        - 150msのデバウンスでリサイズ完了を待機（300ms→150msに短縮）
         - キャッシュで同一サイズの再計算を回避
         """
         # 描画中はスキップ
@@ -668,22 +683,22 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         if event.width < 50 or event.height < 50:
             return
 
-        # サイズ変化チェック（10px以上の変化のみ処理）
+        # サイズ変化チェック（5px以上の変化のみ処理 - 10px→5pxに緩和）
         current_size = (event.width, event.height)
         last_size = self._last_canvas_size.get(source, (0, 0))
-        if abs(current_size[0] - last_size[0]) < 10 and abs(current_size[1] - last_size[1]) < 10:
+        if abs(current_size[0] - last_size[0]) < 5 and abs(current_size[1] - last_size[1]) < 5:
             return
 
         # 前回のジョブをキャンセル
         if self._resize_job:
             self.after_cancel(self._resize_job)
 
-        # 300ms後に再描画（リサイズ完了を待機）
+        # 150ms後に再描画（リサイズ完了を待機 - レスポンス性向上）
         def _smart_redisplay():
             self._resize_job = None
             self._execute_smart_resize()
 
-        self._resize_job = self.after(300, _smart_redisplay)
+        self._resize_job = self.after(150, _smart_redisplay)
 
     def _execute_smart_resize(self):
         """実際のリサイズ処理を実行"""
@@ -734,57 +749,69 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         if canvas_width <= 1 or canvas_height <= 1:
             return
 
-        # キャッシュキー生成（サイズ＋モード）
-        cache_key = (canvas_width, canvas_height, self.display_mode)
+        # キャッシュ選択（Web/PDF）
+        cache = self._image_cache_web if source == "web" else self._image_cache_pdf
+
+        # キャッシュキー生成（サイズ + モード + 画像ハッシュ）
+        image_hash = id(image)  # PIL ImageのIDをハッシュとして使用
+        cache_key = (canvas_width, canvas_height, self.display_mode, image_hash)
 
         # キャッシュ確認
-        if source not in self._image_cache:
-            self._image_cache[source] = {}
+        cached_entry = cache.get(cache_key)
 
-        cache = self._image_cache[source]
-
-        if cache_key in cache:
-            # キャッシュヒット：PhotoImageを再利用
-            cached = cache[cache_key]
+        if cached_entry:
+            # キャッシュヒット：PhotoImageを再利用（LRU）
             canvas.delete("image")
-            canvas.create_image(-cached["offset_x"], -cached["offset_y"],
-                              anchor="nw", image=cached["photo"], tags="image")
+            canvas.create_image(-cached_entry.offset_x, -cached_entry.offset_y,
+                              anchor="nw", image=cached_entry.photo, tags="image")
             canvas.tag_lower("image")
-            canvas.image = cached["photo"]
-            canvas.scale_x = cached["scale"]
-            canvas.scale_y = cached["scale"]
-            canvas.offset_x = cached["offset_x"]
-            canvas.offset_y = cached["offset_y"]
+            canvas.image = cached_entry.photo
+            canvas.scale_x = cached_entry.scale
+            canvas.scale_y = cached_entry.scale
+            canvas.offset_x = cached_entry.offset_x
+            canvas.offset_y = cached_entry.offset_y
 
             if self.display_mode == "cover":
                 canvas.configure(scrollregion=(0, 0, canvas_width, canvas_height))
             else:
-                canvas.configure(scrollregion=(0, 0, cached["width"], cached["height"]))
+                canvas.configure(scrollregion=(0, 0, cached_entry.width, cached_entry.height))
+
+            # キャッシュ統計をログ出力（デバッグ用）
+            stats = cache.get_stats()
+            if stats['hits'] % 10 == 0:  # 10ヒットごとに統計表示
+                print(f"📊 {source.upper()} Cache: {stats['hit_rate']:.1%} hit rate "
+                      f"({stats['size']}/{stats['max_size']} entries, "
+                      f"{stats['memory_mb']:.1f}MB)")
             return
 
         # キャッシュミス：新規生成
         self._display_image(canvas, image)
 
-        # キャッシュに保存（最大3エントリ）
-        if len(cache) >= 3:
-            oldest_key = next(iter(cache))
-            del cache[oldest_key]
-
-        cache[cache_key] = {
-            "photo": canvas.image,
-            "scale": canvas.scale_x,
-            "offset_x": canvas.offset_x,
-            "offset_y": canvas.offset_y,
-            "width": int(image.width * canvas.scale_x),
-            "height": int(image.height * canvas.scale_y)
-        }
+        # LRUキャッシュに保存
+        cache.put(
+            key=cache_key,
+            photo=canvas.image,
+            pil_image=image,  # PIL Imageも保持
+            scale=canvas.scale_x,
+            offset_x=canvas.offset_x,
+            offset_y=canvas.offset_y,
+            width=int(image.width * canvas.scale_x),
+            height=int(image.height * canvas.scale_y)
+        )
 
     def _clear_image_cache(self, source: str = None):
         """画像キャッシュをクリア（画像変更時に呼び出す）"""
-        if source:
-            self._image_cache[source] = {}
+        if source == "web":
+            self._image_cache_web.clear()
+            print("🗑️ Web image cache cleared")
+        elif source == "pdf":
+            self._image_cache_pdf.clear()
+            print("🗑️ PDF image cache cleared")
         else:
-            self._image_cache = {}
+            # 両方クリア
+            self._image_cache_web.clear()
+            self._image_cache_pdf.clear()
+            print("🗑️ All image caches cleared")
 
 
     # ===== ページナビゲーション =====
@@ -1361,6 +1388,22 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
 
         # 領域オーバーレイを再描画
         self._redraw_regions()
+
+    def _toggle_scroll_sync(self):
+        """スクロール同期のON/OFF切り替え（業務配布対応）"""
+        if hasattr(self, '_scroll_sync_manager'):
+            state = self._scroll_sync_manager.toggle()
+            status = "🔗 同期ON" if state else "🔓 同期OFF"
+
+            # ステータス表示（あれば）
+            if hasattr(self, 'status_label') and self.status_label.winfo_exists():
+                self.status_label.configure(text=f"スクロール同期: {status}")
+
+            print(f"  {status}")
+            return state
+        else:
+            print("⚠️ Scroll sync manager not initialized")
+            return False
 
     def _redraw_regions(self):
         """エリア矩形を再描画 (シンク番号で色分け)"""
@@ -2461,12 +2504,17 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
     # ============================================================
     
     def _on_canvas_click(self, event):
-        """キャンバスクリック - 選択開始"""
+        """キャンバスクリック - 選択開始 (SelectionMixin統合版)"""
         canvas = event.widget
         
         # スクロール位置を考慮した実座標
         x = canvas.canvasx(event.x)
         y = canvas.canvasy(event.y)
+        
+        # ★ SelectionMixin連携: 即座シート反映対応
+        if _HAS_SELECTION_MIXIN and hasattr(self, '_on_selection_start'):
+            source = "web" if canvas == self.web_canvas else "pdf"
+            self._on_selection_start(event, canvas, source)
         
         # 選択開始点を記録
         self._selection_start = (x, y)
@@ -2477,7 +2525,7 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         canvas.delete("selection_rect")
     
     def _on_canvas_drag(self, event):
-        """キャンバスドラッグ - 選択範囲描画"""
+        """キャンバスドラッグ - 選択範囲描画 (SelectionMixin統合版)"""
         if not hasattr(self, '_selection_start') or self._selection_start is None:
             return
         
@@ -2487,6 +2535,10 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         
         x = canvas.canvasx(event.x)
         y = canvas.canvasy(event.y)
+        
+        # ★ SelectionMixin連携
+        if _HAS_SELECTION_MIXIN and hasattr(self, '_on_selection_drag'):
+            self._on_selection_drag(event, canvas)
         
         x1, y1 = self._selection_start
         
@@ -2499,13 +2551,18 @@ class AdvancedComparisonView(SelectionMixin, ctk.CTkFrame):
         )
     
     def _on_canvas_release(self, event):
-        """キャンバスリリース - 選択完了→テキスト抽出"""
+        """キャンバスリリース - 選択完了→テキスト抽出 (SelectionMixin統合版)"""
         if not hasattr(self, '_selection_start') or self._selection_start is None:
             return
         
         canvas = event.widget
         if canvas != self._selection_canvas:
             return
+        
+        # ★ SelectionMixin連携: 即座シート反映
+        if _HAS_SELECTION_MIXIN and hasattr(self, '_on_selection_end'):
+            image_source = self.web_image if self._selection_source == "web" else self.pdf_image
+            self._on_selection_end(event, canvas, self._selection_source)
         
         x2 = canvas.canvasx(event.x)
         y2 = canvas.canvasy(event.y)
