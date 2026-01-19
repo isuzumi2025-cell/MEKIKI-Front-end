@@ -69,7 +69,14 @@ class GeminiClient(LLMClient):
             import google.generativeai as genai
             from config import Config
             
-            api_key = Config.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
+            # ★ Config.load_keys() を呼び出してAPIキーを確実に読み込む
+            if hasattr(Config, 'load_keys'):
+                try:
+                    Config.load_keys()
+                except:
+                    pass
+            
+            api_key = getattr(Config, 'GEMINI_API_KEY', None) or os.environ.get("GEMINI_API_KEY")
             if not api_key:
                 print("⚠️ GEMINI_API_KEY not set")
                 return
@@ -88,7 +95,7 @@ class GeminiClient(LLMClient):
             if images:
                 contents.extend(images)
             response = self.model.generate_content(contents)
-            return response.text
+            return response.text if response and hasattr(response, 'text') else None
         except Exception as e:
             print(f"❌ Gemini error: {e}")
             return None
@@ -109,6 +116,7 @@ class GeminiClient(LLMClient):
             生成されたテキスト
         """
         if not self.model:
+            print("[GeminiOCR] No model available")
             return None
         try:
             import base64
@@ -119,10 +127,18 @@ class GeminiClient(LLMClient):
             image_data = base64.b64decode(image_b64)
             image = Image.open(io.BytesIO(image_data))
             
+            print(f"[GeminiOCR] Image size: {image.size}")
+            
             # Gemini APIで画像を含めて送信
             response = self.model.generate_content([prompt, image])
-            print(f"[GeminiClient] Vision OCR response: {len(response.text)} chars")
-            return response.text
+            
+            # ★ response.text の安全なアクセス
+            if response and hasattr(response, 'text') and response.text:
+                print(f"[GeminiClient] Vision OCR response: {len(response.text)} chars")
+                return response.text
+            else:
+                print("[GeminiOCR] Empty response from Gemini")
+                return ""
         except Exception as e:
             print(f"❌ Gemini Vision error: {e}")
             import traceback
