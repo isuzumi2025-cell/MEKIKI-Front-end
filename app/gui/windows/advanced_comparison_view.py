@@ -2591,8 +2591,16 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             self._selection_start = None
             return
         
+        # ★ ステータス表示: OCR中
+        self.status_label.configure(text=f"🔍 Gemini Vision OCR 実行中...")
+        self.update()
+        
         # 選択範囲内のテキストを抽出
         extracted_text = self._extract_text_from_region(rect, self._selection_source)
+        
+        # ★ None/空チェック
+        if extracted_text is None:
+            extracted_text = ""
         
         # テキストボックスに表示
         if self._selection_source == "web":
@@ -2626,10 +2634,14 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             # ★ スプレッドシートを即座に更新
             if hasattr(self, '_refresh_inline_spreadsheet'):
                 self._refresh_inline_spreadsheet()
-        
-        # 選択完了
-        canvas.itemconfig("selection_rect", outline="#4CAF50", dash=())
-        self.status_label.configure(text=f"✅ {self._selection_source.upper()}から{len(extracted_text)}文字抽出")
+            
+            # 選択完了
+            canvas.itemconfig("selection_rect", outline="#4CAF50", dash=())
+            self.status_label.configure(text=f"✅ {self._selection_source.upper()}から{len(extracted_text)}文字抽出")
+        else:
+            # テキスト抽出失敗
+            canvas.itemconfig("selection_rect", outline="#F44336", dash=())
+            self.status_label.configure(text=f"⚠️ テキストを抽出できませんでした (GEMINI_API_KEYを確認)")
         
         self._selection_start = None
     
