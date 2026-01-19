@@ -7,9 +7,13 @@ Modules:
 - sdk.scraping: Webクローラー
 - sdk.matching: パラグラフマッチング
 - sdk.export: スプレッドシート出力
-- sdk.canvas: 座標変換
+- sdk.canvas: 座標変換、ページ座標管理
 - sdk.llm: LLMクライアント (Gemini, ChatGPT, Grok)
 - sdk.selection: 範囲選択 (簡易/フルスキャン)
+- sdk.similarity: 類似検出
+
+Phase 1.5: page_coords, similarity追加
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
+

@@ -17,6 +17,15 @@ from dataclasses import dataclass, field
 from typing import Tuple, List, Dict, Optional, Callable, Any
 from datetime import datetime
 import threading
+from concurrent.futures import ThreadPoolExecutor, Future
+import logging
+
+# ロギング設定
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 class SelectionMode(Enum):
@@ -75,38 +84,58 @@ class SyncResult:
 class SelectionManager:
     """
     選択マネージャー
-    
+
     ⭐ 最重要機能:
     - 選択範囲内の画像・文字情報が即座にシート反映
     - 簡易選択/フルスキャンモード切替
     - 比較ターゲットとのシンクロ率表示
+
+    ⭐ スレッドセーフ:
+    - ThreadPoolExecutorによる管理
+    - 最大同時実行数制限
+    - 例外ハンドリングとロギング
     """
-    
+
+    # スレッドプール設定
+    MAX_WORKERS = 3  # 同時実行数（業務配布時の安定性を重視）
+
     def __init__(
         self,
         on_selection_complete: Optional[Callable[[SelectionRegion], None]] = None,
         on_text_extracted: Optional[Callable[[str, SelectionRegion], None]] = None,
         on_sync_complete: Optional[Callable[[SyncResult], None]] = None,
+        on_progress: Optional[Callable[[str, float], None]] = None,  # 進捗コールバック
         mode: SelectionMode = SelectionMode.QUICK
     ):
         """
         初期化
-        
+
         Args:
             on_selection_complete: 選択完了時コールバック
             on_text_extracted: テキスト抽出完了時コールバック (即座にシート反映用)
             on_sync_complete: シンクロ完了時コールバック
+            on_progress: 進捗通知コールバック (message: str, progress: float 0.0-1.0)
             mode: 選択モード
         """
         self.mode = mode
         self.on_selection_complete = on_selection_complete
         self.on_text_extracted = on_text_extracted
         self.on_sync_complete = on_sync_complete
-        
+        self.on_progress = on_progress
+
         self._current_selection: Optional[SelectionRegion] = None
         self._target_text: str = ""
         self._is_selecting: bool = False
         self._start_pos: Optional[Tuple[int, int]] = None
+
+        # スレッドプール
+        self._executor = ThreadPoolExecutor(
+            max_workers=self.MAX_WORKERS,
+            thread_name_prefix="SelectionOCR"
+        )
+        self._active_futures: List[Future] = []
+
+        logger.info(f"SelectionManager initialized (mode={mode.value}, max_workers={self.MAX_WORKERS})")
     
     def set_mode(self, mode: SelectionMode):
         """モード設定"""
@@ -166,29 +195,76 @@ class SelectionManager:
     
     def _extract_text_async(self, region: SelectionRegion, image_source: Any):
         """
-        バックグラウンドでテキスト抽出
+        バックグラウンドでテキスト抽出（スレッドセーフ）
         ⭐ 完了後即座にコールバック発火
+
+        スレッドセーフ改善:
+        - ThreadPoolExecutor使用
+        - 例外ハンドリング強化
+        - 進捗通知
+        - Futureの管理
         """
         def extract():
+            task_id = f"OCR-{region.bbox}"
             try:
+                # 進捗: 開始
+                if self.on_progress:
+                    self.on_progress(f"🔍 テキスト抽出中... {task_id}", 0.1)
+
+                logger.info(f"Starting text extraction: {task_id}")
+
                 text = self._extract_text_from_region(region, image_source)
                 region.text = text
-                
+
+                # 進捗: 完了
+                if self.on_progress:
+                    self.on_progress(f"✅ テキスト抽出完了 {task_id}", 0.8)
+
+                logger.info(f"Text extracted ({len(text)} chars): {task_id}")
+
                 # ⭐ 即座にシート反映用コールバック発火
                 if self.on_text_extracted:
                     self.on_text_extracted(text, region)
-                
+
                 # シンクロ計算
                 if self._target_text:
+                    if self.on_progress:
+                        self.on_progress(f"🔄 同期率計算中...", 0.9)
+
                     sync_result = self._calculate_sync(text, self._target_text)
                     if self.on_sync_complete:
                         self.on_sync_complete(sync_result)
-                        
+
+                    logger.info(f"Sync calculated: {sync_result.similarity:.2%}")
+
+                # 進捗: 完了
+                if self.on_progress:
+                    self.on_progress(f"✅ 処理完了", 1.0)
+
             except Exception as e:
-                print(f"❌ Text extraction error: {e}")
-        
-        thread = threading.Thread(target=extract, daemon=True)
-        thread.start()
+                logger.error(f"Text extraction failed: {task_id}", exc_info=True)
+
+                if self.on_progress:
+                    self.on_progress(f"❌ エラー: {str(e)}", 0.0)
+
+                # エラーでも空テキストで反映（UI更新のため）
+                region.text = ""
+                if self.on_text_extracted:
+                    self.on_text_extracted("", region)
+
+        # ThreadPoolExecutorでタスクを投入
+        future = self._executor.submit(extract)
+        self._active_futures.append(future)
+
+        # 完了時にクリーンアップ
+        def cleanup(f: Future):
+            try:
+                if f in self._active_futures:
+                    self._active_futures.remove(f)
+            except Exception as e:
+                logger.warning(f"Future cleanup error: {e}")
+
+        future.add_done_callback(cleanup)
     
     def _extract_text_from_region(self, region: SelectionRegion, image_source: Any) -> str:
         """
@@ -231,7 +307,8 @@ class SelectionManager:
             engine = GeminiOCREngine(model="gemini-2.0-flash-lite")
             result = engine.detect_document_text(image)
             return result.get("full_text", "") if result else ""
-        except:
+        except Exception as e:
+            logger.error(f"Quick OCR failed: {e}", exc_info=True, context={'model': 'gemini-2.0-flash-lite'})
             return ""
     
     def _full_ocr(self, image) -> str:
@@ -241,7 +318,8 @@ class SelectionManager:
             engine = GeminiOCREngine(model="gemini-2.0-flash")
             result = engine.detect_document_text(image)
             return result.get("full_text", "") if result else ""
-        except:
+        except Exception as e:
+            logger.error(f"Full OCR failed: {e}", exc_info=True, context={'model': 'gemini-2.0-flash'})
             return ""
     
     def _calculate_sync(self, text1: str, text2: str) -> SyncResult:
@@ -283,6 +361,72 @@ class SelectionManager:
         self._is_selecting = False
         self._start_pos = None
         self._current_selection = None
+
+    def wait_for_completion(self, timeout: Optional[float] = None) -> bool:
+        """
+        全てのタスク完了を待機
+
+        Args:
+            timeout: タイムアウト秒数（Noneの場合は無制限）
+
+        Returns:
+            全タスク完了した場合True、タイムアウトした場合False
+        """
+        from concurrent.futures import wait, FIRST_COMPLETED
+
+        if not self._active_futures:
+            return True
+
+        logger.info(f"Waiting for {len(self._active_futures)} tasks...")
+
+        try:
+            done, not_done = wait(
+                self._active_futures,
+                timeout=timeout,
+                return_when="ALL_COMPLETED"
+            )
+
+            if not_done:
+                logger.warning(f"{len(not_done)} tasks did not complete within timeout")
+                return False
+
+            logger.info("All tasks completed")
+            return True
+
+        except Exception as e:
+            logger.error(f"Wait error: {e}", exc_info=True)
+            return False
+
+    def cancel_all_tasks(self):
+        """全タスクをキャンセル"""
+        logger.info(f"Cancelling {len(self._active_futures)} tasks...")
+
+        for future in self._active_futures:
+            future.cancel()
+
+        self._active_futures.clear()
+
+    def shutdown(self, wait: bool = True):
+        """
+        スレッドプールをシャットダウン（リソース解放）
+
+        Args:
+            wait: 実行中タスクの完了を待つ場合True
+        """
+        logger.info(f"Shutting down SelectionManager (wait={wait})...")
+
+        try:
+            self._executor.shutdown(wait=wait, cancel_futures=not wait)
+            logger.info("SelectionManager shutdown complete")
+        except Exception as e:
+            logger.error(f"Shutdown error: {e}", exc_info=True)
+
+    def __del__(self):
+        """デストラクタ: リソース自動解放"""
+        try:
+            self.shutdown(wait=False)
+        except:
+            pass  # デストラクタでは例外を無視
 
 
 # ========== Convenience exports ==========
