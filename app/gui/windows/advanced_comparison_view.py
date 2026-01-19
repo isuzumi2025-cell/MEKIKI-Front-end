@@ -2662,15 +2662,83 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             if hasattr(self, '_refresh_inline_spreadsheet'):
                 self._refresh_inline_spreadsheet()
             
+            # ★ Phase 1.6: Gemini自動マッチング - 対向ソースから類似パラグラフ検出
+            self._run_auto_matching(extracted_text, new_region)
+            
             # 選択完了
             canvas.itemconfig("selection_rect", outline="#4CAF50", dash=())
-            self.status_label.configure(text=f"✅ {self._selection_source.upper()}から{len(extracted_text)}文字抽出")
+            self.status_label.configure(text=f"✅ {self._selection_source.upper()}から{len(extracted_text)}文字抽出 - 対向検索中...")
         else:
             # テキスト抽出失敗
             canvas.itemconfig("selection_rect", outline="#F44336", dash=())
             self.status_label.configure(text=f"⚠️ テキストを抽出できませんでした (GEMINI_API_KEYを確認)")
         
         self._selection_start = None
+    
+    def _run_auto_matching(self, query_text: str, source_region):
+        """★ Phase 1.6: 対向ソースから類似パラグラフを自動検出"""
+        import threading
+        
+        # 対向ソースのパラグラフを取得
+        opposite_source = "pdf" if source_region.source == "web" else "web"
+        target_paragraphs = self.pdf_regions if opposite_source == "pdf" else self.web_regions
+        
+        if not target_paragraphs:
+            self.status_label.configure(text=f"⚠️ {opposite_source.upper()}に類似テキストが見つかりませんでした")
+            return
+        
+        # パラグラフをdict形式に変換
+        target_dicts = [
+            {"id": p.id, "text": p.text, "rect": p.rect}
+            for p in target_paragraphs
+        ]
+        
+        def _match_callback(results):
+            """マッチング結果のコールバック"""
+            if results:
+                best = results[0]
+                print(f"[AutoMatch] Best match: {best.paragraph_text[:50]}... (score: {best.similarity_score:.2f})")
+                
+                # 対向テキストボックスにマッチ結果を表示
+                self.after(0, lambda: self._apply_auto_match_result(source_region, best, opposite_source))
+            else:
+                self.after(0, lambda: self.status_label.configure(
+                    text=f"⚠️ {opposite_source.upper()}に類似テキストが見つかりませんでした"
+                ))
+        
+        # 非同期でマッチング実行
+        try:
+            from app.sdk.similarity import GeminiAutoMatcher
+            matcher = GeminiAutoMatcher()
+            matcher.find_matching_async(query_text, target_dicts, _match_callback)
+        except Exception as e:
+            print(f"[AutoMatch] Error: {e}")
+            self.status_label.configure(text=f"⚠️ 自動マッチング失敗: {e}")
+    
+    def _apply_auto_match_result(self, source_region, match_result, opposite_source: str):
+        """自動マッチング結果をUIに反映"""
+        # 対向テキストボックスに表示
+        if opposite_source == "pdf":
+            self.pdf_text_box.configure(state="normal")
+            self.pdf_text_box.delete("1.0", "end")
+            self.pdf_text_box.insert("1.0", match_result.paragraph_text)
+        else:
+            self.web_text_box.configure(state="normal")
+            self.web_text_box.delete("1.0", "end")
+            self.web_text_box.insert("1.0", match_result.paragraph_text)
+        
+        # スコアを更新
+        source_region.similarity = match_result.similarity_score
+        
+        # ステータス更新
+        score_percent = int(match_result.similarity_score * 100)
+        self.status_label.configure(
+            text=f"✅ 類似テキスト検出: {score_percent}% マッチ ({opposite_source.upper()})"
+        )
+        
+        # シート更新
+        if hasattr(self, '_refresh_inline_spreadsheet'):
+            self._refresh_inline_spreadsheet()
     
     def _extract_text_from_region(self, rect, source: str) -> str:
         """選択範囲内のOCR領域からテキストを抽出"""

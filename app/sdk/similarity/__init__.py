@@ -5,11 +5,13 @@ MEKIKI SDK - Similarity Module
 
 from .detector import SimilarityDetector, SimilarityResult
 from .gemini_search import GeminiSimilarSearch, GeminiSearchResult
+from .auto_matcher import GeminiAutoMatcher, MatchResult
 
 __all__ = [
     "SimilarityDetector", 
     "SimilarityResult",
     "GeminiSimilarSearch",
-    "GeminiSearchResult"
+    "GeminiSearchResult",
+    "GeminiAutoMatcher",
+    "MatchResult"
 ]
-
