@@ -2604,6 +2604,29 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             self.pdf_text_box.delete("1.0", "end")
             self.pdf_text_box.insert("1.0", extracted_text)
         
+        # ★ Phase 1.5: 新規領域を作成してリストに追加
+        if extracted_text.strip():
+            new_region = EditableRegion(
+                id=len(self.web_regions) + len(self.pdf_regions) + 1,
+                rect=[int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])],
+                text=extracted_text,
+                area_code=f"SEL_{len(self.web_regions) + len(self.pdf_regions) + 1:03d}",
+                sync_number=None,
+                similarity=0.0,
+                source=self._selection_source
+            )
+            
+            if self._selection_source == "web":
+                self.web_regions.append(new_region)
+            else:
+                self.pdf_regions.append(new_region)
+            
+            print(f"✅ New region added: {new_region.area_code}, {len(extracted_text)} chars")
+            
+            # ★ スプレッドシートを即座に更新
+            if hasattr(self, '_refresh_inline_spreadsheet'):
+                self._refresh_inline_spreadsheet()
+        
         # 選択完了
         canvas.itemconfig("selection_rect", outline="#4CAF50", dash=())
         self.status_label.configure(text=f"✅ {self._selection_source.upper()}から{len(extracted_text)}文字抽出")
