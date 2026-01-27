@@ -91,11 +91,22 @@ class GeminiClient(LLMClient):
         if not self.model:
             return None
         try:
+            import time
+
             contents = [prompt]
             if images:
                 contents.extend(images)
-            response = self.model.generate_content(contents)
-            return response.text if response and hasattr(response, 'text') else None
+
+            start_time = time.time()
+            # タイムアウトのみ設定（リトライは無効化して高速化）
+            response = self.model.generate_content(
+                contents,
+                request_options={"timeout": 60}
+            )
+            elapsed = time.time() - start_time
+            print(f"[DEBUG] Gemini API: {elapsed:.1f}s")
+
+            return response.text if response and hasattr(response, "text") else None
         except Exception as e:
             print(f"❌ Gemini error: {e}")
             return None
@@ -103,6 +114,10 @@ class GeminiClient(LLMClient):
     def analyze(self, text: str, instruction: str) -> Optional[str]:
         prompt = f"{instruction}\n\nTarget Text:\n{text}"
         return self.generate(prompt)
+    
+    def generate_content(self, prompt: str, images: Optional[List[Any]] = None) -> Optional[str]:
+        """Alias for generate() - compatibility with GeminiOCREngine"""
+        return self.generate(prompt, images)
     
     def generate_with_image(self, prompt: str, image_b64: str) -> Optional[str]:
         """

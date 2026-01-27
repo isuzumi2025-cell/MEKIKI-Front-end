@@ -1,0 +1,5 @@
+2026-01-10 03:17:53,881 - INFO - Initializing Playwright Browser...
+2026-01-10 03:17:54,369 - INFO - Crawling: https://example.com
+2026-01-10 03:17:54,879 - INFO - Max pages reached.
+2026-01-10 03:17:54,880 - INFO - Saved results to outputs\20260110_031753\data.json
+2026-01-10 03:17:54,926 - INFO - Browser closed.

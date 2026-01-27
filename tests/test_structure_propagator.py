@@ -1,12 +1,20 @@
+import importlib.util
+import pytest
+
+if importlib.util.find_spec("app.core.structure_propagator") is None:
+    pytest.skip("structure_propagator module not present", allow_module_level=True)
+
 import sys
 import os
 import unittest
+import pytest
 
 # Add project root to path
 sys.path.append(os.getcwd())
 
 from app.core.structure_propagator import StructurePropagator
 
+@pytest.mark.integration
 class TestStructurePropagator(unittest.TestCase):
     def setUp(self):
         self.propagator = StructurePropagator()

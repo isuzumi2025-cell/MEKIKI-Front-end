@@ -1,6 +1,8 @@
 """
 Main Entry Point
 アプリケーションのエントリーポイント
+
+統合版: UnifiedApp (フル機能GUI + 比較マトリクス)
 """
 import sys
 import os
@@ -20,13 +22,14 @@ if sys.platform == 'win32':
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
-# メインウィンドウ V2を起動
-from app.gui.main_window_v2 import MainWindow
+# UnifiedApp を起動 (フル機能版)
+from app.gui.unified_app import UnifiedApp
 
 if __name__ == "__main__":
-    print("=" * 50)
-    print("🚀 OCR 比較ツール 起動中...")
-    print("=" * 50)
+    print("=" * 60)
+    print("🚀 MEKIKI Proofing System 起動中...")
+    print("   Unified GUI (比較マトリクス含む)")
+    print("=" * 60)
     
-    app = MainWindow()
+    app = UnifiedApp()
     app.mainloop()

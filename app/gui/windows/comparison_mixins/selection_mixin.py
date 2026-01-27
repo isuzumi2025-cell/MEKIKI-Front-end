@@ -116,12 +116,33 @@ class SelectionMixin:
             )
     
     def _on_selection_end(self, event, canvas: tk.Canvas, source: str):
-        """選択終了"""
-        if self._selection_manager is None:
+        """選択終了 - ★ Phase 1.6: Gemini Vision OCR 統合"""
+        import sys
+        print(f"\n{'★'*30}")
+        print(f"[SelectionMixin] _on_selection_end CALLED!")
+        print(f"[SelectionMixin] source: {source}")
+        print(f"{'★'*30}")
+        sys.stdout.flush()
+        
+        # 選択開始点を取得 (AdvancedComparisonView から)
+        if not hasattr(self, '_selection_start') or self._selection_start is None:
+            print("[SelectionMixin] ❌ No _selection_start, returning")
             return
         
+        x1, y1 = self._selection_start
         cx = canvas.canvasx(event.x)
         cy = canvas.canvasy(event.y)
+        
+        # 正規化 (左上→右下)
+        rect = (min(x1, cx), min(y1, cy), max(x1, cx), max(y1, cy))
+        
+        # 選択範囲が小さすぎる場合はスキップ
+        if abs(cx - x1) < 10 or abs(cy - y1) < 10:
+            print("[SelectionMixin] Selection too small, skipping")
+            self._selection_start = None
+            return
+        
+        print(f"[SelectionMixin] Selection rect: {rect}")
         
         # 画像ソースを取得
         image_source = None
@@ -130,13 +151,142 @@ class SelectionMixin:
         elif source == "pdf" and hasattr(self, 'pdf_image') and self.pdf_image:
             image_source = self.pdf_image
         
-        # 選択完了 (バックグラウンドでOCR実行)
-        region = self._selection_manager.complete_selection(int(cx), int(cy), image_source)
+        if not image_source:
+            print("[SelectionMixin] ❌ No image source available")
+            self._selection_start = None
+            return
         
-        if region:
-            # 選択矩形を確定表示
-            if self._selection_rect_id:
-                canvas.itemconfig(self._selection_rect_id, outline="#FFFF00", dash=())
+        # ★★★ Phase 1.6: Gemini Vision OCR で直接テキスト抽出 ★★★
+        print("[SelectionMixin] 🚀 Starting Gemini Vision OCR...")
+        extracted_text = self._extract_text_with_gemini(rect, image_source)
+        
+        if extracted_text:
+            print(f"[SelectionMixin] ✅ Extracted {len(extracted_text)} chars")
+        else:
+            print("[SelectionMixin] ⚠️ No text extracted")
+            extracted_text = "[テキスト抽出失敗 - 手動入力可]"
+        
+        # ★ シート反映用のデータ作成
+        self._add_selection_to_sheet(source, rect, extracted_text)
+        
+        # 選択矩形を確定表示
+        if hasattr(self, '_selection_rect_id') and self._selection_rect_id:
+            canvas.itemconfig(self._selection_rect_id, outline="#FFFF00", dash=())
+        
+        # リセット
+        self._selection_start = None
+    
+    def _extract_text_with_gemini(self, rect, image) -> str:
+        """Gemini Vision OCR でテキスト抽出"""
+        try:
+            # 選択範囲をクロップ
+            sx1, sy1, sx2, sy2 = [int(max(0, v)) for v in rect]
+            sx2 = min(sx2, image.width)
+            sy2 = min(sy2, image.height)
+            
+            if sx2 <= sx1 or sy2 <= sy1:
+                return ""
+            
+            print(f"[GeminiOCR] Cropping: ({sx1}, {sy1}) -> ({sx2}, {sy2})")
+            cropped = image.crop((sx1, sy1, sx2, sy2))
+            print(f"[GeminiOCR] Cropped size: {cropped.size}")
+            
+            # Gemini Client
+            from app.sdk.llm import GeminiClient
+            client = GeminiClient(model="gemini-2.0-flash")
+            
+            if not client.model:
+                print("[GeminiOCR] ⚠️ Gemini client init failed")
+                return ""
+            
+            # OCR プロンプト
+            prompt = """この画像に含まれるテキストを正確に抽出してください。
+ルール:
+1. 画像内のテキストをそのまま抽出
+2. 日本語・英語混在可
+3. 説明文は不要、テキストのみ出力
+出力:"""
+            
+            print("[GeminiOCR] Calling Gemini Vision API...")
+            result = client.generate(prompt, images=[cropped])
+            
+            if result:
+                clean_text = result.strip()
+                print(f"[GeminiOCR] ✅ SUCCESS! {len(clean_text)} chars")
+                print(f"[GeminiOCR] Preview: {clean_text[:80]}...")
+                return clean_text
+            
+            return ""
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[GeminiOCR] ❌ Error: {e}")
+            return ""
+    
+    def _add_selection_to_sheet(self, source: str, rect, text: str):
+        """選択をシートに追加"""
+        try:
+            # EditableRegion を作成
+            from dataclasses import dataclass
+            
+            region_id = len(getattr(self, 'web_regions', [])) + len(getattr(self, 'pdf_regions', [])) + 1
+            area_code = f"SEL_{region_id:03d}"
+            
+            # regions リストに追加
+            if hasattr(self, 'web_regions') and hasattr(self, 'pdf_regions'):
+                from app.gui.windows.advanced_comparison_view import EditableRegion
+                
+                new_region = EditableRegion(
+                    id=region_id,
+                    rect=[int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])],
+                    text=text,
+                    area_code=area_code,
+                    sync_number=None,
+                    similarity=0.0,
+                    source=source
+                )
+                
+                if source == "web":
+                    self.web_regions.append(new_region)
+                else:
+                    self.pdf_regions.append(new_region)
+                
+                print(f"[Sheet] ✅ Added region: {area_code}")
+            
+            # SyncPair 作成
+            if hasattr(self, 'sync_pairs'):
+                from app.core.paragraph_matcher import SyncPair
+                
+                rect_list = [int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])]
+                
+                if source == "web":
+                    new_pair = SyncPair(
+                        web_id=area_code, pdf_id="",
+                        similarity=0.0, color="#FF9800",
+                        web_bbox=rect_list, pdf_bbox=None,
+                        web_text=text, pdf_text=""
+                    )
+                else:
+                    new_pair = SyncPair(
+                        web_id="", pdf_id=area_code,
+                        similarity=0.0, color="#FF9800",
+                        web_bbox=None, pdf_bbox=rect_list,
+                        web_text="", pdf_text=text
+                    )
+                
+                self.sync_pairs.append(new_pair)
+                print(f"[Sheet] ✅ SyncPair added: {area_code}")
+            
+            # シート更新
+            if hasattr(self, '_refresh_inline_spreadsheet'):
+                self._refresh_inline_spreadsheet()
+                print("[Sheet] ✅ Spreadsheet refreshed")
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[Sheet] ❌ Error: {e}")
     
     def _on_selection_complete(self, region: SelectionRegion):
         """選択完了コールバック"""

@@ -98,14 +98,15 @@ class SpreadsheetPanel(ctk.CTkFrame):
         header_frame = ctk.CTkFrame(self, height=28, fg_color="#2B2B2B")
         header_frame.pack(fill="x", side="top", pady=(1, 0))
 
-        # Header columns - LEGACY ORDER: Score → Web ID → Web Text → Arrow → PDF Text → PDF ID
+        # Header columns - Phase 1.9.7: Actions カラム追加
         headers = [
             ("Score", 50),
             ("Web ID / Thumb", 100),
             ("Web Text", 0),
-            ("", 30),
+            ("", 30),  # Arrow
             ("PDF Text", 0),
             ("PDF ID / Thumb", 100),
+            ("Actions", 80),  # ★ Phase 1.9.7: 新規追加
         ]
 
         for text, width in headers:
@@ -148,6 +149,8 @@ class SpreadsheetPanel(ctk.CTkFrame):
             log_diagnostic(f"    pdf_id: {sp.pdf_id}")
             log_diagnostic(f"    web_bbox: {getattr(sp, 'web_bbox', 'N/A')}")
             log_diagnostic(f"    pdf_bbox: {getattr(sp, 'pdf_bbox', 'N/A')}")
+            log_diagnostic(f"    web_text: {repr(getattr(sp, 'web_text', 'N/A')[:50]) if getattr(sp, 'web_text', None) else 'None'}")
+            log_diagnostic(f"    pdf_text: {repr(getattr(sp, 'pdf_text', 'N/A')[:50]) if getattr(sp, 'pdf_text', None) else 'None'}")
 
         if web_regions:
             r = web_regions[0]
@@ -378,7 +381,7 @@ class SpreadsheetPanel(ctk.CTkFrame):
         score_frame.pack_propagate(False)
         score_label = ctk.CTkLabel(score_frame, text=f"{sim_percent}%", text_color=score_color,
                      font=("Arial", 10, "bold"))
-        score_label.pack(expand=True, fill="both")
+        score_label.pack(expand=True)
 
         # 2. Web ID + Thumbnail (LEFT)
         web_id_frame = ctk.CTkFrame(row, fg_color=row_bg, width=100)
@@ -398,12 +401,9 @@ class SpreadsheetPanel(ctk.CTkFrame):
         web_text_frame = ctk.CTkFrame(row, fg_color=row_bg)
         web_text_frame.pack(side="left", fill="both", expand=True, padx=2)
 
-        w_display = w_txt[:200] + ("..." if len(w_txt) > 200 else "")
-        web_text = tk.Text(web_text_frame, bg=row_bg, fg="#E0E0E0", relief="flat",
+        web_text_widget = tk.Text(web_text_frame, bg=row_bg, fg="#E0E0E0", relief="flat",
                           font=("Meiryo", 9), wrap="word", height=5, width=25)
-        web_text.pack(fill="both", expand=True, padx=2, pady=2)
-        web_text.insert("1.0", w_display)
-        web_text.configure(state="disabled")
+        web_text_widget.pack(fill="both", expand=True, padx=2, pady=2)
 
         # 4. Arrow (LEFT)
         ctk.CTkLabel(row, text="<>", width=30, text_color="#666666").pack(side="left", padx=1)
@@ -412,12 +412,12 @@ class SpreadsheetPanel(ctk.CTkFrame):
         pdf_text_frame = ctk.CTkFrame(row, fg_color=row_bg)
         pdf_text_frame.pack(side="left", fill="both", expand=True, padx=2)
 
-        p_display = p_txt[:200] + ("..." if len(p_txt) > 200 else "")
-        pdf_text = tk.Text(pdf_text_frame, bg=row_bg, fg="#E0E0E0", relief="flat",
+        pdf_text_widget = tk.Text(pdf_text_frame, bg=row_bg, fg="#E0E0E0", relief="flat",
                           font=("Meiryo", 9), wrap="word", height=5, width=25)
-        pdf_text.pack(fill="both", expand=True, padx=2, pady=2)
-        pdf_text.insert("1.0", p_display)
-        pdf_text.configure(state="disabled")
+        pdf_text_widget.pack(fill="both", expand=True, padx=2, pady=2)
+        
+        # ★ Diff Highlight 適用 (一致=グレー、差分=赤/青)
+        self._apply_diff_highlight(web_text_widget, pdf_text_widget, w_txt[:200], p_txt[:200])
 
         # 6. PDF ID + Thumbnail (LEFT - last)
         pdf_id_frame = ctk.CTkFrame(row, fg_color=row_bg, width=100)
@@ -432,6 +432,54 @@ class SpreadsheetPanel(ctk.CTkFrame):
             pdf_thumb_label = tk.Label(pdf_id_frame, image=pdf_thumb, bg=row_bg, cursor="hand2")
             pdf_thumb_label.pack(pady=2)
             pdf_thumb_label.bind("<Button-1>", lambda e, b=pdf_bbox: self._on_thumbnail_click(b, "pdf", pair))
+
+        # 7. Action Buttons (Similar/Match/Recalc) - Phase 1.9.7: 配置改善
+        action_frame = ctk.CTkFrame(row, fg_color=row_bg, width=80)
+        action_frame.pack(side="left", fill="y", padx=2)
+        action_frame.pack_propagate(False)
+        
+        # ボタン用の内部フレーム（上部に配置）
+        btn_container = ctk.CTkFrame(action_frame, fg_color=row_bg)
+        btn_container.pack(side="top", pady=(8, 0))
+        
+        # 🔍 Similar Search Button
+        similar_btn = ctk.CTkButton(
+            btn_container,
+            text="🔍",
+            width=24,
+            height=22,
+            fg_color="#424242",
+            hover_color="#616161",
+            font=("Segoe UI Emoji", 11),
+            command=lambda p=pair: self._on_similar_search(p)
+        )
+        similar_btn.pack(side="left", padx=1)
+        
+        # 🎯 Match Search Button (+ 個別Sync)
+        match_btn = ctk.CTkButton(
+            btn_container,
+            text="🎯",
+            width=24,
+            height=22,
+            fg_color="#424242",
+            hover_color="#616161",
+            font=("Segoe UI Emoji", 11),
+            command=lambda p=pair: self._on_match_with_sync(p)
+        )
+        match_btn.pack(side="left", padx=1)
+        
+        # ⟳ Recalc Button (個別Sync再計算)
+        recalc_btn = ctk.CTkButton(
+            btn_container,
+            text="⟳",
+            width=24,
+            height=22,
+            fg_color="#424242",
+            hover_color="#FF6F00",
+            font=("Segoe UI Emoji", 11),
+            command=lambda p=pair: self._on_individual_sync(p)
+        )
+        recalc_btn.pack(side="left", padx=1)
 
         # Row click binding
         row.bind("<Button-1>", lambda e, p=pair, w=row: self._on_row_click(w, p))
@@ -512,6 +560,292 @@ class SpreadsheetPanel(ctk.CTkFrame):
     def get_selected_ids(self):
         """Return (web_id, pdf_id) or None"""
         return self.selected_indices
+    
+    def set_on_similar_search(self, callback: Callable):
+        """Set callback for Similar Search button"""
+        self.on_similar_search = callback
+    
+    def set_on_match_search(self, callback: Callable):
+        """Set callback for Match Search button"""
+        self.on_match_search = callback
+    
+    def set_on_sync_recalculate(self, callback: Callable):
+        """Set callback for Individual Sync Recalculation button"""
+        self.on_sync_recalculate = callback
+    
+    def _on_similar_search(self, pair):
+        """Handle Similar Search button click"""
+        log_diagnostic(f"[SimilarSearch] Triggered for pair: web={pair.web_id}, pdf={pair.pdf_id}")
+        if hasattr(self, 'on_similar_search') and self.on_similar_search:
+            self.on_similar_search(pair)
+        else:
+            log_diagnostic("[SimilarSearch] No callback set")
+            print("🔍 類似検索: コールバック未設定")
+    
+    def _on_match_search(self, pair):
+        """Handle Match Search button click"""
+        log_diagnostic(f"[MatchSearch] Triggered for pair: web={pair.web_id}, pdf={pair.pdf_id}")
+        if hasattr(self, 'on_match_search') and self.on_match_search:
+            self.on_match_search(pair)
+        else:
+            log_diagnostic("[MatchSearch] No callback set")
+            print("🎯 マッチ検索: コールバック未設定")
+    
+    def _on_match_with_sync(self, pair):
+        """Handle Match Search button click with individual Sync recalculation"""
+        log_diagnostic(f"[MatchWithSync] Triggered for pair: web={pair.web_id}, pdf={pair.pdf_id}")
+        
+        # まずマッチ検索を実行
+        if hasattr(self, 'on_match_search') and self.on_match_search:
+            self.on_match_search(pair)
+        
+        # 続いて個別Sync再計算
+        if hasattr(self, 'on_sync_recalculate') and self.on_sync_recalculate:
+            self.on_sync_recalculate(pair)
+    
+    def _on_individual_sync(self, pair):
+        """Handle Individual Sync Recalculation button click"""
+        log_diagnostic(f"[IndividualSync] Triggered for pair: web={pair.web_id}, pdf={pair.pdf_id}")
+        if hasattr(self, 'on_sync_recalculate') and self.on_sync_recalculate:
+            self.on_sync_recalculate(pair)
+        else:
+            # デフォルト動作: difflibで再計算してUIに反映
+            self._default_sync_recalc(pair)
+    
+    def _default_sync_recalc(self, pair):
+        """デフォルトの個別Sync再計算"""
+        try:
+            from difflib import SequenceMatcher
+            
+            web_text = getattr(pair, 'web_text', '')
+            pdf_text = getattr(pair, 'pdf_text', '')
+            
+            if web_text and pdf_text:
+                new_score = SequenceMatcher(None, web_text, pdf_text).ratio()
+                pair.similarity = new_score
+                log_diagnostic(f"[IndividualSync] Recalculated: {new_score:.0%}")
+                print(f"⟳ 再計算完了: {pair.web_id} ↔ {pair.pdf_id} = {new_score:.0%}")
+                
+                # UIをリフレッシュ
+                self._refresh_rows()
+            else:
+                print("⟳ 再計算: テキストがありません")
+        except Exception as e:
+            log_diagnostic(f"[IndividualSync] Error: {e}")
+            print(f"⟳ 再計算エラー: {e}")
+    
+    def _apply_diff_highlight(self, w_widget, p_widget, t1: str, t2: str):
+        """テキスト差分を色分けして表示 (Gemini SemanticDiff + LCSフォールバック)"""
+        import re
+        
+        # Tags: 一致=白、差分のみ=緑
+        w_widget.tag_config("normal", foreground="#E0E0E0")
+        w_widget.tag_config("diff", foreground="#4CAF50", background="#1A3D1A")
+        p_widget.tag_config("normal", foreground="#E0E0E0")
+        p_widget.tag_config("diff", foreground="#4CAF50", background="#1A3D1A")
+        
+        if not t1 and not t2:
+            w_widget.configure(state="disabled")
+            p_widget.configure(state="disabled")
+            return
+        
+        # テキスト正規化 (括弧・接尾辞除去)
+        def normalize_for_matching(text):
+            """マッチング用に正規化 - 括弧・接尾辞を除去"""
+            if not text:
+                return ""
+            # 括弧類を除去
+            text = re.sub(r'[【】「」『』（）()\[\]《》〈〉・：:、。]', '', text)
+            # 空白・改行を除去
+            text = re.sub(r'\s+', '', text)
+            return text[:200]
+        
+        # マッチング用正規化テキスト
+        match_t1 = normalize_for_matching(t1)
+        match_t2 = normalize_for_matching(t2)
+        
+        # 表示用テキスト (空白のみ除去)
+        def clean(text):
+            if not text:
+                return ""
+            text = re.sub(r'\s+', '', text)
+            return text[:200]
+        
+        clean_t1 = clean(t1)
+        clean_t2 = clean(t2)
+        
+        # ★ Gemini SemanticDiff を試行
+        matches = []
+        try:
+            from app.sdk.similarity.semantic_diff import get_semantic_diff
+            semantic = get_semantic_diff()
+            result = semantic.analyze(t1[:300], t2[:300])
+            matches = result.matches if result else []
+            if matches:
+                log_diagnostic(f"[SemanticDiff] Found {len(matches)} matches via Gemini")
+        except Exception as e:
+            log_diagnostic(f"[SemanticDiff] Fallback to LCS: {e}")
+        
+        # Geminiマッチがあれば使用、なければLCSフォールバック
+        if matches:
+            # Geminiマッチを使用
+            def highlight_with_matches(widget, text, match_list):
+                text = text[:200]
+                clean_text = re.sub(r'\s+', '', text)
+                
+                # マッチ位置を収集
+                match_ranges = []
+                for phrase in sorted(match_list, key=len, reverse=True):
+                    if len(phrase) < 3:
+                        continue
+                    pattern = re.escape(phrase)
+                    for m in re.finditer(pattern, clean_text, re.IGNORECASE):
+                        match_ranges.append((m.start(), m.end()))
+                
+                # 範囲をソート・マージ
+                match_ranges.sort()
+                merged = []
+                for start, end in match_ranges:
+                    if merged and start <= merged[-1][1]:
+                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+                    else:
+                        merged.append((start, end))
+                
+                # 色分け表示
+                pos = 0
+                for start, end in merged:
+                    if pos < start:
+                        widget.insert("end", clean_text[pos:start], "diff")
+                    widget.insert("end", clean_text[start:end], "normal")
+                    pos = end
+                if pos < len(clean_text):
+                    widget.insert("end", clean_text[pos:], "diff")
+            
+            highlight_with_matches(w_widget, t1, matches)
+            highlight_with_matches(p_widget, t2, matches)
+        else:
+            # ★ N-gram + LCS ハイブリッドマッチング (正規化テキスト使用)
+            # Step 1: N-gramで共通フレーズを検出 (4文字スライディングウィンドウ)
+            NGRAM_SIZE = 4  # 5→4 に縮小して粒度を細かく
+            
+            def extract_ngrams(text, n=NGRAM_SIZE):
+                """スライディングウィンドウでN-gram抽出"""
+                ngrams = {}
+                for i in range(len(text) - n + 1):
+                    gram = text[i:i+n]
+                    if gram not in ngrams:
+                        ngrams[gram] = []
+                    ngrams[gram].append(i)
+                return ngrams
+            
+            # ★ 正規化テキストでN-gram抽出 (括弧なし)
+            t1_ngrams = extract_ngrams(match_t1, NGRAM_SIZE)
+            t2_ngrams = extract_ngrams(match_t2, NGRAM_SIZE)
+            
+            # 共通N-gramを検出
+            common_ngrams = set(t1_ngrams.keys()) & set(t2_ngrams.keys())
+            log_diagnostic(f"[N-gram] Found {len(common_ngrams)} common {NGRAM_SIZE}-grams")
+            
+            # Step 2: 正規化テキストのマッチ範囲を構築
+            def build_match_ranges(ngrams, common_set, n=NGRAM_SIZE):
+                """共通N-gramの位置からマッチ範囲を構築"""
+                ranges = []
+                for gram in common_set:
+                    if gram in ngrams:
+                        for pos in ngrams[gram]:
+                            ranges.append((pos, pos + n))
+                
+                # 範囲をソート・マージ
+                ranges.sort()
+                merged = []
+                for start, end in ranges:
+                    if merged and start <= merged[-1][1]:
+                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+                    else:
+                        merged.append((start, end))
+                return merged
+            
+            # ★ Step 3: 明示的な共通部分文字列検索 (N-gram漏れを補完)
+            # 正規化テキストで見つかった共通部分を、表示テキストで位置特定
+            
+            def find_common_substrings(text1, text2, min_len=4):
+                """両方のテキストに存在する部分文字列を検出"""
+                common = set()
+                # text1の全部分文字列をチェック
+                for length in range(min_len, min(30, len(text1)) + 1):
+                    for i in range(len(text1) - length + 1):
+                        substr = text1[i:i+length]
+                        if substr in text2:
+                            common.add(substr)
+                return common
+            
+            # 正規化テキストで共通部分を検出
+            common_substrings = find_common_substrings(match_t1, match_t2, 4)
+            log_diagnostic(f"[Substring] Found {len(common_substrings)} common substrings (4+ chars)")
+            
+            # 長いものを優先してマッチ位置を特定
+            def find_positions_in_text(text, substrings):
+                """テキスト内のマッチ位置を検出"""
+                ranges = []
+                # 長い順にソート（重複を避けるため）
+                for substr in sorted(substrings, key=len, reverse=True):
+                    if len(substr) >= 4:
+                        pos = 0
+                        while True:
+                            idx = text.find(substr, pos)
+                            if idx == -1:
+                                break
+                            ranges.append((idx, idx + len(substr)))
+                            pos = idx + 1
+                return ranges
+            
+            # 表示テキストでマッチ位置を検出
+            t1_ranges = find_positions_in_text(clean_t1, common_substrings)
+            t2_ranges = find_positions_in_text(clean_t2, common_substrings)
+            
+            # Step 4: LCSも追加 (短いマッチを補完)
+            matcher = difflib.SequenceMatcher(None, clean_t1, clean_t2)
+            for m in matcher.get_matching_blocks():
+                if m.size >= 3:
+                    t1_ranges.append((m.a, m.a + m.size))
+                    t2_ranges.append((m.b, m.b + m.size))
+            
+            # 範囲を再マージ
+            def merge_ranges(ranges):
+                ranges.sort()
+                merged = []
+                for start, end in ranges:
+                    if merged and start <= merged[-1][1]:
+                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+                    else:
+                        merged.append((start, end))
+                return merged
+            
+            t1_merged = merge_ranges(t1_ranges)
+            t2_merged = merge_ranges(t2_ranges)
+            
+            # t1表示
+            pos = 0
+            for start, end in t1_merged:
+                if pos < start:
+                    w_widget.insert("end", clean_t1[pos:start], "diff")
+                w_widget.insert("end", clean_t1[start:end], "normal")
+                pos = end
+            if pos < len(clean_t1):
+                w_widget.insert("end", clean_t1[pos:], "diff")
+            
+            # t2表示
+            pos = 0
+            for start, end in t2_merged:
+                if pos < start:
+                    p_widget.insert("end", clean_t2[pos:start], "diff")
+                p_widget.insert("end", clean_t2[start:end], "normal")
+                pos = end
+            if pos < len(clean_t2):
+                p_widget.insert("end", clean_t2[pos:], "diff")
+        
+        w_widget.configure(state="disabled")
+        p_widget.configure(state="disabled")
 
     def _on_export(self):
         """Export to Excel"""

@@ -231,64 +231,9 @@ class CloudOCREngine(OCREngineStrategy):
             raise RuntimeError(str(e))
 
     # --- 以下、前回のロジック（そのまま利用） ---
-    
-    def _estimate_line_gap(self, blocks: list) -> float:
-        """
-        Phase 1.9.2: ブロックの高さ中央値からライン間隔を動的に推定
-        
-        Returns:
-            推定された行間隔 (px)
-        """
-        if not blocks:
-            return 50.0  # デフォルト
-        
-        heights = []
-        font_sizes = []
-        
-        for b in blocks:
-            rect = b.get("rect", [0, 0, 0, 0])
-            h = rect[3] - rect[1]
-            if h > 0:
-                heights.append(h)
-            
-            fs = b.get("font_size", 0)
-            if fs > 0:
-                font_sizes.append(fs)
-        
-        if not heights:
-            return 50.0
-        
-        # 中央値を使用（外れ値に強い）
-        heights.sort()
-        median_height = heights[len(heights) // 2]
-        
-        # フォントサイズの中央値も考慮
-        if font_sizes:
-            font_sizes.sort()
-            median_font = font_sizes[len(font_sizes) // 2]
-        else:
-            median_font = median_height * 0.8  # 推定
-        
-        # 行間隔 = フォントサイズ × 係数 (0.8〜1.2)
-        # 短語が吸収されにくいように、やや狭めの値を使用
-        estimated_gap = max(median_font * 0.8, median_height * 0.5)
-        
-        # 20px〜100pxの範囲にクランプ
-        result = max(20, min(100, estimated_gap))
-        
-        print(f"[Cluster] 動的行間隔: {result:.1f}px (median_h={median_height:.1f}, median_font={median_font:.1f})")
-        
-        return result
-    
     def _vertical_stack_clustering(self, blocks):
-        """
-        Phase 1.9.2 対応: 動的閾値によるクラスタリング
-        """
         if not blocks: return []
         blocks.sort(key=lambda b: b["rect"][1])
-        
-        # ★ Phase 1.9.2: 動的行間隔を推定
-        dynamic_gap = self._estimate_line_gap(blocks)
         
         clusters = [{
             "rect": b["rect"], 
@@ -324,9 +269,8 @@ class CloudOCREngine(OCREngineStrategy):
 
                     gap_y = target["rect"][1] - current["rect"][3]
                     base_size = max(current["avg_font_size"], target["avg_font_size"])
-                    
-                    # ★ Phase 1.9.2: 動的閾値（50px固定を置換）
-                    threshold_y = max(base_size * 2.0, dynamic_gap)
+                    # 元の設定に戻す
+                    threshold_y = max(base_size * 2.5, 50)
 
                     if gap_y > threshold_y: continue
                     # 元の設定に戻す

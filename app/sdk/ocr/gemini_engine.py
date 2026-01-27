@@ -1,46 +1,68 @@
 """
 Gemini OCR Engine
-Google Gemini (via SDK LLMClient) を使用したOCRエンジン
+Google Gemini を直接使用したOCRエンジン（高速版）
 
 Supports:
 - gemini-2.0-flash (default, fast)
-- gemini-3.0-flash (experimental, more accurate)
+- gemini-2.0-flash-lite (faster)
 """
 import json
 import re
+import os
 from typing import List, Dict, Optional, Tuple, Any
 from pathlib import Path
 from PIL import Image
 
-# Use SDK LLM client with fallback
-try:
-    from app.sdk.llm import GeminiClient
-except ImportError:
-    from app.core.llm_client import LLMClient as GeminiClient
-
 
 class GeminiOCREngine:
     """
-    Google Geminiを使用したOCRエンジン
-    LLMClient経由でマルチモーダル入力を行い、テキストとレイアウト情報を取得する
-    
-    Args:
-        model: Geminiモデル名 ("gemini-2.0-flash", "gemini-3.0-flash")
+    Google Geminiを使用したOCRエンジン（直接API呼び出し版）
     """
     
-    SUPPORTED_MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-3.0-flash"]
+    SUPPORTED_MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite"]
     
     def __init__(self, model: str = "gemini-2.0-flash"):
         """初期化"""
         self.model_name = model
-        try:
-            self.llm_client = GeminiClient(model=model)
-        except TypeError:
-            # Fallback for old LLMClient signature
-            from app.core.llm_client import LLMClient
-            self.llm_client = LLMClient(model_name=model)
+        self.model = None
+        self._is_initialized = False
         
-        self._is_initialized = hasattr(self.llm_client, 'model') and self.llm_client.model is not None
+        try:
+            import google.generativeai as genai
+            
+            # JSONファイルから直接APIキーを読み込み（Config経由せず）
+            api_key = None
+            possible_paths = [
+                Path(__file__).parents[3] / "config" / "api_keys.json",
+                Path.cwd() / "config" / "api_keys.json",
+                Path.cwd().parent / "config" / "api_keys.json",
+            ]
+            
+            for key_path in possible_paths:
+                if key_path.exists():
+                    try:
+                        with open(key_path, 'r') as f:
+                            keys = json.load(f)
+                        api_key = keys.get('gemini_api_key')
+                        if api_key:
+                            print(f"✅ API key from: {key_path.name}")
+                            break
+                    except:
+                        pass
+            
+            # 環境変数からのフォールバック
+            if not api_key:
+                api_key = os.environ.get("GEMINI_API_KEY")
+            
+            if api_key:
+                genai.configure(api_key=api_key)
+                self.model = genai.GenerativeModel(model)
+                self._is_initialized = True
+                print(f"✅ GeminiOCREngine: {model}")
+            else:
+                print("⚠️ GEMINI_API_KEY not found")
+        except Exception as e:
+            print(f"❌ GeminiOCREngine init error: {e}")
     
     def initialize(self) -> bool:
         """初期化ステータスを返す"""
@@ -49,14 +71,8 @@ class GeminiOCREngine:
     def detect_document_text(self, image_source: Any) -> Optional[Dict]:
         """
         画像からドキュメントテキストを検出（ブロック情報付き）
-        
-        Args:
-            image_source: 画像ファイルのパス (str) または PIL.Imageオブジェクト
-        
-        Returns:
-            APIレスポンス辞書、失敗時None
         """
-        if not self._is_initialized:
+        if not self._is_initialized or not self.model:
             print("⚠️ Gemini OCR Engine is not initialized.")
             return None
             
@@ -69,46 +85,53 @@ class GeminiOCREngine:
                     print(f"⚠️ Image not found: {image_source}")
                     return None
                 pil_image = Image.open(image_source)
-                print(f"🔍 Gemini OCR Processing: {Path(image_source).name}")
+                print(f"🔍 Gemini OCR: {Path(image_source).name}")
             elif isinstance(image_source, Image.Image):
                 pil_image = image_source
-                print(f"🔍 Gemini OCR Processing: In-memory Image")
+                print(f"🔍 Gemini OCR: In-memory Image")
             else:
                 print(f"⚠️ Invalid image source type: {type(image_source)}")
                 return None
             
             # プロンプト作成
-            prompt = """
-            Analyze this document image and extract all text blocks.
-            Return a purely valid JSON object (no markdown formatting).
-            The JSON should have the following structure:
-            {
-                "blocks": [
-                    {
-                        "text": "Extracted text content",
-                        "bbox": [ymin, xmin, ymax, xmax],
-                        "type": "BLOCK"
-                    }
-                ]
-            }
+            prompt = """Analyze this document image and extract all text blocks.
+Return a purely valid JSON object (no markdown formatting).
+The JSON should have the following structure:
+{
+    "blocks": [
+        {
+            "text": "Extracted text content",
+            "bbox": [ymin, xmin, ymax, xmax],
+            "type": "BLOCK"
+        }
+    ]
+}
+
+- "bbox" should be normalized coordinates (0-1000) integer values.
+- Try to group text into logical paragraphs or blocks.
+- Extract ALL text visible in the image."""
             
-            - "bbox" should be normalized coordinates (0-1000) integer values: [ymin, xmin, ymax, xmax].
-            - Try to group text into logical paragraphs or blocks.
-            - Extract ALL text visible in the image.
-            """
+            import time
+            start_time = time.time()
             
-            # Gemini実行
-            response_text = self.llm_client.generate_content(prompt, images=[pil_image])
+            # 直接API呼び出し（タイムアウト60秒）
+            response = self.model.generate_content(
+                [prompt, pil_image],
+                request_options={"timeout": 60}
+            )
             
-            if not response_text:
+            elapsed = time.time() - start_time
+            print(f"[DEBUG] Gemini OCR API: {elapsed:.1f}s")
+            
+            if not response or not hasattr(response, 'text'):
                 print("⚠️ Gemini returned no response.")
                 return None
                 
             # JSON解析
-            result = self._parse_json_response(response_text, pil_image.size)
+            result = self._parse_json_response(response.text, pil_image.size)
             
             if result:
-                print(f"✅ Gemini OCR Complete: {len(result['blocks'])} blocks extracted")
+                print(f"✅ Gemini OCR Complete: {len(result['blocks'])} blocks")
                 return result
             else:
                 print("⚠️ Failed to parse Gemini response.")

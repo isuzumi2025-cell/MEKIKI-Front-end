@@ -5,6 +5,9 @@ Direct test using OCREngine from screenshot
 import sys
 import os
 from pathlib import Path
+import pytest
+
+pytestmark = pytest.mark.integration
 
 # Setup paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

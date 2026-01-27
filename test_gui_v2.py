@@ -69,11 +69,11 @@ def test_with_sample_data():
     print(f"\n🔄 自動マッチング実行中...")
     pairs = analyzer.compute_auto_matches(threshold=0.3, method="hybrid")
     
-    print(f"✅ マッチング完了: {len(pairs)} ペア")
+    print(f"\n✅ マッチング完了: {len(pairs)} ペア")
     for i, pair in enumerate(pairs, 1):
         print(f"\n   ペア {i}:")
-        print(f"     Web: {pair.web_area.text}")
-        print(f"     PDF: {pair.pdf_area.text}")
+        print(f"     Web: {pair.web_page.text}")
+        print(f"     PDF: {pair.pdf_page.text}")
         print(f"     類似度: {pair.similarity_score:.2%}")
     
     return analyzer

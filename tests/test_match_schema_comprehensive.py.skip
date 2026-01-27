@@ -1,0 +1,514 @@
+"""
+Unit tests for match schema validation (Phase 1 / Unit 2).
+
+Tests cover:
+- BBox validation (coordinates, out-of-range)
+- MatchEntity validation (ID format, page range)
+- MatchScore validation (range 0.0-1.0)
+- MatchResult validation (complete struct)
+- Backward compatibility (SyncPair conversion)
+"""
+
+import pytest
+from dataclasses import dataclass
+from typing import Optional, Dict
+
+# Import schema classes
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / "app"))
+
+from sdk.similarity.match_schema import (
+    BBox, MatchEntity, MatchScore, MatchResult, MatchStatus, MatchDebug
+)
+from sdk.similarity.schema_validator import (
+    MatchSchemaValidator, ValidationResult, ValidationErrorType
+)
+
+
+# ============================================================================
+# BBox Tests
+# ============================================================================
+
+class TestBBox:
+    """Test BBox dataclass and conversions."""
+
+    def test_bbox_creation(self):
+        """Valid BBox creation."""
+        bbox = BBox(x1=10, y1=20, x2=110, y2=50)
+        assert bbox.x1 == 10
+        assert bbox.y1 == 20
+        assert bbox.x2 == 110
+        assert bbox.y2 == 50
+
+    def test_bbox_to_tuple(self):
+        """BBox → tuple conversion."""
+        bbox = BBox(x1=10, y1=20, x2=110, y2=50)
+        assert bbox.to_tuple() == (10, 20, 110, 50)
+
+    def test_bbox_from_tuple(self):
+        """tuple → BBox conversion."""
+        bbox = BBox.from_tuple((10, 20, 110, 50))
+        assert bbox.x1 == 10
+        assert bbox.y1 == 20
+        assert bbox.x2 == 110
+        assert bbox.y2 == 50
+
+    def test_bbox_invalid_coordinates(self):
+        """Invalid BBox (x1 > x2, y1 > y2) should be caught by validator."""
+        bbox = BBox(x1=110, y1=50, x2=10, y2=20)  # Inverted
+        validator = MatchSchemaValidator()
+
+        # Create minimal entity to test
+        entity = MatchEntity(
+            source_id="W-001",
+            page=0,
+            bbox=bbox,
+            text="test"
+        )
+
+        match = MatchResult(
+            match_id="M-001",
+            web=entity,
+            pdf=None,
+            score=MatchScore(overall=0.9, text=0.9),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.INVALID_BBOX for e in result.errors)
+
+
+# ============================================================================
+# MatchEntity Tests
+# ============================================================================
+
+class TestMatchEntity:
+    """Test MatchEntity validation."""
+
+    def test_valid_web_entity(self):
+        """Valid Web entity with W-XXX ID."""
+        entity = MatchEntity(
+            source_id="W-001",
+            page=0,
+            bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+            text="Sample text"
+        )
+        assert entity.source_id == "W-001"
+        assert entity.page == 0
+
+    def test_valid_pdf_entity(self):
+        """Valid PDF entity with P-XXX ID."""
+        entity = MatchEntity(
+            source_id="P-042",
+            page=5,
+            bbox=BBox(x1=50, y1=100, x2=200, y2=150),
+            text="PDF sample"
+        )
+        assert entity.source_id == "P-042"
+        assert entity.page == 5
+
+    def test_valid_sel_entity(self):
+        """Valid manual selection entity with SEL_XXX ID."""
+        entity = MatchEntity(
+            source_id="SEL_001",
+            page=0,
+            bbox=BBox(x1=0, y1=0, x2=100, y2=100),
+            text="Manual selection"
+        )
+        assert entity.source_id == "SEL_001"
+
+    def test_invalid_id_format(self):
+        """Invalid ID format should be caught by validator."""
+        validator = MatchSchemaValidator()
+
+        entity = MatchEntity(
+            source_id="INVALID-123",  # Wrong format
+            page=0,
+            bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+            text="test"
+        )
+
+        match = MatchResult(
+            match_id="M-001",
+            web=entity,
+            pdf=None,
+            score=MatchScore(overall=0.9, text=0.9),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.INVALID_ID_FORMAT for e in result.errors)
+
+    def test_negative_page_index(self):
+        """Negative page index should be caught by validator."""
+        validator = MatchSchemaValidator()
+
+        entity = MatchEntity(
+            source_id="W-001",
+            page=-1,  # Invalid
+            bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+            text="test"
+        )
+
+        match = MatchResult(
+            match_id="M-001",
+            web=entity,
+            pdf=None,
+            score=MatchScore(overall=0.9, text=0.9),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.INVALID_PAGE for e in result.errors)
+
+
+# ============================================================================
+# MatchScore Tests
+# ============================================================================
+
+class TestMatchScore:
+    """Test MatchScore validation."""
+
+    def test_valid_score(self):
+        """Valid score in range [0.0, 1.0]."""
+        score = MatchScore(overall=0.85, text=0.90, layout=0.80, confidence=1.0)
+        assert 0.0 <= score.overall <= 1.0
+        assert 0.0 <= score.text <= 1.0
+        assert score.layout == 0.80
+
+    def test_score_out_of_range(self):
+        """Score outside [0.0, 1.0] should be caught by validator."""
+        validator = MatchSchemaValidator()
+
+        score = MatchScore(overall=1.5, text=0.9)  # overall > 1.0
+
+        match = MatchResult(
+            match_id="M-001",
+            web=MatchEntity(
+                source_id="W-001",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="test"
+            ),
+            pdf=None,
+            score=score,
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.INVALID_SCORE for e in result.errors)
+
+    def test_negative_score(self):
+        """Negative score should be caught by validator."""
+        validator = MatchSchemaValidator()
+
+        score = MatchScore(overall=0.9, text=-0.1)  # text < 0.0
+
+        match = MatchResult(
+            match_id="M-001",
+            web=MatchEntity(
+                source_id="W-001",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="test"
+            ),
+            pdf=None,
+            score=score,
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.INVALID_SCORE for e in result.errors)
+
+
+# ============================================================================
+# MatchResult Tests
+# ============================================================================
+
+class TestMatchResult:
+    """Test complete MatchResult validation."""
+
+    def test_valid_exact_match(self):
+        """Valid EXACT match with both web and pdf entities."""
+        validator = MatchSchemaValidator()
+
+        match = MatchResult(
+            match_id="M-001",
+            web=MatchEntity(
+                source_id="W-001",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="Sample text"
+            ),
+            pdf=MatchEntity(
+                source_id="P-001",
+                page=0,
+                bbox=BBox(x1=50, y1=100, x2=200, y2=150),
+                text="Sample text"
+            ),
+            score=MatchScore(overall=0.95, text=0.98, layout=0.92),
+            status=MatchStatus.EXACT,
+            debug=MatchDebug(notes="semantic_v2")
+        )
+
+        result = validator.validate(match, image_size=(1000, 1500), page_count=10)
+        assert result.is_valid
+        assert len(result.errors) == 0
+
+    def test_valid_no_match(self):
+        """Valid NO_MATCH with only web entity."""
+        validator = MatchSchemaValidator()
+
+        match = MatchResult(
+            match_id="M-002",
+            web=MatchEntity(
+                source_id="W-002",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="Unmatched text"
+            ),
+            pdf=None,
+            score=MatchScore(overall=0.3, text=0.3),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="semantic_v2")
+        )
+
+        result = validator.validate(match, image_size=(1000, 1500), page_count=10)
+        assert result.is_valid
+
+    def test_bbox_out_of_image_bounds(self):
+        """BBox outside image bounds should fail validation."""
+        validator = MatchSchemaValidator()
+
+        match = MatchResult(
+            match_id="M-003",
+            web=MatchEntity(
+                source_id="W-003",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=2000, y2=50),  # x2 > image width
+                text="Out of bounds"
+            ),
+            pdf=None,
+            score=MatchScore(overall=0.9, text=0.9),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match, image_size=(1000, 1500), page_count=10)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.BBOX_OUT_OF_RANGE for e in result.errors)
+
+    def test_page_out_of_range(self):
+        """Page index ≥ page_count should fail validation."""
+        validator = MatchSchemaValidator()
+
+        match = MatchResult(
+            match_id="M-004",
+            web=None,
+            pdf=MatchEntity(
+                source_id="P-999",
+                page=15,  # page_count = 10
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="Invalid page"
+            ),
+            score=MatchScore(overall=0.9, text=0.9),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match, image_size=(1000, 1500), page_count=10)
+        assert not result.is_valid
+        assert any(e.error_type == ValidationErrorType.PAGE_OUT_OF_RANGE for e in result.errors)
+
+
+# ============================================================================
+# Backward Compatibility Tests
+# ============================================================================
+
+class TestBackwardCompatibility:
+    """Test conversion between MatchResult and legacy SyncPair."""
+
+    def test_to_legacy_syncpair(self):
+        """MatchResult → SyncPair conversion."""
+        match = MatchResult(
+            match_id="M-001",
+            web=MatchEntity(
+                source_id="W-001",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="Web text"
+            ),
+            pdf=MatchEntity(
+                source_id="P-001",
+                page=0,
+                bbox=BBox(x1=50, y1=100, x2=200, y2=150),
+                text="PDF text"
+            ),
+            score=MatchScore(overall=0.95, text=0.98),
+            status=MatchStatus.EXACT,
+            debug=MatchDebug(notes="semantic_v2")
+        )
+
+        sync_pair = match.to_legacy_syncpair()
+
+        # Check basic fields
+        assert sync_pair.web_id == "W-001"
+        assert sync_pair.pdf_id == "P-001"
+        assert sync_pair.similarity == 0.95
+        assert sync_pair.web_text == "Web text"
+        assert sync_pair.pdf_text == "PDF text"
+
+    def test_from_legacy_syncpair_basic(self):
+        """Basic SyncPair → MatchResult conversion (no bbox)."""
+        # Mock SyncPair structure (minimal)
+        @dataclass
+        class MockSyncPair:
+            web_id: str
+            pdf_id: str
+            similarity: float
+            web_text: str
+            pdf_text: str
+            web_bbox: Optional[tuple] = None
+            pdf_bbox: Optional[tuple] = None
+
+        sync_pair = MockSyncPair(
+            web_id="W-002",
+            pdf_id="P-002",
+            similarity=0.87,
+            web_text="Legacy web",
+            pdf_text="Legacy pdf"
+        )
+
+        match = MatchResult.from_legacy_syncpair(sync_pair)
+
+        assert match.web.source_id == "W-002"
+        assert match.pdf.source_id == "P-002"
+        assert match.score.overall == 0.87
+        assert match.web.text == "Legacy web"
+        assert match.pdf.text == "Legacy pdf"
+        assert match.status == MatchStatus.EXACT
+
+    def test_from_legacy_syncpair_with_bbox(self):
+        """SyncPair → MatchResult conversion with bbox."""
+        @dataclass
+        class MockSyncPair:
+            web_id: str
+            pdf_id: str
+            similarity: float
+            web_text: str
+            pdf_text: str
+            web_bbox: Optional[tuple]
+            pdf_bbox: Optional[tuple]
+
+        sync_pair = MockSyncPair(
+            web_id="W-003",
+            pdf_id="P-003",
+            similarity=0.92,
+            web_text="With bbox",
+            pdf_text="With bbox",
+            web_bbox=(10, 20, 110, 50),
+            pdf_bbox=(50, 100, 200, 150)
+        )
+
+        match = MatchResult.from_legacy_syncpair(sync_pair)
+
+        assert match.web.bbox.to_tuple() == (10, 20, 110, 50)
+        assert match.pdf.bbox.to_tuple() == (50, 100, 200, 150)
+
+    def test_roundtrip_conversion(self):
+        """MatchResult → SyncPair → MatchResult roundtrip."""
+        original = MatchResult(
+            match_id="M-999",
+            web=MatchEntity(
+                source_id="W-999",
+                page=0,
+                bbox=BBox(x1=10, y1=20, x2=110, y2=50),
+                text="Roundtrip test"
+            ),
+            pdf=MatchEntity(
+                source_id="P-999",
+                page=0,
+                bbox=BBox(x1=50, y1=100, x2=200, y2=150),
+                text="Roundtrip test"
+            ),
+            score=MatchScore(overall=0.88, text=0.90),
+            status=MatchStatus.PARTIAL,
+            debug=MatchDebug(notes="test")
+        )
+
+        sync_pair = original.to_legacy_syncpair()
+        restored = MatchResult.from_legacy_syncpair(sync_pair)
+
+        # Check key fields preserved
+        assert restored.web.source_id == original.web.source_id
+        assert restored.pdf.source_id == original.pdf.source_id
+        assert restored.score.overall == original.score.overall
+        assert restored.web.bbox.to_tuple() == original.web.bbox.to_tuple()
+        assert restored.pdf.bbox.to_tuple() == original.pdf.bbox.to_tuple()
+
+
+# ============================================================================
+# Integration Tests
+# ============================================================================
+
+class TestIntegration:
+    """Integration tests for complete validation flow."""
+
+    def test_multiple_validation_errors(self):
+        """Multiple errors should all be reported."""
+        validator = MatchSchemaValidator()
+
+        match = MatchResult(
+            match_id="M-BAD",
+            web=MatchEntity(
+                source_id="INVALID",  # Error 1: Invalid ID format
+                page=-5,  # Error 2: Negative page
+                bbox=BBox(x1=200, y1=20, x2=10, y2=50),  # Error 3: Inverted bbox
+                text="Bad entity"
+            ),
+            pdf=None,
+            score=MatchScore(overall=2.0, text=-1.0),  # Error 4: Score out of range
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match)
+        assert not result.is_valid
+        assert len(result.errors) >= 3  # At least 3 distinct error types
+
+    def test_validation_with_context(self):
+        """Validation with image_size and page_count context."""
+        validator = MatchSchemaValidator()
+
+        # Valid within context
+        match = MatchResult(
+            match_id="M-CTX",
+            web=MatchEntity(
+                source_id="W-CTX",
+                page=4,  # page_count = 5, so valid
+                bbox=BBox(x1=10, y1=20, x2=800, y2=600),  # Within 1000x1500
+                text="Context test"
+            ),
+            pdf=None,
+            score=MatchScore(overall=0.9, text=0.9),
+            status=MatchStatus.NO_MATCH,
+            debug=MatchDebug(notes="test")
+        )
+
+        result = validator.validate(match, image_size=(1000, 1500), page_count=5)
+        assert result.is_valid
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

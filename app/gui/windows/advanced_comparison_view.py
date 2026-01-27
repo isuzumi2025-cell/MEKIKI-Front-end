@@ -63,6 +63,21 @@ class EditableRegion:
     # キャンバス上でのID
     canvas_rect_id: Optional[int] = None
     canvas_text_id: Optional[int] = None
+    
+    # ★ Phase 1.6 Fix: to_dict メソッド追加
+    def to_dict(self) -> Dict:
+        """辞書に変換"""
+        return {
+            "id": self.id,
+            "rect": self.rect,
+            "text": self.text,
+            "area_code": self.area_code,
+            "sync_number": self.sync_number,
+            "similarity": self.similarity,
+            "source": self.source,
+            "canvas_rect_id": self.canvas_rect_id,
+            "canvas_text_id": self.canvas_text_id,
+        }
 
 
 class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
@@ -427,18 +442,53 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self._scroll_sync_manager.enable()
         print("✅ Scroll sync enabled by default")
 
-        # キャンバスイベント
+        # ★★★ Phase 1.6: SimpleSelectionHandler で置き換え ★★★
+        # 複雑なMixin統合を廃止し、シンプルで確実な新ハンドラを使用
+        try:
+            from app.sdk.selection.simple_handler import SimpleSelectionHandler
+            
+            # PDF用ハンドラ (image_getter で動的に画像取得)
+            self._pdf_selection_handler = SimpleSelectionHandler(
+                canvas=self.pdf_canvas,
+                image=self.pdf_image,  # 初期値（None可）
+                source="pdf",
+                on_selection_complete=self._on_simple_selection_complete,
+                on_selection_deleted=self._on_simple_selection_deleted,
+                image_getter=lambda: self.pdf_image  # ★ 動的に現在の画像を取得
+            )
+            
+            # Web用ハンドラ
+            self._web_selection_handler = SimpleSelectionHandler(
+                canvas=self.web_canvas,
+                image=self.web_image,
+                source="web",
+                on_selection_complete=self._on_simple_selection_complete,
+                on_selection_deleted=self._on_simple_selection_deleted,
+                image_getter=lambda: self.web_image
+            )
+            
+            print("✅ SimpleSelectionHandler initialized for PDF and Web")
+        except Exception as e:
+            print(f"⚠️ SimpleSelectionHandler failed: {e}")
+            # フォールバック: 旧イベントバインディング
+            for canvas in [self.web_canvas, self.pdf_canvas]:
+                canvas.bind("<ButtonPress-1>", self._on_canvas_click)
+                canvas.bind("<B1-Motion>", self._on_canvas_drag)
+                canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
+            print("✅ Fallback: Old canvas events bound")
+        
+        # Crosshair (Motion/Leave)
         for canvas in [self.web_canvas, self.pdf_canvas]:
-            canvas.bind("<ButtonPress-1>", self._on_canvas_click)
-            canvas.bind("<B1-Motion>", self._on_canvas_drag)
-            canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
-            # ★ B5: Crosshair Sanity Check
             canvas.bind("<Motion>", self._on_mouse_motion)
             canvas.bind("<Leave>", self._on_mouse_leave)
-        print(f"✅ Canvas events bound: click, drag, release, motion, leave")
     
     def _bind_canvas_events(self):
         """キャンバスイベントを再バインド（タブ切替時に必要）"""
+        # ★ SimpleSelectionHandler が有効な場合は上書きしない
+        if hasattr(self, '_pdf_selection_handler') and self._pdf_selection_handler:
+            print("[EventBind] ⚠️ Skipping rebind - SimpleSelectionHandler active")
+            return
+        
         for canvas in [self.web_canvas, self.pdf_canvas]:
             # 既存のバインドをクリアして再バインド
             canvas.bind("<ButtonPress-1>", self._on_canvas_click)
@@ -446,15 +496,12 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
             canvas.bind("<Motion>", self._on_mouse_motion)
             canvas.bind("<Leave>", self._on_mouse_leave)
-        print("[EventBind] Canvas events rebound")
+        print("[EventBind] Canvas events rebound (fallback mode)")
     
     def _on_source_tab_change(self):
         """タブ切替時のコールバック"""
         current_tab = self.view_tabs.get()
         print(f"[TabChange] Switched to: {current_tab}")
-        
-        # イベントを再バインド
-        self._bind_canvas_events()
     
     def _build_right_panel(self, parent):
         """右パネル: Sync Text Panel"""
@@ -574,6 +621,10 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         from app.gui.panels.spreadsheet_panel import SpreadsheetPanel
         self.spreadsheet_panel = SpreadsheetPanel(parent, on_row_select=self._on_spreadsheet_row_select)
         self.spreadsheet_panel.pack(fill="both", expand=True)
+        
+        # ★ Similar/Match検索コールバック登録
+        self.spreadsheet_panel.set_on_similar_search(self._handle_similar_search)
+        self.spreadsheet_panel.set_on_match_search(self._handle_match_search)
     
     def _on_spreadsheet_row_select(self, web_id: str, pdf_id: str, pair):
         """Spreadsheet行選択時: Source領域をハイライト"""
@@ -617,12 +668,18 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # 座標を取得
         x1, y1, x2, y2 = region.rect
 
-        # ★ B3: CanvasTransform経由で座標変換
-        from app.gui.sdk.coord_transform import get_canvas_transform
-        transform = get_canvas_transform(canvas)
-        sx1, sy1, sx2, sy2 = transform.src_rect_to_view(x1, y1, x2, y2)
+        # ★ 修正: display_mixin.pyと同じ方式でスケーリング
+        scale_x = getattr(canvas, 'scale_x', 1.0)
+        scale_y = getattr(canvas, 'scale_y', 1.0)
+        offset_x = getattr(canvas, 'offset_x', 0)
+        offset_y = getattr(canvas, 'offset_y', 0)
+        
+        sx1 = x1 * scale_x + offset_x
+        sy1 = y1 * scale_y + offset_y
+        sx2 = x2 * scale_x + offset_x
+        sy2 = y2 * scale_y + offset_y
 
-        # ハイライト矩形を描画 (太い枠線 + 半透明背景)
+        # ハイライト矩形を描画 (太い枠線)
         canvas.create_rectangle(
             sx1, sy1, sx2, sy2,
             outline=color, width=4,
@@ -633,17 +690,360 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         scrollregion = canvas.cget('scrollregion')
         if scrollregion:
             try:
-                # scrollregionは "x1 y1 x2 y2" 形式の文字列
                 parts = scrollregion.split()
                 total_height = float(parts[3]) if len(parts) >= 4 else 1
                 if total_height > 0:
-                    # 領域の中央が見えるようにスクロール
                     center_y = (sy1 + sy2) / 2
                     scroll_pos = max(0, min(1, (center_y - 100) / total_height))
                     canvas.yview_moveto(scroll_pos)
             except Exception as e:
                 print(f"[Scroll] Error: {e}")
 
+    def _handle_similar_search(self, pair):
+        """類似検索: 同一ソース内でレイアウト類似領域を検出（StructurePropagator使用）"""
+        print(f"\n{'='*50}")
+        print(f"🔍 類似検索開始 (レイアウトベース): {pair.pdf_id}")
+        print(f"{'='*50}")
+        
+        # ソース判定（PDF側を優先）
+        source = "pdf"
+        source_rect = getattr(pair, 'pdf_bbox', None)
+        source_text = getattr(pair, 'pdf_text', '') or ''
+        
+        # rect情報を取得
+        if not source_rect:
+            for r in self.pdf_regions:
+                if r.area_code == pair.pdf_id:
+                    source_rect = r.rect
+                    source_text = r.text
+                    break
+        
+        if not source_rect:
+            print("⚠️ 類似検索: ソース領域が見つかりません")
+            self._safe_status("⚠️ 類似検索: ソース領域が見つかりません")
+            return
+        
+        print(f"📐 テンプレート: rect={source_rect}, text={source_text[:50]}...")
+        self._safe_status("🔍 レイアウト類似検索実行中...")
+        
+        try:
+            from app.core.structure_propagator import StructurePropagator
+            
+            # raw_words と clusters を取得
+            raw_words = getattr(self, 'pdf_raw_words', [])
+            image = getattr(self, 'pdf_image', None)
+            clusters = getattr(self, 'pdf_paragraphs', [])
+            
+            # raw_wordsがない場合はpdf_regionsから構築
+            if not raw_words and self.pdf_regions:
+                raw_words = [
+                    {"rect": r.rect, "text": r.text}
+                    for r in self.pdf_regions
+                ]
+            
+            if not image:
+                print("⚠️ 類似検索: 画像がありません")
+                self._safe_status("⚠️ 類似検索: 画像がありません。先にOCRを実行してください")
+                return
+            
+            # テンプレート情報
+            template = {
+                "rect": source_rect,
+                "text": source_text
+            }
+            
+            # StructurePropagator で類似領域検出
+            propagator = StructurePropagator()
+            page_size = (image.width, image.height)
+            
+            new_regions = propagator.propagate(
+                template, raw_words, page_size,
+                image=image, clusters=clusters
+            )
+            
+            if new_regions:
+                print(f"✅ 類似検索結果: {len(new_regions)}件のレイアウトパターン")
+                
+                # ★ 新機能: 検出領域をパラグラフリストに追加
+                new_paragraph_objects = []
+                
+                for i, region_data in enumerate(new_regions):
+                    rect = region_data.get('rect', source_rect)
+                    score = region_data.get('score', 0)
+                    anchor = region_data.get('anchor_word', '')
+                    
+                    # テキスト抽出（優先順位: region_data > pdf_regions > clusters > raw_words）
+                    extracted_text = region_data.get('text', '')
+                    
+                    # ★ 修正: pdf_regions (元のOCR結果) から抽出
+                    if not extracted_text and hasattr(self, 'pdf_regions'):
+                        x1, y1, x2, y2 = rect
+                        for existing_region in self.pdf_regions:
+                            if hasattr(existing_region, 'rect'):
+                                ex1, ey1, ex2, ey2 = existing_region.rect
+                                # 矩形の重なり判定（IoU）
+                                x_overlap = min(x2, ex2) - max(x1, ex1)
+                                y_overlap = min(y2, ey2) - max(y1, ey1)
+                                if x_overlap > 0 and y_overlap > 0:
+                                    # 重なり面積の割合を計算
+                                    overlap_area = x_overlap * y_overlap
+                                    rect_area = (x2 - x1) * (y2 - y1)
+                                    if rect_area > 0 and (overlap_area / rect_area) > 0.5:
+                                        # 50%以上重なっていたら採用
+                                        extracted_text = existing_region.text
+                                        print(f"[DEBUG] Text extracted from existing region: {existing_region.area_code}")
+                                        break
+                    
+                    # clustersから抽出を試みる
+                    if not extracted_text and clusters:
+                        x1, y1, x2, y2 = rect
+                        for c in clusters:
+                            c_rect = c.get('rect') if isinstance(c, dict) else getattr(c, 'rect', None)
+                            if c_rect:
+                                cx1, cy1, cx2, cy2 = c_rect
+                                # 矩形の重なり判定
+                                x_overlap = min(x2, cx2) - max(x1, cx1)
+                                y_overlap = min(y2, cy2) - max(y1, cy1)
+                                if x_overlap > 0 and y_overlap > 0:
+                                    c_text = c.get('text', '') if isinstance(c, dict) else getattr(c, 'text', '')
+                                    extracted_text += c_text
+                    
+                    # raw_wordsから抽出を試みる（最終手段）
+                    if not extracted_text and raw_words and len(raw_words) > 1:
+                        print(f"[DEBUG] Extracting from raw_words (total: {len(raw_words)})")
+                        x1, y1, x2, y2 = rect
+                        words_in_region = []
+                        for w in raw_words:
+                            if isinstance(w, dict):
+                                wx1, wy1, wx2, wy2 = w.get('rect', [0,0,0,0])
+                                cx = (wx1 + wx2) / 2
+                                cy = (wy1 + wy2) / 2
+                                if x1 <= cx <= x2 and y1 <= cy <= y2:
+                                    words_in_region.append(w.get('text', ''))
+                        extracted_text = ''.join(words_in_region)
+                    
+                    if extracted_text:
+                        print(f"[DEBUG] ✓ Extracted text length: {len(extracted_text)}")
+                    else:
+                        print(f"[DEBUG] ✗ No text extracted for region {rect}")
+                    
+                    # EditableRegionオブジェクトを作成
+                    area_code = f"PDF-SIM-{i+1:02d}"
+                    
+                    new_region = EditableRegion(
+                        id=len(self.pdf_regions) + i + 1,
+                        rect=rect,
+                        text=extracted_text or f"[No Text - {anchor}]",  # 空の場合はアンカー情報を使用
+                        area_code=area_code,
+                        sync_number=None,
+                        similarity=0.0,
+                        source=source
+                    )
+                    new_region.sync_color = "#FFEB3B"  # 黄色（類似検出由来）
+                    new_paragraph_objects.append(new_region)
+                    
+                    print(f"   📌 #{i+1}: {area_code}, rect={rect}, score={score:.2f}, text='{extracted_text[:50] if extracted_text else '[EMPTY]'}...'")
+                    
+                    # キャンバスにハイライト
+                    self._highlight_rect_on_canvas(self.pdf_canvas, rect, "#FFEB3B")
+                
+                # パラグラフリストに追加
+                if source == "pdf":
+                    self.pdf_regions.extend(new_paragraph_objects)
+                    print(f"📝 PDF領域リストに{len(new_paragraph_objects)}件追加 (合計: {len(self.pdf_regions)}件)")
+                else:
+                    self.web_regions.extend(new_paragraph_objects)
+                    print(f"📝 Web領域リストに{len(new_paragraph_objects)}件追加 (合計: {len(self.web_regions)}件)")
+                
+                # ★ Sync再計算
+                print("🔄 Sync再計算中...")
+                self._safe_status("🔄 類似レイアウトからパラグラフ生成中...")
+                self._recalculate_sync()
+                
+                # ★ スプレッドシート更新
+                self._refresh_inline_spreadsheet()
+                
+                # 領域再描画
+                self._redraw_regions()
+                
+                self._safe_status(
+                    f"✅ 類似検索完了: {len(new_regions)}件検出 → パラグラフ追加 → Sync再計算完了"
+                )
+            else:
+                print("ℹ️ 類似検索: 類似レイアウトなし")
+                self._safe_status("ℹ️ 類似レイアウトが見つかりませんでした")
+                
+                
+        except Exception as e:
+            print(f"❌ 類似検索エラー: {e}")
+            import traceback
+            traceback.print_exc()
+            self._safe_status(f"❌ 類似検索エラー: {e}")
+
+
+
+    
+    def _handle_match_search(self, pair):
+        """マッチ検索: 対向ソース（PDF→Web）で同じ文言を含むパラグラフを検出（GeminiAutoMatcher使用）"""
+        print(f"\n{'='*50}")
+        print(f"🎯 マッチ検索開始 (テキストベース): {pair.pdf_id}")
+        print(f"{'='*50}")
+        
+        # PDFソースのテキストを取得
+        source_text = getattr(pair, 'pdf_text', '') or ''
+        source_id = pair.pdf_id
+        if not source_text:
+            for r in self.pdf_regions:
+                if r.area_code == pair.pdf_id:
+                    source_text = r.text
+                    break
+        
+        if not source_text:
+            print("⚠️ マッチ検索: ソーステキストが見つかりません")
+            self._safe_status("⚠️ マッチ検索: ソーステキストが見つかりません")
+            return
+        
+        print(f"📝 PDF検索元: [{source_id}] ({len(source_text)}文字)")
+        print(f"   テキスト: {source_text[:80]}...")
+        self._safe_status(f"🎯 マッチ検索中: '{source_text[:30]}...' → Web側")
+        
+        try:
+            from app.sdk.similarity import GeminiAutoMatcher
+            
+            # デバッグ: Web領域の数を確認
+            print(f"[DEBUG] Total web_regions: {len(self.web_regions)}")
+            print(f"[DEBUG] web_regions with text: {len([r for r in self.web_regions if r.text and r.text.strip()])}")
+            
+            # Web領域を候補としてフォーマット
+            candidates = []
+            for r in self.web_regions:
+                if r.text and r.text.strip():
+                    candidates.append({
+                        "id": r.area_code,
+                        "text": r.text,
+                        "rect": r.rect
+                    })
+                    print(f"[DEBUG] Web candidate: {r.area_code}, text_len={len(r.text)}")
+            
+            if not candidates:
+                print("⚠️ マッチ検索: Web側に領域がありません")
+                print(f"[DEBUG] self.web_regions = {self.web_regions}")
+                self._safe_status("⚠️ マッチ検索: Web側に領域がありません。先にAI分析を実行してください")
+                return
+            
+            print(f"🔎 Web側候補: {len(candidates)}件")
+            
+            # GeminiAutoMatcher でマッチング
+            matcher = GeminiAutoMatcher()
+            results = matcher.find_matching_paragraphs(
+                source_text, candidates, threshold=0.4, top_k=5
+            )
+            
+            if results:
+                print(f"✅ マッチ検索結果: {len(results)}件")
+                
+                # 最も類似度の高い結果
+                best_match = results[0]
+                print(f"   🎯 Best Match: [{best_match.paragraph_id}] {best_match.similarity_score:.0%}")
+                print(f"      PDF: '{source_text[:40]}...'")
+                print(f"      Web: '{best_match.paragraph_text[:40]}...'")
+                
+                for r in results:
+                    print(f"   📌 [{r.paragraph_id}]: {r.similarity_score:.0%}")
+                    
+                    # Web側でハイライト表示
+                    for region in self.web_regions:
+                        if region.area_code == r.paragraph_id:
+                            # 最良=緑/太枠、他=黄色
+                            color = "#00FF00" if r == best_match else "#FFEB3B"
+                            self._highlight_region_on_canvas(self.web_canvas, region, color)
+                            break
+                
+                # テキストボックスにも反映（詳細表示）
+                if hasattr(self, 'web_text_box') and best_match:
+                    self.web_text_box.delete("1.0", "end")
+                    detail = f"🎯 マッチ結果: {best_match.similarity_score:.0%}\n"
+                    detail += f"━━━━━━━━━━━━━━━━━━━━\n"
+                    detail += f"📄 PDF [{source_id}]:\n{source_text[:200]}\n\n"
+                    detail += f"🌐 Web [{best_match.paragraph_id}]:\n{best_match.paragraph_text[:200]}"
+                    self.web_text_box.insert("1.0", detail)
+                
+                # ステータス：何に対する何のマッチかを明示
+                self._safe_status(
+                    f"✅ PDF [{source_id}] → Web [{best_match.paragraph_id}]: "
+                    f"{best_match.similarity_score:.0%}マッチ"
+                )
+            else:
+                print("ℹ️ マッチ検索: マッチなし")
+                self._safe_status(f"ℹ️ '{source_text[:20]}...' に類似するWebパラグラフなし")
+                
+        except ImportError as e:
+            # GeminiAutoMatcher がない場合はEmbeddingSimilarSearchにフォールバック
+            print(f"⚠️ GeminiAutoMatcher not found, falling back to EmbeddingSimilarSearch")
+            self._handle_match_search_fallback(pair, source_text)
+        except Exception as e:
+            print(f"❌ マッチ検索エラー: {e}")
+            import traceback
+            traceback.print_exc()
+            self._safe_status(f"❌ マッチ検索エラー: {e}")
+    
+    def _handle_match_search_fallback(self, pair, source_text):
+        """マッチ検索フォールバック: EmbeddingSimilarSearch使用"""
+        try:
+            from app.sdk.similarity import EmbeddingSimilarSearch
+            
+            search = EmbeddingSimilarSearch(threshold=0.5)
+            candidates = [
+                {"id": r.area_code, "text": r.text, "rect": r.rect}
+                for r in self.web_regions if r.text and r.text.strip()
+            ]
+            
+            if not candidates:
+                self._safe_status("⚠️ Web側に領域がありません")
+                return
+            
+            results = search.find_similar(source_text, candidates, top_k=3)
+            
+            if results:
+                best = results[0]
+                for r in results:
+                    for region in self.web_regions:
+                        if region.area_code == r.candidate_id:
+                            color = "#00FF00" if r == best else "#FFEB3B"
+                            self._highlight_region_on_canvas(self.web_canvas, region, color)
+                            break
+                self._safe_status(f"✅ マッチ検索完了: {best.similarity_score:.0%}")
+            else:
+                self._safe_status("ℹ️ 類似パラグラフなし")
+        except Exception as e:
+            self._safe_status(f"❌ フォールバックエラー: {e}")
+    
+    def _highlight_rect_on_canvas(self, canvas, rect, color="#FFEB3B"):
+        """座標指定でキャンバス上にハイライト描画"""
+        try:
+            if not canvas or not rect:
+                return
+            
+            x1, y1, x2, y2 = rect
+            
+            # scale計算
+            scale_y = getattr(canvas, 'scale_y', 1.0)
+            scale_x = getattr(canvas, 'scale_x', scale_y)
+            
+            # スケーリング適用
+            sx1 = int(x1 * scale_x)
+            sy1 = int(y1 * scale_y)
+            sx2 = int(x2 * scale_x)
+            sy2 = int(y2 * scale_y)
+            
+            # 既存のハイライトを削除せずに追加（複数表示）
+            canvas.create_rectangle(
+                sx1, sy1, sx2, sy2,
+                outline=color, width=3,
+                tags="similar_highlight"
+            )
+        except Exception as e:
+            print(f"[_highlight_rect_on_canvas] Error: {e}")
 
     
     def _safe_window_exists(self, attr_name: str) -> bool:
@@ -1841,7 +2241,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self._generate_thumbnails()  # 選択状態更新
     
     def _recalculate_sync(self, update_ui: bool = True):
-        """WebとPDFのSync率を再計算 (Ultimate Sync)"""
+        """WebとPDFのSync率を再計算 (SDK版)"""
         if not self.web_regions and not self.pdf_regions:
             self.status_label.configure(text="⚠️ OCRを先に実行してください")
             return
@@ -1851,77 +2251,36 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             self.update()
         
         try:
-            from app.core.paragraph_matcher import (
-                ParagraphMatcher, ParagraphEntry, 
-                create_paragraph_entries_from_clusters
-            )
-            from app.core.sync_exporter import export_sync_results
+            # ★ 新SDK版 ParagraphMatcher を使用
+            from app.sdk.similarity.paragraph_matcher import ParagraphMatcher
             
-            # クラスターからParagraphEntryを生成
-            web_entries = []
-            pdf_entries = []
+            matcher = ParagraphMatcher(threshold=0.25)
+            sync_pairs = matcher.match(self.web_regions, self.pdf_regions)
             
-            # Web パラグラフ生成
-            for region in self.web_regions:
-                entry = ParagraphEntry(
-                    id=region.area_code,
-                    source="web",
-                    text=region.text,
-                    rect=list(region.rect),
-                    page=int(region.area_code.split('-')[0].replace('P', '')) if '-' in region.area_code else 1
-                )
-                web_entries.append(entry)
-            
-            # PDF パラグラフ生成
-            for region in self.pdf_regions:
-                entry = ParagraphEntry(
-                    id=region.area_code,
-                    source="pdf",
-                    text=region.text,
-                    rect=list(region.rect),
-                    page=1
-                )
-                pdf_entries.append(entry)
-            
-            # マッチング実行 (★ デフォルト値を使用: 0.40/0.25)
-            matcher = ParagraphMatcher()
-            web_entries, pdf_entries, sync_pairs = matcher.match_paragraphs(web_entries, pdf_entries)
-            
-            # 保存 (後でExcel出力に使用)
-            self.web_paragraph_entries = web_entries
-            self.pdf_paragraph_entries = pdf_entries
+            # 保存
             self.sync_pairs = sync_pairs
             
-            # 領域のsync_color更新
-            web_entry_map = {e.id: e for e in web_entries}
-            pdf_entry_map = {e.id: e for e in pdf_entries}
+            # 領域のsimilarityをsync_pairsから更新
+            sync_map_web = {sp.web_id: sp for sp in sync_pairs if sp.web_id}
+            sync_map_pdf = {sp.pdf_id: sp for sp in sync_pairs if sp.pdf_id}
             
             for region in self.web_regions:
-                if region.area_code in web_entry_map:
-                    entry = web_entry_map[region.area_code]
-                    region.sync_number = list(web_entry_map.keys()).index(region.area_code) if entry.sync_id else None
-                    region.similarity = entry.similarity
-                    if not hasattr(region, 'sync_color'):
-                        region.sync_color = entry.sync_color
-                    else:
-                        region.sync_color = entry.sync_color
+                sp = sync_map_web.get(region.area_code)
+                if sp:
+                    region.similarity = sp.similarity
             
             for region in self.pdf_regions:
-                if region.area_code in pdf_entry_map:
-                    entry = pdf_entry_map[region.area_code]
-                    region.sync_number = list(pdf_entry_map.keys()).index(region.area_code) if entry.sync_id else None
-                    region.similarity = entry.similarity
-                    if not hasattr(region, 'sync_color'):
-                        region.sync_color = entry.sync_color
-                    else:
-                        region.sync_color = entry.sync_color
+                sp = sync_map_pdf.get(region.area_code)
+                if sp:
+                    region.similarity = sp.similarity
             
             # 描画更新 (update_ui=Trueの場合のみ)
             if update_ui:
                 self._redraw_regions_with_sync()
             
-                # 全体Sync率計算
-                overall_sync = matcher.calculate_sync_rate(sync_pairs, len(web_entries), len(pdf_entries))
+                # 全体Sync率計算 (マッチ済みペアの平均類似度)
+                matched_pairs = [sp for sp in sync_pairs if sp.similarity > 0]
+                overall_sync = sum(sp.similarity for sp in matched_pairs) / len(matched_pairs) if matched_pairs else 0
                 overall_percent = overall_sync * 100
                 
                 color = "#4CAF50" if overall_percent >= 50 else "#FF9800" if overall_percent >= 30 else "#F44336"
@@ -2538,8 +2897,119 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             pass
     
     # ============================================================
-    # Canvas Drag Selection - 画像上で矩形選択→テキスト抽出
+    # SimpleSelectionHandler Callbacks - Phase 1.6 Ultra Professional
     # ============================================================
+    
+    def _on_simple_selection_complete(self, result):
+        """
+        SimpleSelectionHandler からの選択完了コールバック
+        
+        Args:
+            result: SelectionResult (rect, text, source, area_code)
+        """
+        print(f"\n{'='*60}")
+        print(f"[Callback] _on_simple_selection_complete")
+        print(f"[Callback] area_code: {result.area_code}")
+        print(f"[Callback] text: {result.text[:50]}..." if len(result.text) > 50 else f"[Callback] text: {result.text}")
+        print(f"{'='*60}")
+        
+        try:
+            # EditableRegion を作成
+            new_region = EditableRegion(
+                id=len(self.web_regions) + len(self.pdf_regions) + 1,
+                rect=list(result.rect),
+                text=result.text,
+                area_code=result.area_code,
+                sync_number=None,
+                similarity=0.0,
+                source=result.source
+            )
+            
+            if result.source == "web":
+                self.web_regions.append(new_region)
+            else:
+                self.pdf_regions.append(new_region)
+            
+            print(f"[Callback] ✅ EditableRegion added: {result.area_code}")
+            
+            # SyncPair を作成
+            from app.core.paragraph_matcher import SyncPair
+            
+            rect_list = list(result.rect)
+            
+            if result.source == "web":
+                new_pair = SyncPair(
+                    web_id=result.area_code,
+                    pdf_id="",
+                    similarity=0.0,
+                    color="#FF9800",
+                    web_bbox=rect_list,
+                    pdf_bbox=None,
+                    web_text=result.text,
+                    pdf_text=""
+                )
+            else:
+                new_pair = SyncPair(
+                    web_id="",
+                    pdf_id=result.area_code,
+                    similarity=0.0,
+                    color="#FF9800",
+                    web_bbox=None,
+                    pdf_bbox=rect_list,
+                    web_text="",
+                    pdf_text=result.text
+                )
+            
+            self.sync_pairs.append(new_pair)
+            print(f"[Callback] ✅ SyncPair added: {result.area_code}")
+            
+            # シート更新
+            self._refresh_inline_spreadsheet()
+            print(f"[Callback] ✅ Spreadsheet refreshed")
+            
+            # ステータス更新
+            if result.text and "[テキスト抽出失敗" not in result.text:
+                self.status_label.configure(text=f"✅ テキスト抽出成功: {len(result.text)} 文字")
+            else:
+                self.status_label.configure(text=f"⚠️ テキスト抽出失敗 - 手動入力可能")
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[Callback] ❌ Error: {e}")
+            self.status_label.configure(text=f"❌ エラー: {e}")
+    
+    def _on_simple_selection_deleted(self, area_code: str):
+        """
+        SimpleSelectionHandler からの選択削除コールバック
+        
+        Args:
+            area_code: 削除された領域のエリアコード
+        """
+        print(f"[Callback] _on_simple_selection_deleted: {area_code}")
+        
+        try:
+            # regions から削除
+            self.web_regions = [r for r in self.web_regions if r.area_code != area_code]
+            self.pdf_regions = [r for r in self.pdf_regions if r.area_code != area_code]
+            
+            # sync_pairs から削除
+            self.sync_pairs = [p for p in self.sync_pairs 
+                              if p.web_id != area_code and p.pdf_id != area_code]
+            
+            # シート更新
+            self._refresh_inline_spreadsheet()
+            
+            self.status_label.configure(text=f"🗑️ {area_code} を削除しました")
+            print(f"[Callback] ✅ Region deleted: {area_code}")
+            
+        except Exception as e:
+            print(f"[Callback] ❌ Delete error: {e}")
+    
+    # ============================================================
+    # Canvas Drag Selection - 画像上で矩形選択→テキスト抽出 (Legacy)
+    # ============================================================
+
     
     def _on_canvas_click(self, event):
         """キャンバスクリック - 選択開始 (SelectionMixin統合版)"""
@@ -2591,20 +3061,28 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     
     def _on_canvas_release(self, event):
         """キャンバスリリース - 選択完了→テキスト抽出 (SelectionMixin統合版)"""
-        print(f"[DEBUG] _on_canvas_release called")  # デバッグログ
+        import sys
+        print(f"\n{'★'*30}")
+        print(f"[RELEASE] _on_canvas_release CALLED!")
+        print(f"{'★'*30}")
+        sys.stdout.flush()
         
         if not hasattr(self, '_selection_start') or self._selection_start is None:
-            print("[DEBUG] No selection start, returning")
+            print("[RELEASE] ❌ No selection start, returning EARLY")
+            sys.stdout.flush()
             return
         
         canvas = event.widget
         if canvas != self._selection_canvas:
             return
         
-        # ★ SelectionMixin連携: 即座シート反映
-        if _HAS_SELECTION_MIXIN and hasattr(self, '_on_selection_end'):
-            image_source = self.web_image if self._selection_source == "web" else self.pdf_image
-            self._on_selection_end(event, canvas, self._selection_source)
+        # ★★★ Phase 1.6 FIX: SelectionMixin をバイパス ★★★
+        # SelectionMixin は古いSDK (SelectionManager) を使い、Gemini OCRを使わない
+        # 直接 Gemini Vision OCR パスを実行する
+        # if _HAS_SELECTION_MIXIN and hasattr(self, '_on_selection_end'):
+        #     image_source = self.web_image if self._selection_source == "web" else self.pdf_image
+        #     self._on_selection_end(event, canvas, self._selection_source)
+        print("[RELEASE] ✅ SelectionMixin bypassed, using direct Gemini OCR path")
         
         x2 = canvas.canvasx(event.x)
         y2 = canvas.canvasy(event.y)
@@ -2625,6 +3103,16 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # 選択範囲内のテキストを抽出
         extracted_text = self._extract_text_from_region(rect, self._selection_source)
         
+        # ★ HYPER-DIAGNOSTIC: テキスト抽出結果を詳細ログ
+        print(f"\n{'='*60}")
+        print(f"[HYPER-DEBUG] _on_canvas_release テキスト抽出完了")
+        print(f"[HYPER-DEBUG] rect: {rect}")
+        print(f"[HYPER-DEBUG] source: {self._selection_source}")
+        print(f"[HYPER-DEBUG] extracted_text type: {type(extracted_text)}")
+        print(f"[HYPER-DEBUG] extracted_text value: {repr(extracted_text[:200] if extracted_text else 'None')}")
+        print(f"[HYPER-DEBUG] extracted_text length: {len(extracted_text) if extracted_text else 0}")
+        print(f"{'='*60}\n")
+        
         # ★ None/空チェック
         if extracted_text is None:
             extracted_text = ""
@@ -2639,39 +3127,85 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             self.pdf_text_box.delete("1.0", "end")
             self.pdf_text_box.insert("1.0", extracted_text)
         
-        # ★ Phase 1.5: 新規領域を作成してリストに追加
-        if extracted_text.strip():
-            new_region = EditableRegion(
-                id=len(self.web_regions) + len(self.pdf_regions) + 1,
-                rect=[int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])],
-                text=extracted_text,
-                area_code=f"SEL_{len(self.web_regions) + len(self.pdf_regions) + 1:03d}",
-                sync_number=None,
+        # ★ Phase 1.6 Fix: テキスト抽出成功/失敗に関わらず、常に領域を作成
+        # これによりサムネイルは常に表示される
+        display_text = extracted_text.strip() if extracted_text else "[テキスト抽出失敗 - 手動入力可]"
+        
+        new_region = EditableRegion(
+            id=len(self.web_regions) + len(self.pdf_regions) + 1,
+            rect=[int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])],
+            text=display_text,
+            area_code=f"SEL_{len(self.web_regions) + len(self.pdf_regions) + 1:03d}",
+            sync_number=None,
+            similarity=0.0,
+            source=self._selection_source
+        )
+        
+        if self._selection_source == "web":
+            self.web_regions.append(new_region)
+        else:
+            self.pdf_regions.append(new_region)
+        
+        print(f"✅ New region added: {new_region.area_code}, text_len={len(display_text)}")
+        
+        # ★ Phase 1.6 Fix: 新しい選択用のSyncPairを作成してシートに表示
+        # SpreadsheetPanelはsync_pairsからデータを読み込むため、
+        # SyncPairを作成しないと手動選択がシートに反映されない
+        from app.core.paragraph_matcher import SyncPair
+        
+        if self._selection_source == "web":
+            # Web選択: web_id設定、pdf_idは空（対向マッチング待ち）
+            new_sync_pair = SyncPair(
+                web_id=new_region.area_code,
+                pdf_id="",  # 対向マッチング後に更新される
                 similarity=0.0,
-                source=self._selection_source
+                color="#FF9800",  # オレンジ（未マッチ）
+                web_bbox=new_region.rect,
+                pdf_bbox=None,
+                web_text=display_text,
+                pdf_text=None
             )
-            
-            if self._selection_source == "web":
-                self.web_regions.append(new_region)
-            else:
-                self.pdf_regions.append(new_region)
-            
-            print(f"✅ New region added: {new_region.area_code}, {len(extracted_text)} chars")
-            
-            # ★ スプレッドシートを即座に更新
-            if hasattr(self, '_refresh_inline_spreadsheet'):
-                self._refresh_inline_spreadsheet()
-            
-            # ★ Phase 1.6: Gemini自動マッチング - 対向ソースから類似パラグラフ検出
+        else:
+            # PDF選択: pdf_id設定、web_idは空
+            new_sync_pair = SyncPair(
+                web_id="",  # 対向マッチング後に更新される
+                pdf_id=new_region.area_code,
+                similarity=0.0,
+                color="#FF9800",  # オレンジ（未マッチ）
+                web_bbox=None,
+                pdf_bbox=new_region.rect,
+                web_text=None,
+                pdf_text=display_text
+            )
+        
+        self.sync_pairs.append(new_sync_pair)
+        print(f"\n{'='*60}")
+        print(f"[HYPER-DEBUG] SyncPair created and added")
+        print(f"[HYPER-DEBUG] area_code: {new_region.area_code}")
+        print(f"[HYPER-DEBUG] web_id: {new_sync_pair.web_id}")
+        print(f"[HYPER-DEBUG] pdf_id: {new_sync_pair.pdf_id}")
+        print(f"[HYPER-DEBUG] web_text: {repr(new_sync_pair.web_text[:100] if new_sync_pair.web_text else 'None')}")
+        print(f"[HYPER-DEBUG] pdf_text: {repr(new_sync_pair.pdf_text[:100] if new_sync_pair.pdf_text else 'None')}")
+        print(f"[HYPER-DEBUG] web_bbox: {new_sync_pair.web_bbox}")
+        print(f"[HYPER-DEBUG] pdf_bbox: {new_sync_pair.pdf_bbox}")
+        print(f"[HYPER-DEBUG] sync_pairs count: {len(self.sync_pairs)}")
+        print(f"{'='*60}\n")
+        
+        # ★ スプレッドシートを即座に更新
+        if hasattr(self, '_refresh_inline_spreadsheet'):
+            self._refresh_inline_spreadsheet()
+        
+        # ★ Phase 1.6: Gemini自動マッチング - 対向ソースから類似パラグラフ検出
+        if extracted_text.strip():
             self._run_auto_matching(extracted_text, new_region)
-            
-            # 選択完了
+        
+        # 選択完了 - 成功/警告表示
+        if extracted_text.strip():
             canvas.itemconfig("selection_rect", outline="#4CAF50", dash=())
             self.status_label.configure(text=f"✅ {self._selection_source.upper()}から{len(extracted_text)}文字抽出 - 対向検索中...")
         else:
-            # テキスト抽出失敗
-            canvas.itemconfig("selection_rect", outline="#F44336", dash=())
-            self.status_label.configure(text=f"⚠️ テキストを抽出できませんでした (GEMINI_API_KEYを確認)")
+            canvas.itemconfig("selection_rect", outline="#FF9800", dash=())
+            self.status_label.configure(text=f"⚠️ テキスト抽出失敗 - シートには追加済み (サムネイル表示)")
         
         self._selection_start = None
     
@@ -2730,6 +3264,43 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # スコアを更新
         source_region.similarity = match_result.similarity_score
         
+        # ★ Phase 1.6: 既存SyncPairを更新して対向マッチ情報を反映
+        # source_region.area_code に一致するSyncPairを探して更新
+        for sync_pair in self.sync_pairs:
+            # Web → PDF マッチング
+            if source_region.source == "web" and sync_pair.web_id == source_region.area_code:
+                # PDF側の情報を追加
+                matched_region = self._find_region_by_id(match_result.paragraph_id, "pdf")
+                if matched_region:
+                    sync_pair.pdf_id = matched_region.area_code
+                    sync_pair.pdf_bbox = matched_region.rect
+                    sync_pair.pdf_text = match_result.paragraph_text
+                else:
+                    # フォールバック: match_resultから直接設定
+                    sync_pair.pdf_id = f"MATCH_{len(self.pdf_regions) + 1:03d}"
+                    sync_pair.pdf_bbox = match_result.paragraph_rect if hasattr(match_result, 'paragraph_rect') else None
+                    sync_pair.pdf_text = match_result.paragraph_text
+                sync_pair.similarity = match_result.similarity_score
+                sync_pair.color = self._get_sync_color(match_result.similarity_score)
+                print(f"✅ SyncPair updated: {sync_pair.web_id} ↔ {sync_pair.pdf_id} ({int(match_result.similarity_score * 100)}%)")
+                break
+            # PDF → Web マッチング
+            elif source_region.source == "pdf" and sync_pair.pdf_id == source_region.area_code:
+                # Web側の情報を追加
+                matched_region = self._find_region_by_id(match_result.paragraph_id, "web")
+                if matched_region:
+                    sync_pair.web_id = matched_region.area_code
+                    sync_pair.web_bbox = matched_region.rect
+                    sync_pair.web_text = match_result.paragraph_text
+                else:
+                    sync_pair.web_id = f"MATCH_{len(self.web_regions) + 1:03d}"
+                    sync_pair.web_bbox = match_result.paragraph_rect if hasattr(match_result, 'paragraph_rect') else None
+                    sync_pair.web_text = match_result.paragraph_text
+                sync_pair.similarity = match_result.similarity_score
+                sync_pair.color = self._get_sync_color(match_result.similarity_score)
+                print(f"✅ SyncPair updated: {sync_pair.web_id} ↔ {sync_pair.pdf_id} ({int(match_result.similarity_score * 100)}%)")
+                break
+        
         # ステータス更新
         score_percent = int(match_result.similarity_score * 100)
         self.status_label.configure(
@@ -2739,6 +3310,26 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # シート更新
         if hasattr(self, '_refresh_inline_spreadsheet'):
             self._refresh_inline_spreadsheet()
+    
+    def _find_region_by_id(self, region_id, source: str):
+        """IDに一致するリージョンを検索"""
+        regions = self.web_regions if source == "web" else self.pdf_regions
+        for r in regions:
+            # IDが数値または文字列で一致するか確認
+            if r.id == region_id or str(r.id) == str(region_id):
+                return r
+            if hasattr(r, 'area_code') and r.area_code == region_id:
+                return r
+        return None
+    
+    def _get_sync_color(self, similarity: float) -> str:
+        """類似度に応じた色を返す"""
+        if similarity >= 0.5:
+            return "#4CAF50"  # 緑 (高マッチ)
+        elif similarity >= 0.3:
+            return "#FF9800"  # オレンジ (中マッチ)
+        else:
+            return "#F44336"  # 赤 (低マッチ)
     
     def _extract_text_from_region(self, rect, source: str) -> str:
         """選択範囲内のOCR領域からテキストを抽出"""
@@ -2755,8 +3346,27 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         
         print(f"[_extract_text_from_region] View: {rect} -> Source: {selection_rect}")
         
-        # 対象のパラグラフリスト
+        # ★ Phase 1.6 精度優先: Gemini Vision OCR を最優先
+        # Gemini 2.0/2.5/3.0 は日本語OCR精度が最高 (95%+)
+        print(f"[_extract_text_from_region] 精度優先: Gemini Vision OCR を最初に試行...")
+        
+        extracted_text = self._extract_text_with_gemini_ocr(selection_rect, source)
+        if extracted_text:
+            print(f"[_extract_text_from_region] ✅ Gemini Vision OCR 成功: {len(extracted_text)} chars")
+            return extracted_text
+        
+        print(f"[_extract_text_from_region] Gemini失敗、既存regionsからフォールバック...")
+        
+        # フォールバック: 既存の regions からマッチング
         paragraphs = self.web_regions if source == "web" else self.pdf_regions
+        
+        # ★ HYPER-DEBUG: パラグラフ数を詳細ログ
+        print(f"[HYPER-DEBUG] _extract_text_from_region (fallback):")
+        print(f"[HYPER-DEBUG]   source: {source}")
+        print(f"[HYPER-DEBUG]   paragraphs count: {len(paragraphs)}")
+        print(f"[HYPER-DEBUG]   selection_rect (source coords): {selection_rect}")
+        if paragraphs:
+            print(f"[HYPER-DEBUG]   first paragraph rect: {paragraphs[0].rect}, text: {paragraphs[0].text[:30] if paragraphs[0].text else 'empty'}...")
         
         extracted_parts = []
         
@@ -2767,28 +3377,30 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             if self._rects_overlap(selection_rect, (px1, py1, px2, py2)):
                 extracted_parts.append(para.text)
         
-        print(f"[_extract_text_from_region] Matched {len(extracted_parts)} paragraphs")
-        
-        # ★ Phase 1.5: リージョンが空の場合、Gemini Vision OCRで直接抽出
-        if not extracted_parts:
-            print("[_extract_text_from_region] No regions matched, trying Gemini Vision OCR...")
-            extracted_text = self._extract_text_with_gemini_ocr(selection_rect, source)
-            if extracted_text:
-                return extracted_text
+        print(f"[_extract_text_from_region] Matched {len(extracted_parts)} paragraphs from existing regions")
         
         return '\n'.join(extracted_parts)
     
     def _extract_text_with_gemini_ocr(self, rect, source: str) -> str:
         """
-        ★ CloudOCREngine で選択範囲から直接テキスト抽出
+        ★ Gemini Vision API で選択範囲から直接テキスト抽出
         
-        バックアップ(251220_Before_Change)から移植した動作確認済み実装
+        Phase 1.6: 精度優先 - Gemini 2.0/2.5/3.0 は日本語OCR精度が最高 (95%+)
+        
+        修正: Base64エンコードを廃止、PIL Imageを直接渡す (最もシンプルで確実)
         """
+        import sys
+        print(f"\n{'='*60}")
+        print(f"[GeminiOCR] ★★★ ENTRY POINT ★★★")
+        print(f"[GeminiOCR] rect: {rect}")
+        print(f"[GeminiOCR] source: {source}")
+        sys.stdout.flush()
+        
         try:
             # 画像取得
             image = self.web_image if source == "web" else self.pdf_image
             if not image:
-                print("[PartialOCR] No image available")
+                print("[GeminiOCR] ❌ No image available")
                 return ""
             
             # 選択範囲を切り抜き
@@ -2799,32 +3411,50 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             sy2 = min(sy2, image.height)
             
             if sx2 <= sx1 or sy2 <= sy1:
-                print(f"[PartialOCR] Invalid crop region: {rect}")
+                print(f"[GeminiOCR] ❌ Invalid crop region: {rect}")
                 return ""
             
-            print(f"[PartialOCR] Cropping image: ({sx1}, {sy1}) -> ({sx2}, {sy2})")
+            print(f"[GeminiOCR] Cropping: ({sx1}, {sy1}) -> ({sx2}, {sy2})")
             cropped = image.crop((sx1, sy1, sx2, sy2))
+            print(f"[GeminiOCR] Cropped size: {cropped.size}")
             
-            # CloudOCREngine で OCR 実行 (バックアップから移植)
-            from app.core.engine_cloud import CloudOCREngine
-            engine = CloudOCREngine(preprocess=False)
+            # ★ GeminiClient.generate() を使用 - PIL Image を直接渡す
+            from app.sdk.llm import GeminiClient
             
-            clusters, raw_words = engine.extract_text(cropped)
-            
-            if not clusters:
-                print("[PartialOCR] No text found in selection")
+            client = GeminiClient(model="gemini-2.0-flash")
+            if not client.model:
+                print("[GeminiOCR] ⚠️ Gemini client init failed - check GEMINI_API_KEY")
                 return ""
             
-            # テキストを結合
-            extracted_text = "\n".join([c["text"] for c in clusters])
+            # OCR用プロンプト (日本語特化)
+            prompt = """この画像に含まれるテキストを正確に抽出してください。
+
+ルール:
+1. 画像内のテキストをそのまま抽出（翻訳/解釈しない）
+2. 改行は元のレイアウトを維持
+3. 日本語・英語混在可
+4. 説明文は不要、テキストのみ出力
+
+出力:"""
             
-            print(f"[PartialOCR] Extracted {len(extracted_text)} chars from {len(clusters)} clusters")
-            return extracted_text.strip()
+            # ★ シンプルな呼び出し: generate(prompt, images=[cropped])
+            # Base64エンコードは不要、PIL Imageを直接渡す
+            print("[GeminiOCR] Calling Gemini Vision API...")
+            result = client.generate(prompt, images=[cropped])
+            
+            if result:
+                clean_text = result.strip()
+                print(f"[GeminiOCR] ✅ SUCCESS! Extracted {len(clean_text)} chars")
+                print(f"[GeminiOCR] Preview: {clean_text[:100]}...")
+                return clean_text
+            else:
+                print("[GeminiOCR] ⚠️ Empty response from Gemini")
+                return ""
             
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"[PartialOCR] Error: {e}")
+            print(f"[GeminiOCR] ❌ Error: {e}")
             return ""
     
     def _rects_overlap(self, rect1, rect2) -> bool:
