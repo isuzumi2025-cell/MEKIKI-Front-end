@@ -1275,3 +1275,36 @@ Copy-Item "backup_Case2_ImageDisplayDebug_20260113\advanced_comparison_view.py" 
 
 ---
 
+
+---
+
+## Phase 2.0: Semantic Matching (2026-01-23 計画)
+
+### 背景
+Phase 1.9 完了後、以下の問題が残存:
+- ひらがな長文（ルビ含む）の誤判定
+- 記号スペースによる false negative
+- 同一テキストが異なる文章として認識される
+
+### 提案機能
+
+#### P0: ひらがな長文ルビ対応
+- ひらがな優位テキスト検知
+- ルビ分離ノーマライザー: 漢字（ふりがな）  漢字
+- シンクロパラグラフ認識
+
+#### P1: 文脈認識マッチング
+- Gemini 文脈分類器
+- 住所地名セグメンター
+- 最小単語単位の動的調整
+
+---
+
+##  復旧記録 (2026-01-23)
+
+**問題**: Skills実装失敗によりコアファイル破損
+**対処**: OCR_backup_20260121_AgentOpsPrep から復元
+**復元ファイル**: advanced_comparison_view.py (193KB)
+**状態**:  アプリ正常動作、61% sync rate確認
+
+---
