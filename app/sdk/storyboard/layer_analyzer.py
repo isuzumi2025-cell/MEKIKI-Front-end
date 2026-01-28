@@ -62,8 +62,8 @@ class LayerAnalyzer:
         # 画像数
         image_count = 0
         if hasattr(self.layer_result, 'image_layer') and self.layer_result.image_layer:
-            if hasattr(self.layer_result.image_layer, 'images'):
-                image_count = len(self.layer_result.image_layer.images)
+            if hasattr(self.layer_result.image_layer, 'blocks'):
+                image_count = len(self.layer_result.image_layer.blocks)
         
         # 統計生成
         self._stats = LayerStats(
@@ -119,7 +119,7 @@ class LayerAnalyzer:
             return []
         
         if hasattr(self.layer_result, 'image_layer') and self.layer_result.image_layer:
-            if hasattr(self.layer_result.image_layer, 'images'):
-                return self.layer_result.image_layer.images
+            if hasattr(self.layer_result.image_layer, 'blocks'):
+                return self.layer_result.image_layer.blocks
         
         return []

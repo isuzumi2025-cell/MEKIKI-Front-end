@@ -1,0 +1,7444 @@
+{
+  "page_id": "web_2",
+  "timestamp": "2026-01-28T13:35:25.605089",
+  "image_size": [
+    3840,
+    51840
+  ],
+  "summary": {
+    "page_id": "web_2",
+    "timestamp": "2026-01-28T13:35:25.605089",
+    "raw_tokens": 207,
+    "filtered_tokens": 204,
+    "dropped_tokens": 3,
+    "paragraphs": 204,
+    "total_raw_chars": 9825,
+    "total_filtered_chars": 9665,
+    "drop_rate": "1.6%"
+  },
+  "raw_tokens": [
+    {
+      "text": "参加寺社一覧\n大分\n福岡\n/特別\n【御朱印\n長崎\n熊本\n鹿児島\n宮崎",
+      "bbox": [
+        1545,
+        425,
+        2934,
+        1116
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "福岡",
+      "bbox": [
+        905,
+        604,
+        1008,
+        643
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "佐賀",
+      "bbox": [
+        1225,
+        604,
+        1331,
+        646
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "1甲宗八幡宮\n西暦860年に創建。中世には源平両氏や足利将軍などに「関の守護「神」として崇敬された。近代に入り、発展を遂げた門司の街の鎮守神として、実業家出光佐三などの信仰を集めてきた神社。\nこうそうはちまんぐう",
+      "bbox": [
+        822,
+        1001,
+        1827,
+        1308
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【門司港駅】緒方駅長\nGooglemap",
+      "bbox": [
+        1939,
+        1324,
+        2124,
+        1497
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR門司港駅から徒歩約12分",
+      "bbox": [
+        870,
+        1456,
+        1462,
+        1497
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市門司区旧門司1-7-18\n電話:093-321-0944\n初穂料特別御朱印1,000円御朱印200円、300円、500円御朱印対応時間:9:30~16:30\nホームページ",
+      "bbox": [
+        838,
+        1580,
+        1817,
+        1894
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "神社\n御朱印置き(200円)",
+      "bbox": [
+        2668,
+        1868,
+        2828,
+        2176
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書置き(1,000円)\n和年",
+      "bbox": [
+        2076,
+        2105,
+        2297,
+        2403
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(300円)",
+      "bbox": [
+        992,
+        2627,
+        1184,
+        2684
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書き(500円)",
+      "bbox": [
+        1568,
+        2624,
+        1731,
+        2694
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書き(500円)",
+      "bbox": [
+        2118,
+        2624,
+        2281,
+        2688
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書き(1,000円)",
+      "bbox": [
+        2656,
+        2624,
+        2841,
+        2691
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "めかりじんじゃ2和布刈神社\n九州最北端に鎮座する神社。約1800年前、神功(じんぐう)皇后が三韓征伐に勝利したことから創建された。御祭神は瀬織津姫(せおりつひめ)という月の女神。創建以来、今も関門海峡と人々の道先を照らし続けている。\n最寄り駅\nJR門司港駅からバスで「和布刈神社前」下車、徒歩約1分\n住所:福岡県北九州市門司区門司3492\n電話:093-321-0749\n初穂料特別御朱印1,000円御朱印500円\n御朱印対応時間:9:30~17:00\nホームページ\n<特別\n御朱印\nGooglemap",
+      "bbox": [
+        838,
+        2899,
+        2121,
+        3804
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【門司港駅】緒方駅長",
+      "bbox": [
+        1939,
+        3228,
+        2096,
+        3299
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(1.000F9)",
+      "bbox": [
+        2128,
+        4016,
+        2294,
+        4076
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n直書きと書置き両方通年版(500円)",
+      "bbox": [
+        2512,
+        4019,
+        2966,
+        4076
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|御朱印\n直書きと書置き両方季節(500円)",
+      "bbox": [
+        860,
+        4537,
+        1308,
+        4595
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "こくらぎおんやさかじんじゃ",
+      "bbox": [
+        956,
+        4812,
+        1440,
+        4838
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "3小倉祗園八坂神社\n豊前小倉藩初代藩主細川忠興公により、1617年に創建。小倉の守護神として、人々の崇拝を集めてきた。1934年に小倉城二の丸跡に遷座。親しみを込めて「小倉の祇園さん」とも呼ばれている。\n特別\n御朱印",
+      "bbox": [
+        838,
+        4841,
+        1820,
+        5123
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【小倉駅】松尾駅長\nGooglemap",
+      "bbox": [
+        1948,
+        5129,
+        2121,
+        5308
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR西小倉駅から徒歩約5分",
+      "bbox": [
+        870,
+        5276,
+        1440,
+        5305
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市小倉北区城内2-2\n電話:093-561-0753\n初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~16:30\nホームページ",
+      "bbox": [
+        838,
+        5401,
+        1552,
+        5712
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "「特別御朱印\n書置き(1,000円)",
+      "bbox": [
+        2080,
+        5913,
+        2294,
+        5987
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        5923,
+        2912,
+        5984
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "4菅原神社\n菅原道真公をお祀りする神社。創建は約1100年前の平安時代に遡り、古くから小倉府内(城下町)の氏神として、学問、文化芸術、農業、漁業、商業、交通などの守護神として篤い信仰を集めている。\n(特別\n御朱印\nすがわらじんじゃ",
+      "bbox": [
+        838,
+        6204,
+        1830,
+        6512
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "10",
+      "bbox": [
+        2358,
+        6476,
+        2412,
+        6502
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "1000",
+      "bbox": [
+        2739,
+        6467,
+        2838,
+        6496
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR小倉駅から北九州モノレール旦過駅」下車、徒歩約1分\n【小倉駅】\n松尾駅長\n最寄り駅\nGooglemap",
+      "bbox": [
+        870,
+        6524,
+        2121,
+        6752
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市小倉北区古船場町1-6\nRE:093-521-9421\n初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00\nホームページ",
+      "bbox": [
+        838,
+        6841,
+        1516,
+        7152
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\nと置き両方(500円)",
+      "bbox": [
+        2092,
+        7360,
+        2361,
+        7427
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        7356,
+        2912,
+        7430
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "しょうはちまんぐう5正八幡宮\n860年に建立された正八幡宮は、古来より地上に生きとし生ける人々の平安と幸福を「みちびく勝運の神」として、また出産育児を司る母子神(ぼししん)として、豊前一円で広く崇敬され信仰を深めている。\n(特別\n御朱印\n最寄り駅JR行橋駅から徒歩約5分\n住所:福岡県行橋市神田町8-1\n電話:0930-22-0943\n初穂料特別御朱印500円御朱印500円御朱印対応時間:8:00~16:00\nホームページ",
+      "bbox": [
+        838,
+        7635,
+        1827,
+        8537
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【行橋駅】\n西尾駅長\nGooglemap",
+      "bbox": [
+        1945,
+        7961,
+        2118,
+        8144
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "「特別御朱印\n(500円)",
+      "bbox": [
+        2115,
+        8748,
+        2281,
+        8812
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n(500円)",
+      "bbox": [
+        2694,
+        8752,
+        2793,
+        8809
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "年",
+      "bbox": [
+        1145,
+        8963,
+        1196,
+        8995
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|御朱印\n(500円)",
+      "bbox": [
+        1033,
+        9273,
+        1142,
+        9328
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ふうじはちまんぐう\n6風治八幡宮\n古くは伊田大神と称し1200年以上の歴史を誇る。神功(じんぐう)皇后や伝教大師(最澄)などのエピソードが数多く残る由緒ある神社。迫力満点の勇壮な川渡り神幸祭は、福岡県五大祭りのひとつに数えられる。\n最寄り駅\nJR田川伊田駅から徒歩約1分\n住所:福岡県田川市魚町2-30電話:0947-42-1135\n初穂料特別御朱印1,000円御朱印1社500円2800円御朱印対応時間:9:00~17:00\nホームページ\n特別\n【御朱印",
+      "bbox": [
+        835,
+        9548,
+        1827,
+        10444
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【田川後藤寺駅】伊福駅長\nGooglemap",
+      "bbox": [
+        1907,
+        9865,
+        2128,
+        10048
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書き(1,000円)",
+      "bbox": [
+        2108,
+        10656,
+        2294,
+        10720
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(1500円2800円)",
+      "bbox": [
+        2576,
+        10659,
+        2924,
+        10720
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "7平等寺(三井寺)\n正式名は平等寺だが、地元では炭坑寺院三井寺で親しまれている。夏は風鈴、秋冬は風車を境内に飾り付けたり、ユニークなお地蔵様が出迎えたり・・・。参拝者の心を癒し、ご縁を大切にしている寺院。\n最寄り駅JR田川伊田駅から徒歩約15分\n住所:福岡県田川市伊田2706-1電話:0947-42-7206\n初穂料特別御朱印800円御朱印半面500円両面800円御朱印対応時間:9:00~17:00\n※特別御朱印は季節ごとに背景がかわります。\nInstagram\n(特別\n御朱印\nびょうどうじ\nみついでら",
+      "bbox": [
+        838,
+        10934,
+        1830,
+        11955
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【田川後藤寺駅】伊福駅長\nGooglemap",
+      "bbox": [
+        1910,
+        11257,
+        2131,
+        11440
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印と書置き両方(800円)",
+      "bbox": [
+        2096,
+        12048,
+        2361,
+        12112
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書きと書置き両方半面500円\n800円)",
+      "bbox": [
+        2604,
+        12044,
+        2896,
+        12147
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "かすがじんじゃ8春日神社\n775年、弓削大神に合祀され、2025年には鎮座1250年を迎える歴史ある神社。毎年5月下旬に斉行される「神幸祭」では、国の重要無形民俗文化財指定の豊前神楽「春日神社岩戸神楽」が神輿を先導する。\n/特別\n御朱印",
+      "bbox": [
+        838,
+        12361,
+        1827,
+        12672
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【田川後藤寺駅】伊福駅長\nGooglemap",
+      "bbox": [
+        1910,
+        12688,
+        2134,
+        12864
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR田川後藤寺駅から徒歩約8分",
+      "bbox": [
+        870,
+        12819,
+        1504,
+        12860
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県田川市宮尾町6-13\n電話:0947-42-1139\n初穂料特別御朱印500円御朱印冬椿500円シマエナガ800\n御朱印対応時間:9:30~16:00\n※御朱印対応時間12:00~13:00は不可、他インスタグラムでお知らせ\n※通常御朱印は季節ごとに変わります。\n※特別御朱印は水、木曜は書置きのみ\nホームページ\nInstagram",
+      "bbox": [
+        838,
+        12950,
+        1872,
+        13526
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "社日",
+      "bbox": [
+        2124,
+        13190,
+        2291,
+        13241
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印冬樁直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        13468,
+        2908,
+        13539
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書きと書置き両方(500円)",
+      "bbox": [
+        2038,
+        13472,
+        2361,
+        13536
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印シマエナガ直書きと書置き両方(800円)",
+      "bbox": [
+        915,
+        13993,
+        1260,
+        14051
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "たがじんじゃ9多賀神社\n寿命の神、鎮魂厄除けの神として名高い伊邪那岐(いざなぎ)伊邪那美(いざなみ)二柱の大神を祀る神社。春には約400本の境内の花桃が見頃となる。隣接する直方市石炭記念館ではC11型蒸気機関車も見学できる。\n<特別御朱印",
+      "bbox": [
+        838,
+        14265,
+        1830,
+        14627
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【直方駅】\n中村駅長\nGooglemap",
+      "bbox": [
+        1948,
+        14592,
+        2121,
+        14771
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR直方駅から徒歩約7分",
+      "bbox": [
+        870,
+        14729,
+        1408,
+        14764
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県直方市直方701電話:0942-22-0125\n初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:30~16:30\nホームページ",
+      "bbox": [
+        838,
+        14860,
+        1552,
+        15168
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "瓜和五年七月十五日",
+      "bbox": [
+        2604,
+        14992,
+        2662,
+        15324
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書置き(1,000円)\nA",
+      "bbox": [
+        2044,
+        15254,
+        2297,
+        15443
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(500円)",
+      "bbox": [
+        2643,
+        15382,
+        2828,
+        15440
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "10皇祖神社\n1508年(永正5年)に建立され、長らく地域で愛されてきた。境内には竜神が登ったとされる良い伝えがあるため、全国から竜神を記した御朱印を求めて、多くの参拝者が集まる。\n最寄り駅JR鯰田駅から徒歩約5分\n住所:福岡県飯塚市鯰田1909\n電話:0948-22-6733\n初穂料特別御朱印800円御朱印800円御朱印対応時間:9:00~17:00\n※行事開催時は対応できない場合あり※御朱印はその他10種類程度ございます。\nInstagram\n/特別\n御朱印\nこうそじんじゃ",
+      "bbox": [
+        838,
+        15660,
+        1830,
+        16723
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【新飯塚駅】\n緒方駅長\nGooglemap",
+      "bbox": [
+        1942,
+        15984,
+        2121,
+        16163
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "昇\n龍",
+      "bbox": [
+        2819,
+        16400,
+        2880,
+        16508
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書き(800円)",
+      "bbox": [
+        2092,
+        16764,
+        2284,
+        16828
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(800円)",
+      "bbox": [
+        2643,
+        16774,
+        2832,
+        16828
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(800円)",
+      "bbox": [
+        995,
+        17286,
+        1184,
+        17353
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "11祖八幡宮\n延文4年(1359年)に建立され、飯塚の総鎮守として親しまれている。特別御朱印は飯塚の原風景「ボタ山とSL」を記したもの。特別御朱印領布券を持参の方へ「石炭ストラップ」お守りを進呈。\n/特別\n御朱印\nのうそはちまんぐう",
+      "bbox": [
+        838,
+        17564,
+        1833,
+        17878
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【新飯塚駅】\n緒方駅長\nGooglemap",
+      "bbox": [
+        1939,
+        17888,
+        2121,
+        18067
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR新飯塚駅から徒歩約15分",
+      "bbox": [
+        870,
+        18032,
+        1459,
+        18060
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県飯塚市宮町2-3電話:0948-22-0511\n初穂料特別御朱印500円御朱印500円\n御朱印対応時間:9:00~17:00\nホームページ",
+      "bbox": [
+        838,
+        18156,
+        1520,
+        18464
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "今年",
+      "bbox": [
+        2608,
+        18297,
+        2652,
+        18441
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n置き(500円)",
+      "bbox": [
+        2118,
+        18678,
+        2281,
+        18736
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書き(500円)",
+      "bbox": [
+        2665,
+        18675,
+        2828,
+        18739
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "12豊山八幡神社\n「八幡」の地名発祥の地としても知られる八幡の総鎮守。2023年に創建1400年を迎えた。JR九州とのコラボ御朱印は、皿倉山の夜景と鉄の町のシンボル東田第一高炉をあしらった特別な意匠。\n最寄り駅JR八幡駅から徒歩約5分\n住所:福岡県北九州市八幡東区春の町4-4-1電話:093-671-2998\n初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00\n※御朱印は複数種類あり\n|ホームページ\nInstagram\n<特別御朱印\nとよやまはちまんじんじゃ",
+      "bbox": [
+        838,
+        18956,
+        1827,
+        19971
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【黒崎駅】\n渕上駅長\nGooglemap",
+      "bbox": [
+        1945,
+        19280,
+        2124,
+        19456
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "豊山八幡神社",
+      "bbox": [
+        2707,
+        19683,
+        2774,
+        20019
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(500円)",
+      "bbox": [
+        2128,
+        20064,
+        2281,
+        20124
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(500円)",
+      "bbox": [
+        2643,
+        20067,
+        2832,
+        20124
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【特別\n御朱印\n13春日神社\n古来より黒崎・折尾地区の守り神として信仰を集めてきた古社。福岡藩祖黒田長政より篤い崇敬を受け、後に黒田神社が建立された。JR九州コラボ御朱印は、黒田二十四騎版画をあしらった特別版。\nかすがじんじゃ\n【黒崎駅】\n上島\n最寄り駅\nJR黒崎駅から徒歩約10分\nGooglemap",
+      "bbox": [
+        838,
+        20342,
+        2124,
+        20848
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区藤田1-10-44電話:093-631-2152\n初穂料特別御朱印1,000円御朱印1,000円御朱印対応時間:10:00~16:00\n※御朱印は複数種類あり\nInstagram",
+      "bbox": [
+        838,
+        20934,
+        1584,
+        21360
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "田日\n神神社社",
+      "bbox": [
+        2233,
+        21187,
+        2377,
+        21382
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書き(1,000円)",
+      "bbox": [
+        2080,
+        21449,
+        2294,
+        21523
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(1,000円)",
+      "bbox": [
+        2656,
+        21456,
+        2848,
+        21520
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "14岡田宮\n古事記日本書紀に登場する北九市内では唯一の古社。御祭神は初代天皇「神武天皇」。家内安全、健康、長寿、勝負運を祈願しに多くの参拝者が訪れる。2000年以上前から愛されてきた氏神様。\n特別御朱印\nおかだぐう",
+      "bbox": [
+        838,
+        21734,
+        1830,
+        22048
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【黒崎駅】渕上駅長\nGooglemap",
+      "bbox": [
+        1945,
+        22054,
+        2118,
+        22233
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR黒崎駅から徒歩約7分",
+      "bbox": [
+        870,
+        22195,
+        1404,
+        22233
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区岡田町1-1\n電話:093-621-1898\n初穂料特別御朱印1,000円御朱印500円~御朱印対応時間:直書き9:00~16:00書置き9:00~16:30\n※御朱印は複数種類あり\nホームページ\n(IBTwitter)\nInstagram",
+      "bbox": [
+        838,
+        22316,
+        1814,
+        22748
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書きと書置き両方(1,000円)",
+      "bbox": [
+        2025,
+        22844,
+        2374,
+        22905
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "いちのみやじんじゃ\n15一宮神社\n勝運のご利益で崇敬を集める神社で、「岡田の宮」の本宮と伝えられる。黒崎地区の岡田宮、春日神社と共に執り行う「黒崎祇園山笠」は400年以上の歴史を有し、県の無形民俗文化財に指定されている。\n<特別\n御朱印",
+      "bbox": [
+        838,
+        23123,
+        1833,
+        23433
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【黒崎駅】渕上駅長\nGooglemap",
+      "bbox": [
+        1948,
+        23443,
+        2121,
+        23622
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR黒崎駅から徒歩約15分",
+      "bbox": [
+        870,
+        23587,
+        1430,
+        23622
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区山寺町12-36\n電話:093-641-2865\n初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~16:30\n※御朱印は複数種類あり\n|ホームページ",
+      "bbox": [
+        838,
+        23715,
+        1520,
+        24134
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "社\n御朱印\n書き(500円)",
+      "bbox": [
+        2668,
+        24134,
+        2832,
+        24294
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(500円)",
+      "bbox": [
+        2128,
+        24236,
+        2281,
+        24297
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ひのみねじんじゃ16日峯神社\n隠岐島の焼火神社から大日霊貴命(おおひるめのむちのみこと)を日峯山に勧請したのが創祀とされる。海上交通の神社として崇敬され、1760年に現境内地に移設。現在では「人生における導きのお神様」として親しまれている。\n特別御朱印",
+      "bbox": [
+        838,
+        24515,
+        1827,
+        24873
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【折尾駅】水嶋駅長\nGooglemap",
+      "bbox": [
+        1945,
+        24857,
+        2118,
+        25033
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR折尾駅からバスで「浅川小学校前」下車、徒歩約8分",
+      "bbox": [
+        870,
+        24995,
+        1856,
+        25027
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区浅川日の峯1-8-8\n電話:093-603-1775\n初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~17:00\n※平日の仏滅日、他対応不可日あり\n※要電話確認\nホームページ",
+      "bbox": [
+        838,
+        25120,
+        1548,
+        25587
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "日本神社",
+      "bbox": [
+        2684,
+        25289,
+        2784,
+        25574
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|特別御朱印書置き(1,000円)\n社",
+      "bbox": [
+        2083,
+        25443,
+        2297,
+        25702
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n置き(500円)",
+      "bbox": [
+        2668,
+        25638,
+        2835,
+        25702
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "17鎮國寺\n弘法大師(空海)が中国より帰朝した806年に創建した、日本で最初の真言宗の寺院。別名「花と祈願の寺」と言われ、四季折々の花の名所としても名高い。\n<特別\n御朱印\nちんこくじ",
+      "bbox": [
+        838,
+        25923,
+        1827,
+        26230
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【赤間駅】出田駅長\nGooglemap",
+      "bbox": [
+        1945,
+        26243,
+        2118,
+        26419
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR東郷駅からバスで「宗像大社前」下車、徒歩約17分\n最寄り駅",
+      "bbox": [
+        870,
+        26377,
+        1843,
+        26416
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県宗像市吉田966\n電話:0940-62-0111\n初穂料特別御朱印500円御朱印500円\n御朱印対応時間:9:00~16:30\nホームページ",
+      "bbox": [
+        838,
+        26508,
+        1520,
+        26816
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n直書(500円)",
+      "bbox": [
+        2089,
+        27030,
+        2281,
+        27091
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n直書き(500円)",
+      "bbox": [
+        2640,
+        27030,
+        2832,
+        27091
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "18宮地嶽神社\n北部九州に居住した海人族の長神と神功皇后を祀る1800年の歴史あある神社。13個の巨石遺跡や大注連縄、日本一美しい夕陽の宮司と2月10月に現れる“光の道”で著名。眷属は福を授けるフクロウ。\n最寄り駅\nJR福間駅から徒歩約30分\n住所:福岡県福津市宮司元町7-1電話:0940-52-0016\n初穂料特別御朱印1,000円御朱印直書き800円、書置き500円\n御朱印対応時間:9:00~17:00\n※直書き9:00~16:30書置き9:00~19:00\nホームページ\nInstagram\n特別\n御朱印\nみやじだけじんじゃ",
+      "bbox": [
+        828,
+        27308,
+        1900,
+        28323
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【福間駅】紺屋駅長\nGooglemap",
+      "bbox": [
+        1948,
+        27628,
+        2121,
+        27814
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(1,000円)",
+      "bbox": [
+        2128,
+        28419,
+        2294,
+        28486
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n直書きと書置き両方(直書き800円、書置き500円)",
+      "bbox": [
+        2566,
+        28419,
+        2924,
+        28521
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "19香椎宮\n香椎宮は200年に神功(じんぐう)皇后が、夫の神霊をお祀りしたことが起源。神功皇后の宮は724年に竣工。この両宮を併せて香椎廟と称した。明治以降は官幣(かんぺい)大社香椎宮、戦後は香椎宮と呼ばれている。\n最寄り駅\nJR香椎神宮駅から徒歩約4分\n住所:福岡県福岡市東区香椎4-16-1\n電話:092-681-1001\n初穂料特別御朱印1,000円御朱印300円~1,000円\n御朱印対応時間:9:00~17:00\nホームページ\n<特別御朱印\nかしいぐう",
+      "bbox": [
+        838,
+        28732,
+        1830,
+        29632
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【香椎駅】\n大嶋駅長\nGooglemap",
+      "bbox": [
+        1945,
+        29056,
+        2118,
+        29235
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n書置き(1,000円)",
+      "bbox": [
+        2083,
+        29846,
+        2294,
+        29910
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(700円)",
+      "bbox": [
+        2643,
+        29843,
+        2835,
+        29907
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "令和六年一月一日\n白書置き(300円)\n御朱印",
+      "bbox": [
+        1516,
+        29984,
+        1744,
+        30422
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "香椎宮",
+      "bbox": [
+        1587,
+        29993,
+        1692,
+        30291
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(1,000円)限定令和7年祭記念御朱印",
+      "bbox": [
+        915,
+        30364,
+        1270,
+        30460
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "20宇美八幡宮\n神功(じんぐう)皇后が應神(おうじん)天皇を御出産された聖地【産み=宇美】安産・育児の「子安大神」と称され、境内の全てが「安産信仰に関する伝説地」として、福岡県民俗資料文化財の指定を受けている。\n最寄り駅JR宇美駅から徒歩約5分\n住所:福岡県糟屋郡宇美町宇美1-1-1\n092-932-0044\n初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00\n※直書きのため1日10枚(土日祝20枚)程度限定\n|ホームページ\n(特別\n御朱印\nうみはちまんぐう",
+      "bbox": [
+        835,
+        30681,
+        1830,
+        31689
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【香椎駅】\n大嶋駅長\nGooglemap",
+      "bbox": [
+        1948,
+        31001,
+        2121,
+        31177
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n500円)",
+      "bbox": [
+        2128,
+        31785,
+        2284,
+        31849
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "21補陀洛寺\n御本尊の十一面観世音菩薩は、特に病気平癒・安産除災招福の御利益があるといわれている。篠栗四国霊場の79番目「打ち納め札所」として春秋のシーズンにはお遍路の参拝者が多く訪れる。\n/特別\n御朱印\nふだらくじ",
+      "bbox": [
+        838,
+        32070,
+        1833,
+        32377
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【長者原駅】\n田村駅長\nGooglemap",
+      "bbox": [
+        1942,
+        32387,
+        2121,
+        32566
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR篠栗駅から徒歩約3分",
+      "bbox": [
+        870,
+        32524,
+        1404,
+        32563
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県糟屋郡篠栗町中央4-12-60\n090-5740-9939\n初穂料特別御朱印500円御朱印300円御朱印対応時間:9:00~17:00\n※月・水・金曜の15時以降不可",
+      "bbox": [
+        838,
+        32659,
+        1520,
+        32963
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印置き両方(500円)",
+      "bbox": [
+        2128,
+        33180,
+        2361,
+        33241
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書きと書置き両方(300円)",
+      "bbox": [
+        2588,
+        33180,
+        2912,
+        33241
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "22筥崎宮\n宇佐石清水両宮と並ぶ日本三大八幡宮のひとつ。厄除勝運の神としても有名で地元プロスポーツチームも必勝祈願に訪れる。「仲秋大祭放生会」は1000年以上続く神事で九州随一の秋祭りだ。\n<特別\n御朱印\nはこざきぐう\n【千早駅】\n関駅長\nGooglemap",
+      "bbox": [
+        838,
+        33449,
+        2121,
+        33955
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR箱崎駅から徒歩約8分",
+      "bbox": [
+        870,
+        33920,
+        1404,
+        33952
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県福岡市東区箱崎1-22-1\n電話:092-641-7431\n初穂料特別御朱印500円御朱印500円御朱印対応時間:8:30~17:00\nホームページ\nInstagram\nX(IBTwitter)",
+      "bbox": [
+        838,
+        34044,
+        1718,
+        34358
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書き(500円)\n令和元年五月一日",
+      "bbox": [
+        2640,
+        34217,
+        2828,
+        34636
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(500円)",
+      "bbox": [
+        2128,
+        34566,
+        2281,
+        34630
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "とおかえびすじんじゃ23十日恵比須神社\n福の神と称される「えびす様」と「だいこく様」をお祀りする神社。正月大祭では、隣接の東公園に約300軒の露店が並び、全国からも多くの人が訪れる。福徳円満にちなんだ授与品も豊富に揃う。\n(特別\n御朱印",
+      "bbox": [
+        838,
+        34848,
+        1827,
+        35155
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【博多駅】\n加藤駅長\nGooglemap",
+      "bbox": [
+        1948,
+        35164,
+        2118,
+        35347
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR吉塚駅から徒歩約5分",
+      "bbox": [
+        870,
+        35308,
+        1408,
+        35347
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県福岡市博多区東公園7-1\n電話:092-651-1563\n初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~17:00\n2月7日(金)~配布。\n※正月、大祭期間中は不可\nホームページ",
+      "bbox": [
+        838,
+        35436,
+        1552,
+        35904
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "甘恵比須神社",
+      "bbox": [
+        2700,
+        35574,
+        2780,
+        35920
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\nと置き両方(1,000円)",
+      "bbox": [
+        2080,
+        35958,
+        2368,
+        36019
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書きと書置き両方(500円)",
+      "bbox": [
+        2592,
+        35958,
+        2908,
+        36016
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ちくぜんのくにいちのみやすみよしじんじゃ\n24筑前國一之宮住吉神社\n航海安全心身清浄の御神徳として信仰を集める神社。またJR博多シティ屋上の「鉄道神社」には、筑前國一之宮住吉神社より勧請された御祭神が鎮座し、交通安全と博多駅地区の安寧を見守っている。\n(特別御朱印",
+      "bbox": [
+        838,
+        36236,
+        1833,
+        36547
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【博多駅】\n加藤駅長\nGooglemap",
+      "bbox": [
+        1945,
+        36560,
+        2118,
+        36736
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR博多駅から徒歩約10分",
+      "bbox": [
+        870,
+        36700,
+        1424,
+        36732
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県福岡市住吉3-1-51\n電話:092-291-2670\n初穂料特別御朱印1,000円御朱印対応時間:9:00~17:00\nホームページ",
+      "bbox": [
+        838,
+        36825,
+        1344,
+        37132
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(1,000円)",
+      "bbox": [
+        2128,
+        37347,
+        2259,
+        37411
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "25太郎丸神社\n火災で全焼しても落ちなかった「落ちない鈴」の太郎丸神社。高校大学受験、資格試験就職試験などの受験生が祈願に訪れる。特に九州大学をめざす受験生の聖地として脚光を浴びている。\n特別\n御朱印\nたろうまるじんじゃ",
+      "bbox": [
+        838,
+        37619,
+        1827,
+        37936
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【九大学研都市駅】\n藤井駅長",
+      "bbox": [
+        1923,
+        37948,
+        2128,
+        38064
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR九大学研都市駅からバスで「たろう保育園前」下車、徒歩約6分\n最寄り駅\nGooglemap",
+      "bbox": [
+        870,
+        38131,
+        2124,
+        38217
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所福岡県福岡市西区太郎丸2-7-10\n電話:090-5735-2695\n初穂料特別御朱印1,000円御朱印500円\n御朱印対応時間:第1・3日曜13:00~14:00のみ\nホームページ",
+      "bbox": [
+        838,
+        38304,
+        1635,
+        38617
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "太郎丸神社\n合格祈願\n特別御朱印\n(1,000円)",
+      "bbox": [
+        1977,
+        38473,
+        2294,
+        38892
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "太郎丸神",
+      "bbox": [
+        2672,
+        38448,
+        2784,
+        38720
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(500円)",
+      "bbox": [
+        2643,
+        38832,
+        2832,
+        38889
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "太郎丸神社",
+      "bbox": [
+        1017,
+        38950,
+        1142,
+        39318
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(500円)",
+      "bbox": [
+        992,
+        39344,
+        1180,
+        39408
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n書置き(500円)",
+      "bbox": [
+        1542,
+        39347,
+        1728,
+        39411
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "さくらいじんじゃ26櫻井神社\n1632年に福岡藩二代藩主・黒田忠之公が岩戸に出現した神様を祀るために櫻井神社を造営。社殿は修復を重ねて、創建当時の趣きを今日まで守っており、2023年に国の重要文化財に指定された。\n特別\n御朱印",
+      "bbox": [
+        841,
+        39622,
+        1830,
+        39936
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【筑前前原駅】鹿島駅長\nGooglemap",
+      "bbox": [
+        1926,
+        39948,
+        2118,
+        40124
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR筑前前原駅からバスで「桜井」下車、徒歩約10分\n住所:福岡県糸島市志摩桜井4227\n電話:092-327-0317\n初穂料特別御朱印1,000円御朱印500円\n御朱印対応時間:9:00~16:00\nホームページ",
+      "bbox": [
+        838,
+        40086,
+        1811,
+        40528
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(1,000P9)",
+      "bbox": [
+        2128,
+        40739,
+        2256,
+        40800
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印置き(500円)",
+      "bbox": [
+        2668,
+        40736,
+        2828,
+        40796
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "27雷山千如寺大悲王院\n178年、天竺益山より渡来した僧、清賀上人の間創と伝えられる。本尊の観音吾胚像は鎌倉時代の作。歴代天皇や多くの武将豪族が厚く信仰した。樹齢400年の大カエデの紅葉が見事。\n特別\n御朱印",
+      "bbox": [
+        838,
+        41043,
+        1830,
+        41331
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "らいざんせんにょじだいひおういん",
+      "bbox": [
+        953,
+        41017,
+        1484,
+        41043
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【筑前前原駅】\n鹿島駅長\nGooglemap",
+      "bbox": [
+        1926,
+        41340,
+        2124,
+        41516
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR筑前前原駅からバスで「雷山観音前」下車、徒歩約7分",
+      "bbox": [
+        870,
+        41478,
+        1884,
+        41510
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県糸島市雷山626\n電話:092-323-3547\n初穂料特別御朱印500円御朱印300円御朱印対応時間:9:00~17:00\nホームページ",
+      "bbox": [
+        838,
+        41606,
+        1516,
+        41920
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "親\n御朱印書置き(300円)",
+      "bbox": [
+        2643,
+        41990,
+        2832,
+        42185
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印置き(500円)",
+      "bbox": [
+        2118,
+        42128,
+        2278,
+        42185
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ふつかいちはちまんぐう28二日市八幡宮\n御鎮座1500年を越える神社で、縁結び安産開運の神として尊されている。御神木の公孫樹(いちょう)には災難厄除けの霊験があるとされ、境内の銀杏は黄葉すると辺り一面を黄金色に染め上げる。\n<特別\n御朱印",
+      "bbox": [
+        838,
+        42406,
+        1827,
+        42716
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【二日市駅】\n山口駅長\nGooglemap",
+      "bbox": [
+        1939,
+        42726,
+        2118,
+        42908
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR二日市駅から徒歩約4分",
+      "bbox": [
+        870,
+        42870,
+        1440,
+        42902
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県筑紫野市二日市中央3-6-35\n電話:092-922-3301\n初穂料特別御朱印700円御朱印500円御朱印対応時間:9:00~16:30\n※対応不可時間帯あり\nホームページ",
+      "bbox": [
+        838,
+        42995,
+        1520,
+        43417
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書置き(700円)",
+      "bbox": [
+        2092,
+        43516,
+        2281,
+        43577
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(500円)",
+      "bbox": [
+        2668,
+        43516,
+        2832,
+        43577
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ぜんこくそうほんぐうすいてんぐう29全国総本宮水天宮\n筑後川の河畔に鎮座する全国の水天宮の総本宮。農業、漁業、航海業者からの信仰が篤く、子供の守護神、安産、子授けの神として、また病難、火災などの除災招福のご利益があることでも知られる。",
+      "bbox": [
+        838,
+        43785,
+        1827,
+        44108
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【久留米駅】\n城戸駅長\nGooglemap",
+      "bbox": [
+        1939,
+        44112,
+        2121,
+        44294
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR久留米駅から徒歩約10分",
+      "bbox": [
+        870,
+        44259,
+        1459,
+        44288
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県久留米市瀬下町265-1\n電話:0942-32-3207\n初穂料御朱印500円御朱印対応時間:9:00~16:30\nホームページ",
+      "bbox": [
+        838,
+        44384,
+        1347,
+        44694
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "瓜和六年十月八日\n直書きと書置き両方(500円)\n御朱印",
+      "bbox": [
+        2012,
+        44547,
+        2361,
+        44966
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "みずたてんまんぐう\n30水田天満宮\n学問武芸の神様として親しまれている菅原道真公を御祭神とした神社。境内には、末社である恋木神社があり、良縁・幸福の神様として恋命(こいのみこと)が鎮座している。海外からの参拝者も多い。\n特別\n御朱印",
+      "bbox": [
+        838,
+        45187,
+        1830,
+        45494
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【筑後船小屋駅】北島駅長\nGooglemap",
+      "bbox": [
+        1907,
+        45500,
+        2131,
+        45683
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR羽犬塚駅から徒歩約20分\n最寄り駅",
+      "bbox": [
+        870,
+        45641,
+        1459,
+        45676
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "露水田天満宮\n恋木神社",
+      "bbox": [
+        2284,
+        45632,
+        2928,
+        45683
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県筑後市水田62-1\n電話:0942-53-8625\n初穂料JR限定特別御朱印1,000円御朱印500円御朱印対応時間:8:30~17:00\nホームページ",
+      "bbox": [
+        838,
+        45772,
+        1667,
+        46083
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR限定特別御朱印\n(1,000円)",
+      "bbox": [
+        2086,
+        46291,
+        2294,
+        46358
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印\n直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        46294,
+        2905,
+        46358
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|御朱印\n直書きと書置き両方(500円)\n恋木神社",
+      "bbox": [
+        912,
+        46697,
+        1260,
+        46873
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "˙恋木神社\n御朱印\n直書きと書置き両方(500円)",
+      "bbox": [
+        1462,
+        46694,
+        1811,
+        46873
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "しものしょうはちまんじんじゃ31下庄八幡神社\n<特別御朱印\n2031年に御鎮座900年を迎える神社。長きに渡り、勝運、安産、子供守護の神として崇拝されてきた。境内には、樹齢800年を誇る大楠の御神木や縁結びにご加護があると話題の「愛成(あいじょう)の木」も。",
+      "bbox": [
+        838,
+        47091,
+        1827,
+        47452
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【新大牟田駅】石松駅長\nGooglemap",
+      "bbox": [
+        1923,
+        47411,
+        2118,
+        47593
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR瀬高駅から徒歩約15分",
+      "bbox": [
+        870,
+        47552,
+        1427,
+        47587
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県みやま市瀬高町下庄1397\n電話:0944-62-3562\n初穂料特別御朱印1,000円御朱印半面500円全面1,000円\n御朱印対応時間:9:00~17:00\n|ホームページ",
+      "bbox": [
+        838,
+        47673,
+        1859,
+        48016
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\nと書置き両方(1,000円)",
+      "bbox": [
+        2080,
+        48201,
+        2371,
+        48268
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印直書きと書置き両方(半面500円全面1,000円)",
+      "bbox": [
+        2512,
+        48198,
+        2976,
+        48297
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "32大牟田神社\n1538年、庄屋と村人が御神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇園祭の御祭神2柱を京都八坂神社より勧請。大牟田の守護神として親しまれている。\n最寄り駅JR大牟田駅から徒歩約10分\n住所:福岡県大牟田市本町1-2-22\n電話:0944-52-5090\n初穂料特別御朱印1,000円御朱印月替わり600~1,200円御朱印対応時間:9:00~16:00\nホームページ\n/特別\n御朱印",
+      "bbox": [
+        838,
+        48540,
+        1833,
+        49443
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "おおむたじんじゃ",
+      "bbox": [
+        953,
+        48512,
+        1241,
+        48550
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【大牟田駅】\n深松駅長\nGooglemap",
+      "bbox": [
+        1939,
+        48841,
+        2124,
+        49017
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印",
+      "bbox": [
+        2128,
+        49625,
+        2256,
+        49654
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印\n69",
+      "bbox": [
+        2652,
+        49625,
+        2828,
+        49683
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ホームページ",
+      "bbox": [
+        883,
+        49708,
+        1072,
+        49744
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n両方(1,000円)",
+      "bbox": [
+        2128,
+        49926,
+        2371,
+        49990
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印直書きと書置き両方(半面500円全面1,000円)",
+      "bbox": [
+        2512,
+        49929,
+        2972,
+        50022
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "32大牟田神社\n1538年、庄屋と村人が御神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇園祭の御祭神2柱を京都八坂神社より勧請。大牟田の守護神として親しまれている。\n最寄り駅\nJR大牟田駅から徒歩約10分\n住所:福岡県大牟田市本町1-2-22\n電話:0944-52-5090\n初穂料特別御朱印1,000円御朱印月替わり600~1,200円御朱印対応時間:9:00~16:00\nホームページ\n<特別\n御朱印\nおおむたじんじゃ",
+      "bbox": [
+        838,
+        50243,
+        1830,
+        51168
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "【大牟田駅】\n深松駅長\nGooglemap",
+      "bbox": [
+        1939,
+        50560,
+        2121,
+        50739
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印\n(1,000円)",
+      "bbox": [
+        2128,
+        51353,
+        2259,
+        51414
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印\n書置き(600~1,200円)",
+      "bbox": [
+        2598,
+        51347,
+        2876,
+        51411
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": ">",
+      "bbox": [
+        3724,
+        51590,
+        3763,
+        51641
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "Copyright©KyushuRailwayCompany.AllRightsReserved.",
+      "bbox": [
+        1488,
+        51760,
+        2348,
+        51792
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    }
+  ],
+  "normalized_tokens": [],
+  "filtered_tokens": [
+    {
+      "text": "参加寺社一覧大分福岡 /特別 [御朱印長崎熊本鹿児島宮崎",
+      "bbox": [
+        1545,
+        37145,
+        2934,
+        37836
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "福岡",
+      "bbox": [
+        905,
+        37324,
+        1008,
+        37363
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "佐賀",
+      "bbox": [
+        1225,
+        37324,
+        1331,
+        37366
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "1甲宗八幡宮西暦860年に創建。中世には源平両氏や足利将軍などに\"関の守護\"神\"として崇敬された。近代に入り、発展を遂げた門司の街の鎮守神として、実業家出光佐三などの信仰を集めてきた神社。 こうそうはちまんぐう",
+      "bbox": [
+        822,
+        37721,
+        1827,
+        38028
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[門司港駅]緒方駅長 Googlemap",
+      "bbox": [
+        1939,
+        38044,
+        2124,
+        38217
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR門司港駅から徒歩約12分",
+      "bbox": [
+        870,
+        38176,
+        1462,
+        38217
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市門司区旧門司1-7-18 電話:093-321-0944 初穂料特別御朱印1,000円御朱印200円、300円、500円御朱印対応時間:9:30~16:30 ホームページ",
+      "bbox": [
+        838,
+        38300,
+        1817,
+        38614
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "神社御朱印置き(200円)",
+      "bbox": [
+        2668,
+        38588,
+        2828,
+        38896
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書置き(1,000円) 和年",
+      "bbox": [
+        2076,
+        38825,
+        2297,
+        39123
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(300円)",
+      "bbox": [
+        992,
+        39347,
+        1184,
+        39404
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(500円)",
+      "bbox": [
+        1568,
+        39344,
+        1731,
+        39414
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(500円)",
+      "bbox": [
+        2118,
+        39344,
+        2281,
+        39408
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(1,000円)",
+      "bbox": [
+        2656,
+        39344,
+        2841,
+        39411
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "めかりじんじゃ2和布刈神社九州最北端に鎮座する神社。約1800年前、神功(じんぐう)皇后が三韓征伐に勝利したことから創建された。御祭神は瀬織津姫(せおりつひめ)という月の女神。創建以来、今も関門海峡と人々の道先を照らし続けている。 最寄り駅 JR門司港駅からバスで\"和布刈神社前\"下車、徒歩約1分住所:福岡県北九州市門司区門司3492 電話:093-321-0749 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:30~17:00 ホームページ <特別御朱印 Googlemap",
+      "bbox": [
+        838,
+        39619,
+        2121,
+        40524
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[門司港駅]緒方駅長",
+      "bbox": [
+        1939,
+        39948,
+        2096,
+        40019
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (1.000F9)",
+      "bbox": [
+        2128,
+        40736,
+        2294,
+        40796
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印直書きと書置き両方通年版(500円)",
+      "bbox": [
+        2512,
+        40739,
+        2966,
+        40796
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|御朱印直書きと書置き両方季節(500円)",
+      "bbox": [
+        860,
+        41257,
+        1308,
+        41315
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "こくらぎおんやさかじんじゃ",
+      "bbox": [
+        956,
+        41532,
+        1440,
+        41558
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "3小倉祗園八坂神社豊前小倉藩初代藩主細川忠興公により、1617年に創建。小倉の守護神として、人々の崇拝を集めてきた。1934年に小倉城二の丸跡に遷座。親しみを込めて\"小倉の祇園さん\"とも呼ばれている。 特別御朱印",
+      "bbox": [
+        838,
+        41561,
+        1820,
+        41843
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[小倉駅]松尾駅長 Googlemap",
+      "bbox": [
+        1948,
+        41849,
+        2121,
+        42028
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR西小倉駅から徒歩約5分",
+      "bbox": [
+        870,
+        41996,
+        1440,
+        42025
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市小倉北区城内2-2 電話:093-561-0753 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~16:30 ホームページ",
+      "bbox": [
+        838,
+        42121,
+        1552,
+        42432
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "\"特別御朱印書置き(1,000円)",
+      "bbox": [
+        2080,
+        42633,
+        2294,
+        42707
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        42643,
+        2912,
+        42704
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "4菅原神社菅原道真公をお祀りする神社。創建は約1100年前の平安時代に遡り、古くから小倉府内(城下町)の氏神として、学問、文化芸術、農業、漁業、商業、交通などの守護神として篤い信仰を集めている。 (特別御朱印すがわらじんじゃ",
+      "bbox": [
+        838,
+        42924,
+        1830,
+        43232
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR小倉駅から北九州モノレール旦過駅\"下車、徒歩約1分 [小倉駅] 松尾駅長最寄り駅 Googlemap",
+      "bbox": [
+        870,
+        43244,
+        2121,
+        43472
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市小倉北区古船場町1-6 RE:093-521-9421 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ホームページ",
+      "bbox": [
+        838,
+        43561,
+        1516,
+        43872
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印と置き両方(500円)",
+      "bbox": [
+        2092,
+        44080,
+        2361,
+        44147
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        44076,
+        2912,
+        44150
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "しょうはちまんぐう5正八幡宮 860年に建立された正八幡宮は、古来より地上に生きとし生ける人々の平安と幸福を\"みちびく勝運の神\"として、また出産育児を司る母子神(ぼししん)として、豊前一円で広く崇敬され信仰を深めている。 (特別御朱印最寄り駅JR行橋駅から徒歩約5分住所:福岡県行橋市神田町8-1 電話:0930-22-0943 初穂料特別御朱印500円御朱印500円御朱印対応時間:8:00~16:00 ホームページ",
+      "bbox": [
+        838,
+        44355,
+        1827,
+        45257
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[行橋駅] 西尾駅長 Googlemap",
+      "bbox": [
+        1945,
+        44681,
+        2118,
+        44864
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "\"特別御朱印 (500円)",
+      "bbox": [
+        2115,
+        45468,
+        2281,
+        45532
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印 (500円)",
+      "bbox": [
+        2694,
+        45472,
+        2793,
+        45529
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "年",
+      "bbox": [
+        1145,
+        45683,
+        1196,
+        45715
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|御朱印 (500円)",
+      "bbox": [
+        1033,
+        45993,
+        1142,
+        46048
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ふうじはちまんぐう 6風治八幡宮古くは伊田大神と称し1200年以上の歴史を誇る。神功(じんぐう)皇后や伝教大師(最澄)などのエピソードが数多く残る由緒ある神社。迫力満点の勇壮な川渡り神幸祭は、福岡県五大祭りのひとつに数えられる。 最寄り駅 JR田川伊田駅から徒歩約1分住所:福岡県田川市魚町2-30電話:0947-42-1135 初穂料特別御朱印1,000円御朱印1社500円2800円御朱印対応時間:9:00~17:00 ホームページ特別 [御朱印",
+      "bbox": [
+        835,
+        46268,
+        1827,
+        47164
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[田川後藤寺駅]伊福駅長 Googlemap",
+      "bbox": [
+        1907,
+        46585,
+        2128,
+        46768
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書き(1,000円)",
+      "bbox": [
+        2108,
+        47376,
+        2294,
+        47440
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(1500円2800円)",
+      "bbox": [
+        2576,
+        47379,
+        2924,
+        47440
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "7平等寺(三井寺) 正式名は平等寺だが、地元では炭坑寺院三井寺で親しまれている。夏は風鈴、秋冬は風車を境内に飾り付けたり、ユニークなお地蔵様が出迎えたり・・・。参拝者の心を癒し、ご縁を大切にしている寺院。 最寄り駅JR田川伊田駅から徒歩約15分住所:福岡県田川市伊田2706-1電話:0947-42-7206 初穂料特別御朱印800円御朱印半面500円両面800円御朱印対応時間:9:00~17:00 ※特別御朱印は季節ごとに背景がかわります。 Instagram (特別御朱印びょうどうじみついでら",
+      "bbox": [
+        838,
+        47654,
+        1830,
+        48675
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[田川後藤寺駅]伊福駅長 Googlemap",
+      "bbox": [
+        1910,
+        47977,
+        2131,
+        48160
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印と書置き両方(800円)",
+      "bbox": [
+        2096,
+        48768,
+        2361,
+        48832
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書きと書置き両方半面500円 800円)",
+      "bbox": [
+        2604,
+        48764,
+        2896,
+        48867
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "かすがじんじゃ8春日神社 775年、弓削大神に合祀され、2025年には鎮座1250年を迎える歴史ある神社。毎年5月下旬に斉行される\"神幸祭\"では、国の重要無形民俗文化財指定の豊前神楽\"春日神社岩戸神楽\"が神輿を先導する。 /特別御朱印",
+      "bbox": [
+        838,
+        49081,
+        1827,
+        49392
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[田川後藤寺駅]伊福駅長 Googlemap",
+      "bbox": [
+        1910,
+        49408,
+        2134,
+        49584
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR田川後藤寺駅から徒歩約8分",
+      "bbox": [
+        870,
+        49539,
+        1504,
+        49580
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県田川市宮尾町6-13 電話:0947-42-1139 初穂料特別御朱印500円御朱印冬椿500円シマエナガ800 御朱印対応時間:9:30~16:00 ※御朱印対応時間12:00~13:00は不可、他インスタグラムでお知らせ ※通常御朱印は季節ごとに変わります。 ※特別御朱印は水、木曜は書置きのみホームページ Instagram",
+      "bbox": [
+        838,
+        49670,
+        1872,
+        50246
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "社日",
+      "bbox": [
+        2124,
+        49910,
+        2291,
+        49961
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印冬樁直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        50188,
+        2908,
+        50259
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書きと書置き両方(500円)",
+      "bbox": [
+        2038,
+        50192,
+        2361,
+        50256
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印シマエナガ直書きと書置き両方(800円)",
+      "bbox": [
+        915,
+        50713,
+        1260,
+        50771
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "たがじんじゃ9多賀神社寿命の神、鎮魂厄除けの神として名高い伊邪那岐(いざなぎ)伊邪那美(いざなみ)二柱の大神を祀る神社。春には約400本の境内の花桃が見頃となる。隣接する直方市石炭記念館ではC11型蒸気機関車も見学できる。 <特別御朱印",
+      "bbox": [
+        838,
+        50985,
+        1830,
+        51347
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[直方駅] 中村駅長 Googlemap",
+      "bbox": [
+        1948,
+        51312,
+        2121,
+        51491
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR直方駅から徒歩約7分",
+      "bbox": [
+        870,
+        51449,
+        1408,
+        51484
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県直方市直方701電話:0942-22-0125 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:30~16:30 ホームページ",
+      "bbox": [
+        838,
+        51580,
+        1552,
+        51888
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "瓜和五年七月十五日",
+      "bbox": [
+        2604,
+        51712,
+        2662,
+        52044
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書置き(1,000円) A",
+      "bbox": [
+        2044,
+        51974,
+        2297,
+        52163
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(500円)",
+      "bbox": [
+        2643,
+        52102,
+        2828,
+        52160
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "10皇祖神社 1508年(永正5年)に建立され、長らく地域で愛されてきた。境内には竜神が登ったとされる良い伝えがあるため、全国から竜神を記した御朱印を求めて、多くの参拝者が集まる。 最寄り駅JR鯰田駅から徒歩約5分住所:福岡県飯塚市鯰田1909 電話:0948-22-6733 初穂料特別御朱印800円御朱印800円御朱印対応時間:9:00~17:00 ※行事開催時は対応できない場合あり※御朱印はその他10種類程度ございます。 Instagram /特別御朱印こうそじんじゃ",
+      "bbox": [
+        838,
+        52380,
+        1830,
+        53443
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[新飯塚駅] 緒方駅長 Googlemap",
+      "bbox": [
+        1942,
+        52704,
+        2121,
+        52883
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "昇龍",
+      "bbox": [
+        2819,
+        53120,
+        2880,
+        53228
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書き(800円)",
+      "bbox": [
+        2092,
+        53484,
+        2284,
+        53548
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(800円)",
+      "bbox": [
+        2643,
+        53494,
+        2832,
+        53548
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(800円)",
+      "bbox": [
+        995,
+        54006,
+        1184,
+        54073
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "11祖八幡宮延文4年(1359年)に建立され、飯塚の総鎮守として親しまれている。特別御朱印は飯塚の原風景\"ボタ山とSL\"を記したもの。特別御朱印領布券を持参の方へ\"石炭ストラップ\"お守りを進呈。 /特別御朱印のうそはちまんぐう",
+      "bbox": [
+        838,
+        54284,
+        1833,
+        54598
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[新飯塚駅] 緒方駅長 Googlemap",
+      "bbox": [
+        1939,
+        54608,
+        2121,
+        54787
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR新飯塚駅から徒歩約15分",
+      "bbox": [
+        870,
+        54752,
+        1459,
+        54780
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県飯塚市宮町2-3電話:0948-22-0511 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ホームページ",
+      "bbox": [
+        838,
+        54876,
+        1520,
+        55184
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "今年",
+      "bbox": [
+        2608,
+        55017,
+        2652,
+        55161
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印置き(500円)",
+      "bbox": [
+        2118,
+        55398,
+        2281,
+        55456
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(500円)",
+      "bbox": [
+        2665,
+        55395,
+        2828,
+        55459
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "12豊山八幡神社 \"八幡\"の地名発祥の地としても知られる八幡の総鎮守。2023年に創建1400年を迎えた。JR九州とのコラボ御朱印は、皿倉山の夜景と鉄の町のシンボル東田第一高炉をあしらった特別な意匠。 最寄り駅JR八幡駅から徒歩約5分住所:福岡県北九州市八幡東区春の町4-4-1電話:093-671-2998 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ※御朱印は複数種類あり |ホームページ Instagram <特別御朱印とよやまはちまんじんじゃ",
+      "bbox": [
+        838,
+        55676,
+        1827,
+        56691
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[黒崎駅] 渕上駅長 Googlemap",
+      "bbox": [
+        1945,
+        56000,
+        2124,
+        56176
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "豊山八幡神社",
+      "bbox": [
+        2707,
+        56403,
+        2774,
+        56739
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (500円)",
+      "bbox": [
+        2128,
+        56784,
+        2281,
+        56844
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(500円)",
+      "bbox": [
+        2643,
+        56787,
+        2832,
+        56844
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[特別御朱印 13春日神社古来より黒崎・折尾地区の守り神として信仰を集めてきた古社。福岡藩祖黒田長政より篤い崇敬を受け、後に黒田神社が建立された。JR九州コラボ御朱印は、黒田二十四騎版画をあしらった特別版。 かすがじんじゃ [黒崎駅] 上島最寄り駅 JR黒崎駅から徒歩約10分 Googlemap",
+      "bbox": [
+        838,
+        57062,
+        2124,
+        57568
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区藤田1-10-44電話:093-631-2152 初穂料特別御朱印1,000円御朱印1,000円御朱印対応時間:10:00~16:00 ※御朱印は複数種類あり Instagram",
+      "bbox": [
+        838,
+        57654,
+        1584,
+        58080
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "田日神神社社",
+      "bbox": [
+        2233,
+        57907,
+        2377,
+        58102
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書き(1,000円)",
+      "bbox": [
+        2080,
+        58169,
+        2294,
+        58243
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(1,000円)",
+      "bbox": [
+        2656,
+        58176,
+        2848,
+        58240
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "14岡田宮古事記日本書紀に登場する北九市内では唯一の古社。御祭神は初代天皇\"神武天皇\"。家内安全、健康、長寿、勝負運を祈願しに多くの参拝者が訪れる。2000年以上前から愛されてきた氏神様。 特別御朱印おかだぐう",
+      "bbox": [
+        838,
+        58454,
+        1830,
+        58768
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[黒崎駅]渕上駅長 Googlemap",
+      "bbox": [
+        1945,
+        58774,
+        2118,
+        58953
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR黒崎駅から徒歩約7分",
+      "bbox": [
+        870,
+        58915,
+        1404,
+        58953
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区岡田町1-1 電話:093-621-1898 初穂料特別御朱印1,000円御朱印500円~御朱印対応時間:直書き9:00~16:00書置き9:00~16:30 ※御朱印は複数種類ありホームページ (IBTwitter) Instagram",
+      "bbox": [
+        838,
+        59036,
+        1814,
+        59468
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書きと書置き両方(1,000円)",
+      "bbox": [
+        2025,
+        59564,
+        2374,
+        59625
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "いちのみやじんじゃ 15一宮神社勝運のご利益で崇敬を集める神社で、\"岡田の宮\"の本宮と伝えられる。黒崎地区の岡田宮、春日神社と共に執り行う\"黒崎祇園山笠\"は400年以上の歴史を有し、県の無形民俗文化財に指定されている。 <特別御朱印",
+      "bbox": [
+        838,
+        59843,
+        1833,
+        60153
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[黒崎駅]渕上駅長 Googlemap",
+      "bbox": [
+        1948,
+        60163,
+        2121,
+        60342
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR黒崎駅から徒歩約15分",
+      "bbox": [
+        870,
+        60307,
+        1430,
+        60342
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区山寺町12-36 電話:093-641-2865 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~16:30 ※御朱印は複数種類あり |ホームページ",
+      "bbox": [
+        838,
+        60435,
+        1520,
+        60854
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "社御朱印書き(500円)",
+      "bbox": [
+        2668,
+        60854,
+        2832,
+        61014
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (500円)",
+      "bbox": [
+        2128,
+        60956,
+        2281,
+        61017
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ひのみねじんじゃ16日峯神社隠岐島の焼火神社から大日霊貴命(おおひるめのむちのみこと)を日峯山に勧請したのが創祀とされる。海上交通の神社として崇敬され、1760年に現境内地に移設。現在では\"人生における導きのお神様\"として親しまれている。 特別御朱印",
+      "bbox": [
+        838,
+        61235,
+        1827,
+        61593
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[折尾駅]水嶋駅長 Googlemap",
+      "bbox": [
+        1945,
+        61577,
+        2118,
+        61753
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR折尾駅からバスで\"浅川小学校前\"下車、徒歩約8分",
+      "bbox": [
+        870,
+        61715,
+        1856,
+        61747
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県北九州市八幡西区浅川日の峯1-8-8 電話:093-603-1775 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~17:00 ※平日の仏滅日、他対応不可日あり ※要電話確認ホームページ",
+      "bbox": [
+        838,
+        61840,
+        1548,
+        62307
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "日本神社",
+      "bbox": [
+        2684,
+        62009,
+        2784,
+        62294
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|特別御朱印書置き(1,000円) 社",
+      "bbox": [
+        2083,
+        62163,
+        2297,
+        62422
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印置き(500円)",
+      "bbox": [
+        2668,
+        62358,
+        2835,
+        62422
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "17鎮國寺弘法大師(空海)が中国より帰朝した806年に創建した、日本で最初の真言宗の寺院。別名\"花と祈願の寺\"と言われ、四季折々の花の名所としても名高い。 <特別御朱印ちんこくじ",
+      "bbox": [
+        838,
+        62643,
+        1827,
+        62950
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[赤間駅]出田駅長 Googlemap",
+      "bbox": [
+        1945,
+        62963,
+        2118,
+        63139
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR東郷駅からバスで\"宗像大社前\"下車、徒歩約17分最寄り駅",
+      "bbox": [
+        870,
+        63097,
+        1843,
+        63136
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県宗像市吉田966 電話:0940-62-0111 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~16:30 ホームページ",
+      "bbox": [
+        838,
+        63228,
+        1520,
+        63536
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印直書(500円)",
+      "bbox": [
+        2089,
+        63750,
+        2281,
+        63811
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印直書き(500円)",
+      "bbox": [
+        2640,
+        63750,
+        2832,
+        63811
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "18宮地嶽神社北部九州に居住した海人族の長神と神功皇后を祀る1800年の歴史あある神社。13個の巨石遺跡や大注連縄、日本一美しい夕陽の宮司と2月10月に現れる“光の道”で著名。眷属は福を授けるフクロウ。 最寄り駅 JR福間駅から徒歩約30分住所:福岡県福津市宮司元町7-1電話:0940-52-0016 初穂料特別御朱印1,000円御朱印直書き800円、書置き500円御朱印対応時間:9:00~17:00 ※直書き9:00~16:30書置き9:00~19:00 ホームページ Instagram 特別御朱印みやじだけじんじゃ",
+      "bbox": [
+        828,
+        64028,
+        1900,
+        65043
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[福間駅]紺屋駅長 Googlemap",
+      "bbox": [
+        1948,
+        64348,
+        2121,
+        64534
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (1,000円)",
+      "bbox": [
+        2128,
+        65139,
+        2294,
+        65206
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印直書きと書置き両方(直書き800円、書置き500円)",
+      "bbox": [
+        2566,
+        65139,
+        2924,
+        65241
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "19香椎宮香椎宮は200年に神功(じんぐう)皇后が、夫の神霊をお祀りしたことが起源。神功皇后の宮は724年に竣工。この両宮を併せて香椎廟と称した。明治以降は官幣(かんぺい)大社香椎宮、戦後は香椎宮と呼ばれている。 最寄り駅 JR香椎神宮駅から徒歩約4分住所:福岡県福岡市東区香椎4-16-1 電話:092-681-1001 初穂料特別御朱印1,000円御朱印300円~1,000円御朱印対応時間:9:00~17:00 ホームページ <特別御朱印かしいぐう",
+      "bbox": [
+        838,
+        65452,
+        1830,
+        66352
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[香椎駅] 大嶋駅長 Googlemap",
+      "bbox": [
+        1945,
+        65776,
+        2118,
+        65955
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書置き(1,000円)",
+      "bbox": [
+        2083,
+        66566,
+        2294,
+        66630
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(700円)",
+      "bbox": [
+        2643,
+        66563,
+        2835,
+        66627
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "令和六年一月一日白書置き(300円) 御朱印",
+      "bbox": [
+        1516,
+        66704,
+        1744,
+        67142
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "香椎宮",
+      "bbox": [
+        1587,
+        66713,
+        1692,
+        67011
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(1,000円)限定令和7年祭記念御朱印",
+      "bbox": [
+        915,
+        67084,
+        1270,
+        67180
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "20宇美八幡宮神功(じんぐう)皇后が應神(おうじん)天皇を御出産された聖地[産み=宇美]安産・育児の\"子安大神\"と称され、境内の全てが\"安産信仰に関する伝説地\"として、福岡県民俗資料文化財の指定を受けている。 最寄り駅JR宇美駅から徒歩約5分住所:福岡県糟屋郡宇美町宇美1-1-1 092-932-0044 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ※直書きのため1日10枚(土日祝20枚)程度限定 |ホームページ (特別御朱印うみはちまんぐう",
+      "bbox": [
+        835,
+        67401,
+        1830,
+        68409
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[香椎駅] 大嶋駅長 Googlemap",
+      "bbox": [
+        1948,
+        67721,
+        2121,
+        67897
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 500円)",
+      "bbox": [
+        2128,
+        68505,
+        2284,
+        68569
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "21補陀洛寺御本尊の十一面観世音菩薩は、特に病気平癒・安産除災招福の御利益があるといわれている。篠栗四国霊場の79番目\"打ち納め札所\"として春秋のシーズンにはお遍路の参拝者が多く訪れる。 /特別御朱印ふだらくじ",
+      "bbox": [
+        838,
+        68790,
+        1833,
+        69097
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[長者原駅] 田村駅長 Googlemap",
+      "bbox": [
+        1942,
+        69107,
+        2121,
+        69286
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR篠栗駅から徒歩約3分",
+      "bbox": [
+        870,
+        69244,
+        1404,
+        69283
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県糟屋郡篠栗町中央4-12-60 090-5740-9939 初穂料特別御朱印500円御朱印300円御朱印対応時間:9:00~17:00 ※月・水・金曜の15時以降不可",
+      "bbox": [
+        838,
+        69379,
+        1520,
+        69683
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印置き両方(500円)",
+      "bbox": [
+        2128,
+        69900,
+        2361,
+        69961
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書きと書置き両方(300円)",
+      "bbox": [
+        2588,
+        69900,
+        2912,
+        69961
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "22筥崎宮宇佐石清水両宮と並ぶ日本三大八幡宮のひとつ。厄除勝運の神としても有名で地元プロスポーツチームも必勝祈願に訪れる。\"仲秋大祭放生会\"は1000年以上続く神事で九州随一の秋祭りだ。 <特別御朱印はこざきぐう [千早駅] 関駅長 Googlemap",
+      "bbox": [
+        838,
+        70169,
+        2121,
+        70675
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR箱崎駅から徒歩約8分",
+      "bbox": [
+        870,
+        70640,
+        1404,
+        70672
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県福岡市東区箱崎1-22-1 電話:092-641-7431 初穂料特別御朱印500円御朱印500円御朱印対応時間:8:30~17:00 ホームページ Instagram X(IBTwitter)",
+      "bbox": [
+        838,
+        70764,
+        1718,
+        71078
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(500円) 令和元年五月一日",
+      "bbox": [
+        2640,
+        70937,
+        2828,
+        71356
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (500円)",
+      "bbox": [
+        2128,
+        71286,
+        2281,
+        71350
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "とおかえびすじんじゃ23十日恵比須神社福の神と称される\"えびす様\"と\"だいこく様\"をお祀りする神社。正月大祭では、隣接の東公園に約300軒の露店が並び、全国からも多くの人が訪れる。福徳円満にちなんだ授与品も豊富に揃う。 (特別御朱印",
+      "bbox": [
+        838,
+        71568,
+        1827,
+        71875
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[博多駅] 加藤駅長 Googlemap",
+      "bbox": [
+        1948,
+        71884,
+        2118,
+        72067
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR吉塚駅から徒歩約5分",
+      "bbox": [
+        870,
+        72028,
+        1408,
+        72067
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県福岡市博多区東公園7-1 電話:092-651-1563 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~17:00 2月7日(金)~配布。 ※正月、大祭期間中は不可ホームページ",
+      "bbox": [
+        838,
+        72156,
+        1552,
+        72624
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "甘恵比須神社",
+      "bbox": [
+        2700,
+        72294,
+        2780,
+        72640
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印と置き両方(1,000円)",
+      "bbox": [
+        2080,
+        72678,
+        2368,
+        72739
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書きと書置き両方(500円)",
+      "bbox": [
+        2592,
+        72678,
+        2908,
+        72736
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ちくぜんのくにいちのみやすみよしじんじゃ 24筑前國一之宮住吉神社航海安全心身清浄の御神徳として信仰を集める神社。またJR博多シティ屋上の\"鉄道神社\"には、筑前國一之宮住吉神社より勧請された御祭神が鎮座し、交通安全と博多駅地区の安寧を見守っている。 (特別御朱印",
+      "bbox": [
+        838,
+        72956,
+        1833,
+        73267
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[博多駅] 加藤駅長 Googlemap",
+      "bbox": [
+        1945,
+        73280,
+        2118,
+        73456
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR博多駅から徒歩約10分",
+      "bbox": [
+        870,
+        73420,
+        1424,
+        73452
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県福岡市住吉3-1-51 電話:092-291-2670 初穂料特別御朱印1,000円御朱印対応時間:9:00~17:00 ホームページ",
+      "bbox": [
+        838,
+        73545,
+        1344,
+        73852
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (1,000円)",
+      "bbox": [
+        2128,
+        74067,
+        2259,
+        74131
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "25太郎丸神社火災で全焼しても落ちなかった\"落ちない鈴\"の太郎丸神社。高校大学受験、資格試験就職試験などの受験生が祈願に訪れる。特に九州大学をめざす受験生の聖地として脚光を浴びている。 特別御朱印たろうまるじんじゃ",
+      "bbox": [
+        838,
+        74339,
+        1827,
+        74656
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[九大学研都市駅] 藤井駅長",
+      "bbox": [
+        1923,
+        74668,
+        2128,
+        74784
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR九大学研都市駅からバスで\"たろう保育園前\"下車、徒歩約6分最寄り駅 Googlemap",
+      "bbox": [
+        870,
+        74851,
+        2124,
+        74937
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所福岡県福岡市西区太郎丸2-7-10 電話:090-5735-2695 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:第1・3日曜13:00~14:00のみホームページ",
+      "bbox": [
+        838,
+        75024,
+        1635,
+        75337
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "太郎丸神社合格祈願特別御朱印 (1,000円)",
+      "bbox": [
+        1977,
+        75193,
+        2294,
+        75612
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "太郎丸神",
+      "bbox": [
+        2672,
+        75168,
+        2784,
+        75440
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(500円)",
+      "bbox": [
+        2643,
+        75552,
+        2832,
+        75609
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "太郎丸神社",
+      "bbox": [
+        1017,
+        75670,
+        1142,
+        76038
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(500円)",
+      "bbox": [
+        992,
+        76064,
+        1180,
+        76128
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書置き(500円)",
+      "bbox": [
+        1542,
+        76067,
+        1728,
+        76131
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "さくらいじんじゃ26櫻井神社 1632年に福岡藩二代藩主・黒田忠之公が岩戸に出現した神様を祀るために櫻井神社を造営。社殿は修復を重ねて、創建当時の趣きを今日まで守っており、2023年に国の重要文化財に指定された。 特別御朱印",
+      "bbox": [
+        841,
+        76342,
+        1830,
+        76656
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[筑前前原駅]鹿島駅長 Googlemap",
+      "bbox": [
+        1926,
+        76668,
+        2118,
+        76844
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR筑前前原駅からバスで\"桜井\"下車、徒歩約10分住所:福岡県糸島市志摩桜井4227 電話:092-327-0317 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~16:00 ホームページ",
+      "bbox": [
+        838,
+        76806,
+        1811,
+        77248
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (1,000P9)",
+      "bbox": [
+        2128,
+        77459,
+        2256,
+        77520
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印置き(500円)",
+      "bbox": [
+        2668,
+        77456,
+        2828,
+        77516
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "27雷山千如寺大悲王院 178年、天竺益山より渡来した僧、清賀上人の間創と伝えられる。本尊の観音吾胚像は鎌倉時代の作。歴代天皇や多くの武将豪族が厚く信仰した。樹齢400年の大カエデの紅葉が見事。 特別御朱印",
+      "bbox": [
+        838,
+        77763,
+        1830,
+        78051
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "らいざんせんにょじだいひおういん",
+      "bbox": [
+        953,
+        77737,
+        1484,
+        77763
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[筑前前原駅] 鹿島駅長 Googlemap",
+      "bbox": [
+        1926,
+        78060,
+        2124,
+        78236
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR筑前前原駅からバスで\"雷山観音前\"下車、徒歩約7分",
+      "bbox": [
+        870,
+        78198,
+        1884,
+        78230
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県糸島市雷山626 電話:092-323-3547 初穂料特別御朱印500円御朱印300円御朱印対応時間:9:00~17:00 ホームページ",
+      "bbox": [
+        838,
+        78326,
+        1516,
+        78640
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "親御朱印書置き(300円)",
+      "bbox": [
+        2643,
+        78710,
+        2832,
+        78905
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印置き(500円)",
+      "bbox": [
+        2118,
+        78848,
+        2278,
+        78905
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ふつかいちはちまんぐう28二日市八幡宮御鎮座1500年を越える神社で、縁結び安産開運の神として尊されている。御神木の公孫樹(いちょう)には災難厄除けの霊験があるとされ、境内の銀杏は黄葉すると辺り一面を黄金色に染め上げる。 <特別御朱印",
+      "bbox": [
+        838,
+        79126,
+        1827,
+        79436
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[二日市駅] 山口駅長 Googlemap",
+      "bbox": [
+        1939,
+        79446,
+        2118,
+        79628
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR二日市駅から徒歩約4分",
+      "bbox": [
+        870,
+        79590,
+        1440,
+        79622
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県筑紫野市二日市中央3-6-35 電話:092-922-3301 初穂料特別御朱印700円御朱印500円御朱印対応時間:9:00~16:30 ※対応不可時間帯ありホームページ",
+      "bbox": [
+        838,
+        79715,
+        1520,
+        80137
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印書置き(700円)",
+      "bbox": [
+        2092,
+        80236,
+        2281,
+        80297
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印書き(500円)",
+      "bbox": [
+        2668,
+        80236,
+        2832,
+        80297
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ぜんこくそうほんぐうすいてんぐう29全国総本宮水天宮筑後川の河畔に鎮座する全国の水天宮の総本宮。農業、漁業、航海業者からの信仰が篤く、子供の守護神、安産、子授けの神として、また病難、火災などの除災招福のご利益があることでも知られる。",
+      "bbox": [
+        838,
+        80505,
+        1827,
+        80828
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[久留米駅] 城戸駅長 Googlemap",
+      "bbox": [
+        1939,
+        80832,
+        2121,
+        81014
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR久留米駅から徒歩約10分",
+      "bbox": [
+        870,
+        80979,
+        1459,
+        81008
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県久留米市瀬下町265-1 電話:0942-32-3207 初穂料御朱印500円御朱印対応時間:9:00~16:30 ホームページ",
+      "bbox": [
+        838,
+        81104,
+        1347,
+        81414
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "瓜和六年十月八日直書きと書置き両方(500円) 御朱印",
+      "bbox": [
+        2012,
+        81267,
+        2361,
+        81686
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "みずたてんまんぐう 30水田天満宮学問武芸の神様として親しまれている菅原道真公を御祭神とした神社。境内には、末社である恋木神社があり、良縁・幸福の神様として恋命(こいのみこと)が鎮座している。海外からの参拝者も多い。 特別御朱印",
+      "bbox": [
+        838,
+        81907,
+        1830,
+        82214
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[筑後船小屋駅]北島駅長 Googlemap",
+      "bbox": [
+        1907,
+        82220,
+        2131,
+        82403
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR羽犬塚駅から徒歩約20分最寄り駅",
+      "bbox": [
+        870,
+        82361,
+        1459,
+        82396
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "露水田天満宮恋木神社",
+      "bbox": [
+        2284,
+        82352,
+        2928,
+        82403
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県筑後市水田62-1 電話:0942-53-8625 初穂料JR限定特別御朱印1,000円御朱印500円御朱印対応時間:8:30~17:00 ホームページ",
+      "bbox": [
+        838,
+        82492,
+        1667,
+        82803
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "JR限定特別御朱印 (1,000円)",
+      "bbox": [
+        2086,
+        83011,
+        2294,
+        83078
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "御朱印直書きと書置き両方(500円)",
+      "bbox": [
+        2563,
+        83014,
+        2905,
+        83078
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "|御朱印直書きと書置き両方(500円) 恋木神社",
+      "bbox": [
+        912,
+        83417,
+        1260,
+        83593
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "̇恋木神社御朱印直書きと書置き両方(500円)",
+      "bbox": [
+        1462,
+        83414,
+        1811,
+        83593
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "しものしょうはちまんじんじゃ31下庄八幡神社 <特別御朱印 2031年に御鎮座900年を迎える神社。長きに渡り、勝運、安産、子供守護の神として崇拝されてきた。境内には、樹齢800年を誇る大楠の御神木や縁結びにご加護があると話題の\"愛成(あいじょう)の木\"も。",
+      "bbox": [
+        838,
+        83811,
+        1827,
+        84172
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[新大牟田駅]石松駅長 Googlemap",
+      "bbox": [
+        1923,
+        84131,
+        2118,
+        84313
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "最寄り駅JR瀬高駅から徒歩約15分",
+      "bbox": [
+        870,
+        84272,
+        1427,
+        84307
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "住所:福岡県みやま市瀬高町下庄1397 電話:0944-62-3562 初穂料特別御朱印1,000円御朱印半面500円全面1,000円御朱印対応時間:9:00~17:00 |ホームページ",
+      "bbox": [
+        838,
+        84393,
+        1859,
+        84736
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印と書置き両方(1,000円)",
+      "bbox": [
+        2080,
+        84921,
+        2371,
+        84988
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印直書きと書置き両方(半面500円全面1,000円)",
+      "bbox": [
+        2512,
+        84918,
+        2976,
+        85017
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "32大牟田神社 1538年、庄屋と村人が御神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇園祭の御祭神2柱を京都八坂神社より勧請。大牟田の守護神として親しまれている。 最寄り駅JR大牟田駅から徒歩約10分住所:福岡県大牟田市本町1-2-22 電話:0944-52-5090 初穂料特別御朱印1,000円御朱印月替わり600~1,200円御朱印対応時間:9:00~16:00 ホームページ /特別御朱印",
+      "bbox": [
+        838,
+        85260,
+        1833,
+        86163
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "おおむたじんじゃ",
+      "bbox": [
+        953,
+        85232,
+        1241,
+        85270
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[大牟田駅] 深松駅長 Googlemap",
+      "bbox": [
+        1939,
+        85561,
+        2124,
+        85737
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印",
+      "bbox": [
+        2128,
+        86345,
+        2256,
+        86374
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印 69",
+      "bbox": [
+        2652,
+        86345,
+        2828,
+        86403
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "ホームページ",
+      "bbox": [
+        883,
+        86428,
+        1072,
+        86464
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印両方(1,000円)",
+      "bbox": [
+        2128,
+        86646,
+        2371,
+        86710
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印直書きと書置き両方(半面500円全面1,000円)",
+      "bbox": [
+        2512,
+        86649,
+        2972,
+        86742
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "32大牟田神社 1538年、庄屋と村人が御神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇園祭の御祭神2柱を京都八坂神社より勧請。大牟田の守護神として親しまれている。 最寄り駅 JR大牟田駅から徒歩約10分住所:福岡県大牟田市本町1-2-22 電話:0944-52-5090 初穂料特別御朱印1,000円御朱印月替わり600~1,200円御朱印対応時間:9:00~16:00 ホームページ <特別御朱印おおむたじんじゃ",
+      "bbox": [
+        838,
+        86963,
+        1830,
+        87888
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "[大牟田駅] 深松駅長 Googlemap",
+      "bbox": [
+        1939,
+        87280,
+        2121,
+        87459
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "特別御朱印 (1,000円)",
+      "bbox": [
+        2128,
+        88073,
+        2259,
+        88134
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "月替わり御朱印書置き(600~1,200円)",
+      "bbox": [
+        2598,
+        88067,
+        2876,
+        88131
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    },
+    {
+      "text": "Copyright©KyushuRailwayCompany.AllRightsReserved.",
+      "bbox": [
+        1488,
+        88480,
+        2348,
+        88512
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": null
+    }
+  ],
+  "dropped_tokens": [
+    {
+      "text": "10",
+      "bbox": [
+        2358,
+        6476,
+        2412,
+        6502
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": "noise_only"
+    },
+    {
+      "text": "1000",
+      "bbox": [
+        2739,
+        6467,
+        2838,
+        6496
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": "noise_only"
+    },
+    {
+      "text": ">",
+      "bbox": [
+        3724,
+        51590,
+        3763,
+        51641
+      ],
+      "confidence": 0.8,
+      "source_engine": "cloud_vision",
+      "drop_reason": "noise_only"
+    }
+  ],
+  "clustered_paragraphs": [
+    {
+      "id": "W2_P-1",
+      "text": "参加寺社一覧大分福岡 /特別 [御朱印長崎熊本鹿児島宮崎",
+      "text_len": 28,
+      "bbox": [
+        1545,
+        37145,
+        2934,
+        37836
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-2",
+      "text": "福岡",
+      "text_len": 2,
+      "bbox": [
+        905,
+        37324,
+        1008,
+        37363
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-3",
+      "text": "佐賀",
+      "text_len": 2,
+      "bbox": [
+        1225,
+        37324,
+        1331,
+        37366
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-4",
+      "text": "1甲宗八幡宮西暦860年に創建。中世には源平両氏や足利将軍などに\"関の守護\"神\"として崇敬された。近代に入り、発展を遂げた門司の街の鎮守神として、実業家出光佐三などの信仰を集めてきた神社。 こうそうはちまんぐう",
+      "text_len": 105,
+      "bbox": [
+        822,
+        37721,
+        1827,
+        38028
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-5",
+      "text": "[門司港駅]緒方駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1939,
+        38044,
+        2124,
+        38217
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-6",
+      "text": "最寄り駅JR門司港駅から徒歩約12分",
+      "text_len": 18,
+      "bbox": [
+        870,
+        38176,
+        1462,
+        38217
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-7",
+      "text": "住所:福岡県北九州市門司区旧門司1-7-18 電話:093-321-0944 初穂料特別御朱印1,000円御朱印200円、300円、500円御朱印対応時間:9:30~16:30 ホームページ",
+      "text_len": 95,
+      "bbox": [
+        838,
+        38300,
+        1817,
+        38614
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-8",
+      "text": "神社御朱印置き(200円)",
+      "text_len": 13,
+      "bbox": [
+        2668,
+        38588,
+        2828,
+        38896
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-9",
+      "text": "特別御朱印書置き(1,000円) 和年",
+      "text_len": 19,
+      "bbox": [
+        2076,
+        38825,
+        2297,
+        39123
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-10",
+      "text": "御朱印書置き(300円)",
+      "text_len": 12,
+      "bbox": [
+        992,
+        39347,
+        1184,
+        39404
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-11",
+      "text": "御朱印書き(500円)",
+      "text_len": 11,
+      "bbox": [
+        1568,
+        39344,
+        1731,
+        39414
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-12",
+      "text": "御朱印書き(500円)",
+      "text_len": 11,
+      "bbox": [
+        2118,
+        39344,
+        2281,
+        39408
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-13",
+      "text": "御朱印書き(1,000円)",
+      "text_len": 13,
+      "bbox": [
+        2656,
+        39344,
+        2841,
+        39411
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-14",
+      "text": "めかりじんじゃ2和布刈神社九州最北端に鎮座する神社。約1800年前、神功(じんぐう)皇后が三韓征伐に勝利したことから創建された。御祭神は瀬織津姫(せおりつひめ)という月の女神。創建以来、今も関門海峡と人々の道先を照らし続けている。 最寄り駅 JR門司港駅からバスで\"和布刈神社前\"下車、徒歩約1分住所:福岡県北九州市門司区門司3492 電話:093-321-0749 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:30~17:00 ホームページ <特別御朱印 Googlemap",
+      "text_len": 247,
+      "bbox": [
+        838,
+        39619,
+        2121,
+        40524
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-15",
+      "text": "[門司港駅]緒方駅長",
+      "text_len": 10,
+      "bbox": [
+        1939,
+        39948,
+        2096,
+        40019
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-16",
+      "text": "特別御朱印 (1.000F9)",
+      "text_len": 15,
+      "bbox": [
+        2128,
+        40736,
+        2294,
+        40796
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-17",
+      "text": "御朱印直書きと書置き両方通年版(500円)",
+      "text_len": 21,
+      "bbox": [
+        2512,
+        40739,
+        2966,
+        40796
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-18",
+      "text": "|御朱印直書きと書置き両方季節(500円)",
+      "text_len": 21,
+      "bbox": [
+        860,
+        41257,
+        1308,
+        41315
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-19",
+      "text": "こくらぎおんやさかじんじゃ",
+      "text_len": 13,
+      "bbox": [
+        956,
+        41532,
+        1440,
+        41558
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-20",
+      "text": "3小倉祗園八坂神社豊前小倉藩初代藩主細川忠興公により、1617年に創建。小倉の守護神として、人々の崇拝を集めてきた。1934年に小倉城二の丸跡に遷座。親しみを込めて\"小倉の祇園さん\"とも呼ばれている。 特別御朱印",
+      "text_len": 106,
+      "bbox": [
+        838,
+        41561,
+        1820,
+        41843
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-21",
+      "text": "[小倉駅]松尾駅長 Googlemap",
+      "text_len": 19,
+      "bbox": [
+        1948,
+        41849,
+        2121,
+        42028
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-22",
+      "text": "最寄り駅JR西小倉駅から徒歩約5分",
+      "text_len": 17,
+      "bbox": [
+        870,
+        41996,
+        1440,
+        42025
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-23",
+      "text": "住所:福岡県北九州市小倉北区城内2-2 電話:093-561-0753 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~16:30 ホームページ",
+      "text_len": 82,
+      "bbox": [
+        838,
+        42121,
+        1552,
+        42432
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-24",
+      "text": "\"特別御朱印書置き(1,000円)",
+      "text_len": 17,
+      "bbox": [
+        2080,
+        42633,
+        2294,
+        42707
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-25",
+      "text": "御朱印直書きと書置き両方(500円)",
+      "text_len": 18,
+      "bbox": [
+        2563,
+        42643,
+        2912,
+        42704
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-26",
+      "text": "4菅原神社菅原道真公をお祀りする神社。創建は約1100年前の平安時代に遡り、古くから小倉府内(城下町)の氏神として、学問、文化芸術、農業、漁業、商業、交通などの守護神として篤い信仰を集めている。 (特別御朱印すがわらじんじゃ",
+      "text_len": 112,
+      "bbox": [
+        838,
+        42924,
+        1830,
+        43232
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-29",
+      "text": "JR小倉駅から北九州モノレール旦過駅\"下車、徒歩約1分 [小倉駅] 松尾駅長最寄り駅 Googlemap",
+      "text_len": 52,
+      "bbox": [
+        870,
+        43244,
+        2121,
+        43472
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-30",
+      "text": "住所:福岡県北九州市小倉北区古船場町1-6 RE:093-521-9421 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ホームページ",
+      "text_len": 82,
+      "bbox": [
+        838,
+        43561,
+        1516,
+        43872
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-31",
+      "text": "特別御朱印と置き両方(500円)",
+      "text_len": 16,
+      "bbox": [
+        2092,
+        44080,
+        2361,
+        44147
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-32",
+      "text": "御朱印直書きと書置き両方(500円)",
+      "text_len": 18,
+      "bbox": [
+        2563,
+        44076,
+        2912,
+        44150
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-33",
+      "text": "しょうはちまんぐう5正八幡宮 860年に建立された正八幡宮は、古来より地上に生きとし生ける人々の平安と幸福を\"みちびく勝運の神\"として、また出産育児を司る母子神(ぼししん)として、豊前一円で広く崇敬され信仰を深めている。 (特別御朱印最寄り駅JR行橋駅から徒歩約5分住所:福岡県行橋市神田町8-1 電話:0930-22-0943 初穂料特別御朱印500円御朱印500円御朱印対応時間:8:00~16:00 ホームページ",
+      "text_len": 209,
+      "bbox": [
+        838,
+        44355,
+        1827,
+        45257
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-34",
+      "text": "[行橋駅] 西尾駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1945,
+        44681,
+        2118,
+        44864
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-35",
+      "text": "\"特別御朱印 (500円)",
+      "text_len": 13,
+      "bbox": [
+        2115,
+        45468,
+        2281,
+        45532
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-36",
+      "text": "御朱印 (500円)",
+      "text_len": 10,
+      "bbox": [
+        2694,
+        45472,
+        2793,
+        45529
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-37",
+      "text": "年",
+      "text_len": 1,
+      "bbox": [
+        1145,
+        45683,
+        1196,
+        45715
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-38",
+      "text": "|御朱印 (500円)",
+      "text_len": 11,
+      "bbox": [
+        1033,
+        45993,
+        1142,
+        46048
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-39",
+      "text": "ふうじはちまんぐう 6風治八幡宮古くは伊田大神と称し1200年以上の歴史を誇る。神功(じんぐう)皇后や伝教大師(最澄)などのエピソードが数多く残る由緒ある神社。迫力満点の勇壮な川渡り神幸祭は、福岡県五大祭りのひとつに数えられる。 最寄り駅 JR田川伊田駅から徒歩約1分住所:福岡県田川市魚町2-30電話:0947-42-1135 初穂料特別御朱印1,000円御朱印1社500円2800円御朱印対応時間:9:00~17:00 ホームページ特別 [御朱印",
+      "text_len": 225,
+      "bbox": [
+        835,
+        46268,
+        1827,
+        47164
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-40",
+      "text": "[田川後藤寺駅]伊福駅長 Googlemap",
+      "text_len": 22,
+      "bbox": [
+        1907,
+        46585,
+        2128,
+        46768
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-41",
+      "text": "特別御朱印書き(1,000円)",
+      "text_len": 15,
+      "bbox": [
+        2108,
+        47376,
+        2294,
+        47440
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-42",
+      "text": "御朱印書き(1500円2800円)",
+      "text_len": 17,
+      "bbox": [
+        2576,
+        47379,
+        2924,
+        47440
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-43",
+      "text": "7平等寺(三井寺) 正式名は平等寺だが、地元では炭坑寺院三井寺で親しまれている。夏は風鈴、秋冬は風車を境内に飾り付けたり、ユニークなお地蔵様が出迎えたり・・・。参拝者の心を癒し、ご縁を大切にしている寺院。 最寄り駅JR田川伊田駅から徒歩約15分住所:福岡県田川市伊田2706-1電話:0947-42-7206 初穂料特別御朱印800円御朱印半面500円両面800円御朱印対応時間:9:00~17:00 ※特別御朱印は季節ごとに背景がかわります。 Instagram (特別御朱印びょうどうじみついでら",
+      "text_len": 250,
+      "bbox": [
+        838,
+        47654,
+        1830,
+        48675
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-44",
+      "text": "[田川後藤寺駅]伊福駅長 Googlemap",
+      "text_len": 22,
+      "bbox": [
+        1910,
+        47977,
+        2131,
+        48160
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-45",
+      "text": "特別御朱印と書置き両方(800円)",
+      "text_len": 17,
+      "bbox": [
+        2096,
+        48768,
+        2361,
+        48832
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-46",
+      "text": "御朱印書きと書置き両方半面500円 800円)",
+      "text_len": 23,
+      "bbox": [
+        2604,
+        48764,
+        2896,
+        48867
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-47",
+      "text": "かすがじんじゃ8春日神社 775年、弓削大神に合祀され、2025年には鎮座1250年を迎える歴史ある神社。毎年5月下旬に斉行される\"神幸祭\"では、国の重要無形民俗文化財指定の豊前神楽\"春日神社岩戸神楽\"が神輿を先導する。 /特別御朱印",
+      "text_len": 117,
+      "bbox": [
+        838,
+        49081,
+        1827,
+        49392
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-48",
+      "text": "[田川後藤寺駅]伊福駅長 Googlemap",
+      "text_len": 22,
+      "bbox": [
+        1910,
+        49408,
+        2134,
+        49584
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-49",
+      "text": "最寄り駅JR田川後藤寺駅から徒歩約8分",
+      "text_len": 19,
+      "bbox": [
+        870,
+        49539,
+        1504,
+        49580
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-50",
+      "text": "住所:福岡県田川市宮尾町6-13 電話:0947-42-1139 初穂料特別御朱印500円御朱印冬椿500円シマエナガ800 御朱印対応時間:9:30~16:00 ※御朱印対応時間12:00~13:00は不可、他インスタグラムでお知らせ ※通常御朱印は季節ごとに変わります。 ※特別御朱印は水、木曜は書置きのみホームページ Instagram",
+      "text_len": 171,
+      "bbox": [
+        838,
+        49670,
+        1872,
+        50246
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-51",
+      "text": "社日",
+      "text_len": 2,
+      "bbox": [
+        2124,
+        49910,
+        2291,
+        49961
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-52",
+      "text": "御朱印冬樁直書きと書置き両方(500円)",
+      "text_len": 20,
+      "bbox": [
+        2563,
+        50188,
+        2908,
+        50259
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-53",
+      "text": "特別御朱印書きと書置き両方(500円)",
+      "text_len": 19,
+      "bbox": [
+        2038,
+        50192,
+        2361,
+        50256
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-54",
+      "text": "御朱印シマエナガ直書きと書置き両方(800円)",
+      "text_len": 23,
+      "bbox": [
+        915,
+        50713,
+        1260,
+        50771
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-55",
+      "text": "たがじんじゃ9多賀神社寿命の神、鎮魂厄除けの神として名高い伊邪那岐(いざなぎ)伊邪那美(いざなみ)二柱の大神を祀る神社。春には約400本の境内の花桃が見頃となる。隣接する直方市石炭記念館ではC11型蒸気機関車も見学できる。 <特別御朱印",
+      "text_len": 118,
+      "bbox": [
+        838,
+        50985,
+        1830,
+        51347
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-56",
+      "text": "[直方駅] 中村駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1948,
+        51312,
+        2121,
+        51491
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-57",
+      "text": "最寄り駅JR直方駅から徒歩約7分",
+      "text_len": 16,
+      "bbox": [
+        870,
+        51449,
+        1408,
+        51484
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-58",
+      "text": "住所:福岡県直方市直方701電話:0942-22-0125 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:30~16:30 ホームページ",
+      "text_len": 76,
+      "bbox": [
+        838,
+        51580,
+        1552,
+        51888
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-59",
+      "text": "瓜和五年七月十五日",
+      "text_len": 9,
+      "bbox": [
+        2604,
+        51712,
+        2662,
+        52044
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-60",
+      "text": "特別御朱印書置き(1,000円) A",
+      "text_len": 18,
+      "bbox": [
+        2044,
+        51974,
+        2297,
+        52163
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-61",
+      "text": "御朱印書置き(500円)",
+      "text_len": 12,
+      "bbox": [
+        2643,
+        52102,
+        2828,
+        52160
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-62",
+      "text": "10皇祖神社 1508年(永正5年)に建立され、長らく地域で愛されてきた。境内には竜神が登ったとされる良い伝えがあるため、全国から竜神を記した御朱印を求めて、多くの参拝者が集まる。 最寄り駅JR鯰田駅から徒歩約5分住所:福岡県飯塚市鯰田1909 電話:0948-22-6733 初穂料特別御朱印800円御朱印800円御朱印対応時間:9:00~17:00 ※行事開催時は対応できない場合あり※御朱印はその他10種類程度ございます。 Instagram /特別御朱印こうそじんじゃ",
+      "text_len": 238,
+      "bbox": [
+        838,
+        52380,
+        1830,
+        53443
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-63",
+      "text": "[新飯塚駅] 緒方駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1942,
+        52704,
+        2121,
+        52883
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-64",
+      "text": "昇龍",
+      "text_len": 2,
+      "bbox": [
+        2819,
+        53120,
+        2880,
+        53228
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-65",
+      "text": "特別御朱印書き(800円)",
+      "text_len": 13,
+      "bbox": [
+        2092,
+        53484,
+        2284,
+        53548
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-66",
+      "text": "御朱印書置き(800円)",
+      "text_len": 12,
+      "bbox": [
+        2643,
+        53494,
+        2832,
+        53548
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-67",
+      "text": "御朱印書置き(800円)",
+      "text_len": 12,
+      "bbox": [
+        995,
+        54006,
+        1184,
+        54073
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-68",
+      "text": "11祖八幡宮延文4年(1359年)に建立され、飯塚の総鎮守として親しまれている。特別御朱印は飯塚の原風景\"ボタ山とSL\"を記したもの。特別御朱印領布券を持参の方へ\"石炭ストラップ\"お守りを進呈。 /特別御朱印のうそはちまんぐう",
+      "text_len": 113,
+      "bbox": [
+        838,
+        54284,
+        1833,
+        54598
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-69",
+      "text": "[新飯塚駅] 緒方駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1939,
+        54608,
+        2121,
+        54787
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-70",
+      "text": "最寄り駅JR新飯塚駅から徒歩約15分",
+      "text_len": 18,
+      "bbox": [
+        870,
+        54752,
+        1459,
+        54780
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-71",
+      "text": "住所:福岡県飯塚市宮町2-3電話:0948-22-0511 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ホームページ",
+      "text_len": 74,
+      "bbox": [
+        838,
+        54876,
+        1520,
+        55184
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-72",
+      "text": "今年",
+      "text_len": 2,
+      "bbox": [
+        2608,
+        55017,
+        2652,
+        55161
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-73",
+      "text": "特別御朱印置き(500円)",
+      "text_len": 13,
+      "bbox": [
+        2118,
+        55398,
+        2281,
+        55456
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-74",
+      "text": "御朱印書き(500円)",
+      "text_len": 11,
+      "bbox": [
+        2665,
+        55395,
+        2828,
+        55459
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-75",
+      "text": "12豊山八幡神社 \"八幡\"の地名発祥の地としても知られる八幡の総鎮守。2023年に創建1400年を迎えた。JR九州とのコラボ御朱印は、皿倉山の夜景と鉄の町のシンボル東田第一高炉をあしらった特別な意匠。 最寄り駅JR八幡駅から徒歩約5分住所:福岡県北九州市八幡東区春の町4-4-1電話:093-671-2998 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ※御朱印は複数種類あり |ホームページ Instagram <特別御朱印とよやまはちまんじんじゃ",
+      "text_len": 241,
+      "bbox": [
+        838,
+        55676,
+        1827,
+        56691
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-76",
+      "text": "[黒崎駅] 渕上駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1945,
+        56000,
+        2124,
+        56176
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-77",
+      "text": "豊山八幡神社",
+      "text_len": 6,
+      "bbox": [
+        2707,
+        56403,
+        2774,
+        56739
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-78",
+      "text": "特別御朱印 (500円)",
+      "text_len": 12,
+      "bbox": [
+        2128,
+        56784,
+        2281,
+        56844
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-79",
+      "text": "御朱印書置き(500円)",
+      "text_len": 12,
+      "bbox": [
+        2643,
+        56787,
+        2832,
+        56844
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-80",
+      "text": "[特別御朱印 13春日神社古来より黒崎・折尾地区の守り神として信仰を集めてきた古社。福岡藩祖黒田長政より篤い崇敬を受け、後に黒田神社が建立された。JR九州コラボ御朱印は、黒田二十四騎版画をあしらった特別版。 かすがじんじゃ [黒崎駅] 上島最寄り駅 JR黒崎駅から徒歩約10分 Googlemap",
+      "text_len": 148,
+      "bbox": [
+        838,
+        57062,
+        2124,
+        57568
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-81",
+      "text": "住所:福岡県北九州市八幡西区藤田1-10-44電話:093-631-2152 初穂料特別御朱印1,000円御朱印1,000円御朱印対応時間:10:00~16:00 ※御朱印は複数種類あり Instagram",
+      "text_len": 103,
+      "bbox": [
+        838,
+        57654,
+        1584,
+        58080
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-82",
+      "text": "田日神神社社",
+      "text_len": 6,
+      "bbox": [
+        2233,
+        57907,
+        2377,
+        58102
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-83",
+      "text": "特別御朱印書き(1,000円)",
+      "text_len": 15,
+      "bbox": [
+        2080,
+        58169,
+        2294,
+        58243
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-84",
+      "text": "御朱印書き(1,000円)",
+      "text_len": 13,
+      "bbox": [
+        2656,
+        58176,
+        2848,
+        58240
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-85",
+      "text": "14岡田宮古事記日本書紀に登場する北九市内では唯一の古社。御祭神は初代天皇\"神武天皇\"。家内安全、健康、長寿、勝負運を祈願しに多くの参拝者が訪れる。2000年以上前から愛されてきた氏神様。 特別御朱印おかだぐう",
+      "text_len": 105,
+      "bbox": [
+        838,
+        58454,
+        1830,
+        58768
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-86",
+      "text": "[黒崎駅]渕上駅長 Googlemap",
+      "text_len": 19,
+      "bbox": [
+        1945,
+        58774,
+        2118,
+        58953
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-87",
+      "text": "最寄り駅JR黒崎駅から徒歩約7分",
+      "text_len": 16,
+      "bbox": [
+        870,
+        58915,
+        1404,
+        58953
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-88",
+      "text": "住所:福岡県北九州市八幡西区岡田町1-1 電話:093-621-1898 初穂料特別御朱印1,000円御朱印500円~御朱印対応時間:直書き9:00~16:00書置き9:00~16:30 ※御朱印は複数種類ありホームページ (IBTwitter) Instagram",
+      "text_len": 133,
+      "bbox": [
+        838,
+        59036,
+        1814,
+        59468
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-89",
+      "text": "特別御朱印書きと書置き両方(1,000円)",
+      "text_len": 21,
+      "bbox": [
+        2025,
+        59564,
+        2374,
+        59625
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-90",
+      "text": "いちのみやじんじゃ 15一宮神社勝運のご利益で崇敬を集める神社で、\"岡田の宮\"の本宮と伝えられる。黒崎地区の岡田宮、春日神社と共に執り行う\"黒崎祇園山笠\"は400年以上の歴史を有し、県の無形民俗文化財に指定されている。 <特別御朱印",
+      "text_len": 116,
+      "bbox": [
+        838,
+        59843,
+        1833,
+        60153
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-91",
+      "text": "[黒崎駅]渕上駅長 Googlemap",
+      "text_len": 19,
+      "bbox": [
+        1948,
+        60163,
+        2121,
+        60342
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-92",
+      "text": "最寄り駅JR黒崎駅から徒歩約15分",
+      "text_len": 17,
+      "bbox": [
+        870,
+        60307,
+        1430,
+        60342
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-93",
+      "text": "住所:福岡県北九州市八幡西区山寺町12-36 電話:093-641-2865 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~16:30 ※御朱印は複数種類あり |ホームページ",
+      "text_len": 96,
+      "bbox": [
+        838,
+        60435,
+        1520,
+        60854
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-94",
+      "text": "社御朱印書き(500円)",
+      "text_len": 12,
+      "bbox": [
+        2668,
+        60854,
+        2832,
+        61014
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-95",
+      "text": "特別御朱印 (500円)",
+      "text_len": 12,
+      "bbox": [
+        2128,
+        60956,
+        2281,
+        61017
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-96",
+      "text": "ひのみねじんじゃ16日峯神社隠岐島の焼火神社から大日霊貴命(おおひるめのむちのみこと)を日峯山に勧請したのが創祀とされる。海上交通の神社として崇敬され、1760年に現境内地に移設。現在では\"人生における導きのお神様\"として親しまれている。 特別御朱印",
+      "text_len": 125,
+      "bbox": [
+        838,
+        61235,
+        1827,
+        61593
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-97",
+      "text": "[折尾駅]水嶋駅長 Googlemap",
+      "text_len": 19,
+      "bbox": [
+        1945,
+        61577,
+        2118,
+        61753
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-98",
+      "text": "最寄り駅JR折尾駅からバスで\"浅川小学校前\"下車、徒歩約8分",
+      "text_len": 30,
+      "bbox": [
+        870,
+        61715,
+        1856,
+        61747
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-99",
+      "text": "住所:福岡県北九州市八幡西区浅川日の峯1-8-8 電話:093-603-1775 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~17:00 ※平日の仏滅日、他対応不可日あり ※要電話確認ホームページ",
+      "text_len": 110,
+      "bbox": [
+        838,
+        61840,
+        1548,
+        62307
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-100",
+      "text": "日本神社",
+      "text_len": 4,
+      "bbox": [
+        2684,
+        62009,
+        2784,
+        62294
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-101",
+      "text": "|特別御朱印書置き(1,000円) 社",
+      "text_len": 19,
+      "bbox": [
+        2083,
+        62163,
+        2297,
+        62422
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-102",
+      "text": "御朱印置き(500円)",
+      "text_len": 11,
+      "bbox": [
+        2668,
+        62358,
+        2835,
+        62422
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-103",
+      "text": "17鎮國寺弘法大師(空海)が中国より帰朝した806年に創建した、日本で最初の真言宗の寺院。別名\"花と祈願の寺\"と言われ、四季折々の花の名所としても名高い。 <特別御朱印ちんこくじ",
+      "text_len": 89,
+      "bbox": [
+        838,
+        62643,
+        1827,
+        62950
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-104",
+      "text": "[赤間駅]出田駅長 Googlemap",
+      "text_len": 19,
+      "bbox": [
+        1945,
+        62963,
+        2118,
+        63139
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-105",
+      "text": "JR東郷駅からバスで\"宗像大社前\"下車、徒歩約17分最寄り駅",
+      "text_len": 30,
+      "bbox": [
+        870,
+        63097,
+        1843,
+        63136
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-106",
+      "text": "住所:福岡県宗像市吉田966 電話:0940-62-0111 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~16:30 ホームページ",
+      "text_len": 75,
+      "bbox": [
+        838,
+        63228,
+        1520,
+        63536
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-107",
+      "text": "特別御朱印直書(500円)",
+      "text_len": 13,
+      "bbox": [
+        2089,
+        63750,
+        2281,
+        63811
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-108",
+      "text": "御朱印直書き(500円)",
+      "text_len": 12,
+      "bbox": [
+        2640,
+        63750,
+        2832,
+        63811
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-109",
+      "text": "18宮地嶽神社北部九州に居住した海人族の長神と神功皇后を祀る1800年の歴史あある神社。13個の巨石遺跡や大注連縄、日本一美しい夕陽の宮司と2月10月に現れる“光の道”で著名。眷属は福を授けるフクロウ。 最寄り駅 JR福間駅から徒歩約30分住所:福岡県福津市宮司元町7-1電話:0940-52-0016 初穂料特別御朱印1,000円御朱印直書き800円、書置き500円御朱印対応時間:9:00~17:00 ※直書き9:00~16:30書置き9:00~19:00 ホームページ Instagram 特別御朱印みやじだけじんじゃ",
+      "text_len": 262,
+      "bbox": [
+        828,
+        64028,
+        1900,
+        65043
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-110",
+      "text": "[福間駅]紺屋駅長 Googlemap",
+      "text_len": 19,
+      "bbox": [
+        1948,
+        64348,
+        2121,
+        64534
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-111",
+      "text": "特別御朱印 (1,000円)",
+      "text_len": 14,
+      "bbox": [
+        2128,
+        65139,
+        2294,
+        65206
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-112",
+      "text": "御朱印直書きと書置き両方(直書き800円、書置き500円)",
+      "text_len": 29,
+      "bbox": [
+        2566,
+        65139,
+        2924,
+        65241
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-113",
+      "text": "19香椎宮香椎宮は200年に神功(じんぐう)皇后が、夫の神霊をお祀りしたことが起源。神功皇后の宮は724年に竣工。この両宮を併せて香椎廟と称した。明治以降は官幣(かんぺい)大社香椎宮、戦後は香椎宮と呼ばれている。 最寄り駅 JR香椎神宮駅から徒歩約4分住所:福岡県福岡市東区香椎4-16-1 電話:092-681-1001 初穂料特別御朱印1,000円御朱印300円~1,000円御朱印対応時間:9:00~17:00 ホームページ <特別御朱印かしいぐう",
+      "text_len": 227,
+      "bbox": [
+        838,
+        65452,
+        1830,
+        66352
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-114",
+      "text": "[香椎駅] 大嶋駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1945,
+        65776,
+        2118,
+        65955
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-115",
+      "text": "特別御朱印書置き(1,000円)",
+      "text_len": 16,
+      "bbox": [
+        2083,
+        66566,
+        2294,
+        66630
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-116",
+      "text": "御朱印書置き(700円)",
+      "text_len": 12,
+      "bbox": [
+        2643,
+        66563,
+        2835,
+        66627
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-117",
+      "text": "令和六年一月一日白書置き(300円) 御朱印",
+      "text_len": 22,
+      "bbox": [
+        1516,
+        66704,
+        1744,
+        67142
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-118",
+      "text": "香椎宮",
+      "text_len": 3,
+      "bbox": [
+        1587,
+        66713,
+        1692,
+        67011
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-119",
+      "text": "御朱印書置き(1,000円)限定令和7年祭記念御朱印",
+      "text_len": 26,
+      "bbox": [
+        915,
+        67084,
+        1270,
+        67180
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-120",
+      "text": "20宇美八幡宮神功(じんぐう)皇后が應神(おうじん)天皇を御出産された聖地[産み=宇美]安産・育児の\"子安大神\"と称され、境内の全てが\"安産信仰に関する伝説地\"として、福岡県民俗資料文化財の指定を受けている。 最寄り駅JR宇美駅から徒歩約5分住所:福岡県糟屋郡宇美町宇美1-1-1 092-932-0044 初穂料特別御朱印500円御朱印500円御朱印対応時間:9:00~17:00 ※直書きのため1日10枚(土日祝20枚)程度限定 |ホームページ (特別御朱印うみはちまんぐう",
+      "text_len": 239,
+      "bbox": [
+        835,
+        67401,
+        1830,
+        68409
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-121",
+      "text": "[香椎駅] 大嶋駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1948,
+        67721,
+        2121,
+        67897
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-122",
+      "text": "特別御朱印 500円)",
+      "text_len": 11,
+      "bbox": [
+        2128,
+        68505,
+        2284,
+        68569
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-123",
+      "text": "21補陀洛寺御本尊の十一面観世音菩薩は、特に病気平癒・安産除災招福の御利益があるといわれている。篠栗四国霊場の79番目\"打ち納め札所\"として春秋のシーズンにはお遍路の参拝者が多く訪れる。 /特別御朱印ふだらくじ",
+      "text_len": 105,
+      "bbox": [
+        838,
+        68790,
+        1833,
+        69097
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-124",
+      "text": "[長者原駅] 田村駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1942,
+        69107,
+        2121,
+        69286
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-125",
+      "text": "最寄り駅JR篠栗駅から徒歩約3分",
+      "text_len": 16,
+      "bbox": [
+        870,
+        69244,
+        1404,
+        69283
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-126",
+      "text": "住所:福岡県糟屋郡篠栗町中央4-12-60 090-5740-9939 初穂料特別御朱印500円御朱印300円御朱印対応時間:9:00~17:00 ※月・水・金曜の15時以降不可",
+      "text_len": 89,
+      "bbox": [
+        838,
+        69379,
+        1520,
+        69683
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-127",
+      "text": "特別御朱印置き両方(500円)",
+      "text_len": 15,
+      "bbox": [
+        2128,
+        69900,
+        2361,
+        69961
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-128",
+      "text": "御朱印書きと書置き両方(300円)",
+      "text_len": 17,
+      "bbox": [
+        2588,
+        69900,
+        2912,
+        69961
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-129",
+      "text": "22筥崎宮宇佐石清水両宮と並ぶ日本三大八幡宮のひとつ。厄除勝運の神としても有名で地元プロスポーツチームも必勝祈願に訪れる。\"仲秋大祭放生会\"は1000年以上続く神事で九州随一の秋祭りだ。 <特別御朱印はこざきぐう [千早駅] 関駅長 Googlemap",
+      "text_len": 126,
+      "bbox": [
+        838,
+        70169,
+        2121,
+        70675
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-130",
+      "text": "最寄り駅JR箱崎駅から徒歩約8分",
+      "text_len": 16,
+      "bbox": [
+        870,
+        70640,
+        1404,
+        70672
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-131",
+      "text": "住所:福岡県福岡市東区箱崎1-22-1 電話:092-641-7431 初穂料特別御朱印500円御朱印500円御朱印対応時間:8:30~17:00 ホームページ Instagram X(IBTwitter)",
+      "text_len": 103,
+      "bbox": [
+        838,
+        70764,
+        1718,
+        71078
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-132",
+      "text": "御朱印書き(500円) 令和元年五月一日",
+      "text_len": 20,
+      "bbox": [
+        2640,
+        70937,
+        2828,
+        71356
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-133",
+      "text": "特別御朱印 (500円)",
+      "text_len": 12,
+      "bbox": [
+        2128,
+        71286,
+        2281,
+        71350
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-134",
+      "text": "とおかえびすじんじゃ23十日恵比須神社福の神と称される\"えびす様\"と\"だいこく様\"をお祀りする神社。正月大祭では、隣接の東公園に約300軒の露店が並び、全国からも多くの人が訪れる。福徳円満にちなんだ授与品も豊富に揃う。 (特別御朱印",
+      "text_len": 116,
+      "bbox": [
+        838,
+        71568,
+        1827,
+        71875
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-135",
+      "text": "[博多駅] 加藤駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1948,
+        71884,
+        2118,
+        72067
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-136",
+      "text": "最寄り駅JR吉塚駅から徒歩約5分",
+      "text_len": 16,
+      "bbox": [
+        870,
+        72028,
+        1408,
+        72067
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-137",
+      "text": "住所:福岡県福岡市博多区東公園7-1 電話:092-651-1563 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~17:00 2月7日(金)~配布。 ※正月、大祭期間中は不可ホームページ",
+      "text_len": 105,
+      "bbox": [
+        838,
+        72156,
+        1552,
+        72624
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-138",
+      "text": "甘恵比須神社",
+      "text_len": 6,
+      "bbox": [
+        2700,
+        72294,
+        2780,
+        72640
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-139",
+      "text": "特別御朱印と置き両方(1,000円)",
+      "text_len": 18,
+      "bbox": [
+        2080,
+        72678,
+        2368,
+        72739
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-140",
+      "text": "御朱印書きと書置き両方(500円)",
+      "text_len": 17,
+      "bbox": [
+        2592,
+        72678,
+        2908,
+        72736
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-141",
+      "text": "ちくぜんのくにいちのみやすみよしじんじゃ 24筑前國一之宮住吉神社航海安全心身清浄の御神徳として信仰を集める神社。またJR博多シティ屋上の\"鉄道神社\"には、筑前國一之宮住吉神社より勧請された御祭神が鎮座し、交通安全と博多駅地区の安寧を見守っている。 (特別御朱印",
+      "text_len": 131,
+      "bbox": [
+        838,
+        72956,
+        1833,
+        73267
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-142",
+      "text": "[博多駅] 加藤駅長 Googlemap",
+      "text_len": 20,
+      "bbox": [
+        1945,
+        73280,
+        2118,
+        73456
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-143",
+      "text": "最寄り駅JR博多駅から徒歩約10分",
+      "text_len": 17,
+      "bbox": [
+        870,
+        73420,
+        1424,
+        73452
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-144",
+      "text": "住所:福岡県福岡市住吉3-1-51 電話:092-291-2670 初穂料特別御朱印1,000円御朱印対応時間:9:00~17:00 ホームページ",
+      "text_len": 73,
+      "bbox": [
+        838,
+        73545,
+        1344,
+        73852
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-145",
+      "text": "特別御朱印 (1,000円)",
+      "text_len": 14,
+      "bbox": [
+        2128,
+        74067,
+        2259,
+        74131
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-146",
+      "text": "25太郎丸神社火災で全焼しても落ちなかった\"落ちない鈴\"の太郎丸神社。高校大学受験、資格試験就職試験などの受験生が祈願に訪れる。特に九州大学をめざす受験生の聖地として脚光を浴びている。 特別御朱印たろうまるじんじゃ",
+      "text_len": 107,
+      "bbox": [
+        838,
+        74339,
+        1827,
+        74656
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-147",
+      "text": "[九大学研都市駅] 藤井駅長",
+      "text_len": 14,
+      "bbox": [
+        1923,
+        74668,
+        2128,
+        74784
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-148",
+      "text": "JR九大学研都市駅からバスで\"たろう保育園前\"下車、徒歩約6分最寄り駅 Googlemap",
+      "text_len": 45,
+      "bbox": [
+        870,
+        74851,
+        2124,
+        74937
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-149",
+      "text": "住所福岡県福岡市西区太郎丸2-7-10 電話:090-5735-2695 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:第1・3日曜13:00~14:00のみホームページ",
+      "text_len": 91,
+      "bbox": [
+        838,
+        75024,
+        1635,
+        75337
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-150",
+      "text": "太郎丸神社合格祈願特別御朱印 (1,000円)",
+      "text_len": 23,
+      "bbox": [
+        1977,
+        75193,
+        2294,
+        75612
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-151",
+      "text": "太郎丸神",
+      "text_len": 4,
+      "bbox": [
+        2672,
+        75168,
+        2784,
+        75440
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-152",
+      "text": "御朱印書置き(500円)",
+      "text_len": 12,
+      "bbox": [
+        2643,
+        75552,
+        2832,
+        75609
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-153",
+      "text": "太郎丸神社",
+      "text_len": 5,
+      "bbox": [
+        1017,
+        75670,
+        1142,
+        76038
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-154",
+      "text": "御朱印書置き(500円)",
+      "text_len": 12,
+      "bbox": [
+        992,
+        76064,
+        1180,
+        76128
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-155",
+      "text": "御朱印書置き(500円)",
+      "text_len": 12,
+      "bbox": [
+        1542,
+        76067,
+        1728,
+        76131
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-156",
+      "text": "さくらいじんじゃ26櫻井神社 1632年に福岡藩二代藩主・黒田忠之公が岩戸に出現した神様を祀るために櫻井神社を造営。社殿は修復を重ねて、創建当時の趣きを今日まで守っており、2023年に国の重要文化財に指定された。 特別御朱印",
+      "text_len": 112,
+      "bbox": [
+        841,
+        76342,
+        1830,
+        76656
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-157",
+      "text": "[筑前前原駅]鹿島駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1926,
+        76668,
+        2118,
+        76844
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-158",
+      "text": "最寄り駅JR筑前前原駅からバスで\"桜井\"下車、徒歩約10分住所:福岡県糸島市志摩桜井4227 電話:092-327-0317 初穂料特別御朱印1,000円御朱印500円御朱印対応時間:9:00~16:00 ホームページ",
+      "text_len": 109,
+      "bbox": [
+        838,
+        76806,
+        1811,
+        77248
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-159",
+      "text": "特別御朱印 (1,000P9)",
+      "text_len": 15,
+      "bbox": [
+        2128,
+        77459,
+        2256,
+        77520
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-160",
+      "text": "御朱印置き(500円)",
+      "text_len": 11,
+      "bbox": [
+        2668,
+        77456,
+        2828,
+        77516
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-161",
+      "text": "27雷山千如寺大悲王院 178年、天竺益山より渡来した僧、清賀上人の間創と伝えられる。本尊の観音吾胚像は鎌倉時代の作。歴代天皇や多くの武将豪族が厚く信仰した。樹齢400年の大カエデの紅葉が見事。 特別御朱印",
+      "text_len": 103,
+      "bbox": [
+        838,
+        77763,
+        1830,
+        78051
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-162",
+      "text": "らいざんせんにょじだいひおういん",
+      "text_len": 16,
+      "bbox": [
+        953,
+        77737,
+        1484,
+        77763
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-163",
+      "text": "[筑前前原駅] 鹿島駅長 Googlemap",
+      "text_len": 22,
+      "bbox": [
+        1926,
+        78060,
+        2124,
+        78236
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-164",
+      "text": "最寄り駅JR筑前前原駅からバスで\"雷山観音前\"下車、徒歩約7分",
+      "text_len": 31,
+      "bbox": [
+        870,
+        78198,
+        1884,
+        78230
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-165",
+      "text": "住所:福岡県糸島市雷山626 電話:092-323-3547 初穂料特別御朱印500円御朱印300円御朱印対応時間:9:00~17:00 ホームページ",
+      "text_len": 75,
+      "bbox": [
+        838,
+        78326,
+        1516,
+        78640
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-166",
+      "text": "親御朱印書置き(300円)",
+      "text_len": 13,
+      "bbox": [
+        2643,
+        78710,
+        2832,
+        78905
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-167",
+      "text": "特別御朱印置き(500円)",
+      "text_len": 13,
+      "bbox": [
+        2118,
+        78848,
+        2278,
+        78905
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-168",
+      "text": "ふつかいちはちまんぐう28二日市八幡宮御鎮座1500年を越える神社で、縁結び安産開運の神として尊されている。御神木の公孫樹(いちょう)には災難厄除けの霊験があるとされ、境内の銀杏は黄葉すると辺り一面を黄金色に染め上げる。 <特別御朱印",
+      "text_len": 117,
+      "bbox": [
+        838,
+        79126,
+        1827,
+        79436
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-169",
+      "text": "[二日市駅] 山口駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1939,
+        79446,
+        2118,
+        79628
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-170",
+      "text": "最寄り駅JR二日市駅から徒歩約4分",
+      "text_len": 17,
+      "bbox": [
+        870,
+        79590,
+        1440,
+        79622
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-171",
+      "text": "住所:福岡県筑紫野市二日市中央3-6-35 電話:092-922-3301 初穂料特別御朱印700円御朱印500円御朱印対応時間:9:00~16:30 ※対応不可時間帯ありホームページ",
+      "text_len": 92,
+      "bbox": [
+        838,
+        79715,
+        1520,
+        80137
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-172",
+      "text": "特別御朱印書置き(700円)",
+      "text_len": 14,
+      "bbox": [
+        2092,
+        80236,
+        2281,
+        80297
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-173",
+      "text": "御朱印書き(500円)",
+      "text_len": 11,
+      "bbox": [
+        2668,
+        80236,
+        2832,
+        80297
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-174",
+      "text": "ぜんこくそうほんぐうすいてんぐう29全国総本宮水天宮筑後川の河畔に鎮座する全国の水天宮の総本宮。農業、漁業、航海業者からの信仰が篤く、子供の守護神、安産、子授けの神として、また病難、火災などの除災招福のご利益があることでも知られる。",
+      "text_len": 116,
+      "bbox": [
+        838,
+        80505,
+        1827,
+        80828
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-175",
+      "text": "[久留米駅] 城戸駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1939,
+        80832,
+        2121,
+        81014
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-176",
+      "text": "最寄り駅JR久留米駅から徒歩約10分",
+      "text_len": 18,
+      "bbox": [
+        870,
+        80979,
+        1459,
+        81008
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-177",
+      "text": "住所:福岡県久留米市瀬下町265-1 電話:0942-32-3207 初穂料御朱印500円御朱印対応時間:9:00~16:30 ホームページ",
+      "text_len": 70,
+      "bbox": [
+        838,
+        81104,
+        1347,
+        81414
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-178",
+      "text": "瓜和六年十月八日直書きと書置き両方(500円) 御朱印",
+      "text_len": 27,
+      "bbox": [
+        2012,
+        81267,
+        2361,
+        81686
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-179",
+      "text": "みずたてんまんぐう 30水田天満宮学問武芸の神様として親しまれている菅原道真公を御祭神とした神社。境内には、末社である恋木神社があり、良縁・幸福の神様として恋命(こいのみこと)が鎮座している。海外からの参拝者も多い。 特別御朱印",
+      "text_len": 114,
+      "bbox": [
+        838,
+        81907,
+        1830,
+        82214
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-180",
+      "text": "[筑後船小屋駅]北島駅長 Googlemap",
+      "text_len": 22,
+      "bbox": [
+        1907,
+        82220,
+        2131,
+        82403
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-181",
+      "text": "JR羽犬塚駅から徒歩約20分最寄り駅",
+      "text_len": 18,
+      "bbox": [
+        870,
+        82361,
+        1459,
+        82396
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-182",
+      "text": "露水田天満宮恋木神社",
+      "text_len": 10,
+      "bbox": [
+        2284,
+        82352,
+        2928,
+        82403
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-183",
+      "text": "住所:福岡県筑後市水田62-1 電話:0942-53-8625 初穂料JR限定特別御朱印1,000円御朱印500円御朱印対応時間:8:30~17:00 ホームページ",
+      "text_len": 82,
+      "bbox": [
+        838,
+        82492,
+        1667,
+        82803
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-184",
+      "text": "JR限定特別御朱印 (1,000円)",
+      "text_len": 18,
+      "bbox": [
+        2086,
+        83011,
+        2294,
+        83078
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-185",
+      "text": "御朱印直書きと書置き両方(500円)",
+      "text_len": 18,
+      "bbox": [
+        2563,
+        83014,
+        2905,
+        83078
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-186",
+      "text": "|御朱印直書きと書置き両方(500円) 恋木神社",
+      "text_len": 24,
+      "bbox": [
+        912,
+        83417,
+        1260,
+        83593
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-187",
+      "text": "̇恋木神社御朱印直書きと書置き両方(500円)",
+      "text_len": 23,
+      "bbox": [
+        1462,
+        83414,
+        1811,
+        83593
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-188",
+      "text": "しものしょうはちまんじんじゃ31下庄八幡神社 <特別御朱印 2031年に御鎮座900年を迎える神社。長きに渡り、勝運、安産、子供守護の神として崇拝されてきた。境内には、樹齢800年を誇る大楠の御神木や縁結びにご加護があると話題の\"愛成(あいじょう)の木\"も。",
+      "text_len": 129,
+      "bbox": [
+        838,
+        83811,
+        1827,
+        84172
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-189",
+      "text": "[新大牟田駅]石松駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1923,
+        84131,
+        2118,
+        84313
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-190",
+      "text": "最寄り駅JR瀬高駅から徒歩約15分",
+      "text_len": 17,
+      "bbox": [
+        870,
+        84272,
+        1427,
+        84307
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-191",
+      "text": "住所:福岡県みやま市瀬高町下庄1397 電話:0944-62-3562 初穂料特別御朱印1,000円御朱印半面500円全面1,000円御朱印対応時間:9:00~17:00 |ホームページ",
+      "text_len": 93,
+      "bbox": [
+        838,
+        84393,
+        1859,
+        84736
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-192",
+      "text": "特別御朱印と書置き両方(1,000円)",
+      "text_len": 19,
+      "bbox": [
+        2080,
+        84921,
+        2371,
+        84988
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-193",
+      "text": "月替わり御朱印直書きと書置き両方(半面500円全面1,000円)",
+      "text_len": 32,
+      "bbox": [
+        2512,
+        84918,
+        2976,
+        85017
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-194",
+      "text": "32大牟田神社 1538年、庄屋と村人が御神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇園祭の御祭神2柱を京都八坂神社より勧請。大牟田の守護神として親しまれている。 最寄り駅JR大牟田駅から徒歩約10分住所:福岡県大牟田市本町1-2-22 電話:0944-52-5090 初穂料特別御朱印1,000円御朱印月替わり600~1,200円御朱印対応時間:9:00~16:00 ホームページ /特別御朱印",
+      "text_len": 215,
+      "bbox": [
+        838,
+        85260,
+        1833,
+        86163
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-195",
+      "text": "おおむたじんじゃ",
+      "text_len": 8,
+      "bbox": [
+        953,
+        85232,
+        1241,
+        85270
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-196",
+      "text": "[大牟田駅] 深松駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1939,
+        85561,
+        2124,
+        85737
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-197",
+      "text": "特別御朱印",
+      "text_len": 5,
+      "bbox": [
+        2128,
+        86345,
+        2256,
+        86374
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-198",
+      "text": "月替わり御朱印 69",
+      "text_len": 10,
+      "bbox": [
+        2652,
+        86345,
+        2828,
+        86403
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-199",
+      "text": "ホームページ",
+      "text_len": 6,
+      "bbox": [
+        883,
+        86428,
+        1072,
+        86464
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-200",
+      "text": "特別御朱印両方(1,000円)",
+      "text_len": 15,
+      "bbox": [
+        2128,
+        86646,
+        2371,
+        86710
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-201",
+      "text": "月替わり御朱印直書きと書置き両方(半面500円全面1,000円)",
+      "text_len": 32,
+      "bbox": [
+        2512,
+        86649,
+        2972,
+        86742
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-202",
+      "text": "32大牟田神社 1538年、庄屋と村人が御神体と遭遇、鎮守神としてお祀りしたことが創立の基とされている。1640年頃に祇園祭の御祭神2柱を京都八坂神社より勧請。大牟田の守護神として親しまれている。 最寄り駅 JR大牟田駅から徒歩約10分住所:福岡県大牟田市本町1-2-22 電話:0944-52-5090 初穂料特別御朱印1,000円御朱印月替わり600~1,200円御朱印対応時間:9:00~16:00 ホームページ <特別御朱印おおむたじんじゃ",
+      "text_len": 224,
+      "bbox": [
+        838,
+        86963,
+        1830,
+        87888
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-203",
+      "text": "[大牟田駅] 深松駅長 Googlemap",
+      "text_len": 21,
+      "bbox": [
+        1939,
+        87280,
+        2121,
+        87459
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-204",
+      "text": "特別御朱印 (1,000円)",
+      "text_len": 14,
+      "bbox": [
+        2128,
+        88073,
+        2259,
+        88134
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-205",
+      "text": "月替わり御朱印書置き(600~1,200円)",
+      "text_len": 22,
+      "bbox": [
+        2598,
+        88067,
+        2876,
+        88131
+      ],
+      "component_count": 0
+    },
+    {
+      "id": "W2_P-207",
+      "text": "Copyright©KyushuRailwayCompany.AllRightsReserved.",
+      "text_len": 49,
+      "bbox": [
+        1488,
+        88480,
+        2348,
+        88512
+      ],
+      "component_count": 0
+    }
+  ]
+}

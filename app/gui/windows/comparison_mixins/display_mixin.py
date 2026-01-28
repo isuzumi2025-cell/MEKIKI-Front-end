@@ -102,12 +102,15 @@ class DisplayMixin:
             self._show_error("画像表示エラー", e, show_traceback=True)
 
     def _redraw_regions(self):
-        """エリア矩形を再描画 (シンク番号で色分け)"""
+        """エリア矩形を再描画 (シンク番号で色分け + 丸数字バッジ)"""
         try:
             sync_colors = [
                 "#4CAF50", "#2196F3", "#FF9800", "#9C27B0", "#00BCD4",
                 "#E91E63", "#CDDC39", "#FF5722", "#607D8B", "#795548"
             ]
+            # ★ Legacy: 丸数字バッジ
+            circle_numbers = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+                             "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳"]
 
             for canvas, regions, source in [
                 (self.web_canvas, self.web_regions, "web"),
@@ -117,6 +120,7 @@ class DisplayMixin:
                     continue
 
                 canvas.delete("region")
+                canvas.delete("badge")  # ★ バッジも削除
 
                 if not regions:
                     continue
@@ -126,7 +130,7 @@ class DisplayMixin:
                 offset_x = getattr(canvas, 'offset_x', 0)
                 offset_y = getattr(canvas, 'offset_y', 0)
 
-                for region in regions:
+                for idx, region in enumerate(regions):
                     try:
                         if not hasattr(region, 'rect') or len(region.rect) < 4:
                             continue
@@ -136,15 +140,22 @@ class DisplayMixin:
                         x2 = region.rect[2] * scale_x + offset_x
                         y2 = region.rect[3] * scale_y + offset_y
 
+                        # ★ 修正: sync_numberでバッジ番号と色を決定
+                        sync_num = getattr(region, 'sync_number', None)
+                        
                         if region == self.selected_region:
                             outline = "#FFFFFF"
                             width = 3
-                        elif hasattr(region, 'sync_number') and region.sync_number is not None:
-                            outline = sync_colors[region.sync_number % len(sync_colors)]
+                            badge_num = sync_num if sync_num is not None else idx
+                        elif sync_num is not None:
+                            outline = sync_colors[sync_num % len(sync_colors)]
                             width = 2
+                            badge_num = sync_num
                         else:
-                            outline = "#F44336"
+                            # ★ 修正: 未同期は灰色
+                            outline = "#808080"
                             width = 2
+                            badge_num = idx
 
                         canvas.create_rectangle(
                             x1, y1, x2, y2,
@@ -152,16 +163,20 @@ class DisplayMixin:
                             tags="region"
                         )
 
-                        area_code = getattr(region, 'area_code', '')
-                        if area_code:
-                            canvas.create_text(
-                                x1 + 5, y1 + 5,
-                                text=area_code,
-                                fill=outline,
-                                anchor="nw",
-                                font=("Consolas", 9, "bold"),
-                                tags="region"
-                            )
+                        # ★ 修正: sync_number+1を表示（マッチペア識別用）
+                        badge_text = circle_numbers[badge_num] if badge_num < 20 else str(badge_num + 1)
+                        badge_bg = canvas.create_rectangle(
+                            x1, y1, x1 + 30, y1 + 22,
+                            fill=outline, outline="",
+                            tags="badge"
+                        )
+                        canvas.create_text(
+                            x1 + 15, y1 + 11,
+                            text=badge_text,
+                            fill="white",
+                            font=("Arial", 11, "bold"),
+                            tags="badge"
+                        )
                     except Exception as e:
                         print(f"[WARNING] Region描画スキップ: {e}")
                         continue
@@ -193,8 +208,20 @@ class DisplayMixin:
                     tags="highlight"
                 )
 
-                # スクロール位置調整
-                canvas.yview_moveto(y1 / canvas.winfo_height() if canvas.winfo_height() > 0 else 0)
+                # ★ 修正: scrollregionの全体高さで計算
+                scroll_region = canvas.cget("scrollregion")
+                if scroll_region:
+                    parts = scroll_region.split()
+                    if len(parts) >= 4:
+                        total_height = float(parts[3])
+                        if total_height > 0:
+                            # 領域の中央にスクロール
+                            center_y = (y1 + y2) / 2
+                            visible_height = canvas.winfo_height()
+                            # 領域が中央に来るように調整
+                            scroll_pos = max(0, (center_y - visible_height / 2) / total_height)
+                            scroll_pos = min(scroll_pos, 1.0)
+                            canvas.yview_moveto(scroll_pos)
 
         except Exception as e:
             print(f"[WARNING] ハイライトエラー: {e}")

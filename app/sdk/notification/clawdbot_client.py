@@ -1,16 +1,17 @@
 """
-ClawdbotClient - Python wrapper for Clawdbot CLI
+SlackNotificationClient - Direct Slack API client for MEKIKI notifications
 
-Enables MEKIKI to send Slack notifications via the configured Clawdbot instance.
-Requires Clawdbot CLI to be installed and configured (see walkthrough.md).
+Sends Slack notifications via direct API calls.
+Configuration is read from ~/.clawdbot/clawdbot.json for compatibility.
 
 Usage:
-    client = ClawdbotClient()
-    await client.send_message("#general", "Hello from MEKIKI!")
+    client = SlackNotificationClient()
+    client.send_message("#context", "Hello from MEKIKI!")
 """
+import json
 import subprocess
-import shutil
-import asyncio
+import urllib.request
+import urllib.error
 from pathlib import Path
 from typing import Optional
 import logging
@@ -18,202 +19,215 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ClawdbotClient:
-    """Wrapper for Clawdbot CLI commands."""
+class SlackNotificationClient:
+    """Direct Slack API client for notifications."""
     
-    # Default paths for Clawdbot binary (WSL environment)
-    DEFAULT_NODE_PATH = "/home/raiko/.nvm/versions/node/v22.12.0/bin/node"
-    DEFAULT_CLAWDBOT_PATH = "/home/raiko/.nvm/versions/node/v22.12.0/bin/clawdbot"
-    DEFAULT_PROFILE = "clean"
+    # Default config path (WSL path)
+    DEFAULT_CONFIG_PATH = "/home/raiko/.clawdbot/clawdbot.json"
+    DEFAULT_CHANNEL = "context"
+    SLACK_API_BASE = "https://slack.com/api"
     
-    def __init__(self, profile: str = None):
+    def __init__(self, channel: str = None):
         """
-        Initialize ClawdbotClient.
+        Initialize SlackNotificationClient.
         
         Args:
-            profile: Clawdbot profile to use (default: "clean")
+            channel: Default Slack channel for notifications
         """
-        self.profile = profile or self.DEFAULT_PROFILE
-        self._clawdbot_available: Optional[bool] = None
+        self.default_channel = channel or self.DEFAULT_CHANNEL
+        self._bot_token: Optional[str] = None
+        self._available: Optional[bool] = None
     
-    def _build_command(self, *args) -> list:
-        """Build the full command with WSL prefix and profile flag."""
-        # Use WSL to run the command in Linux environment
-        cmd = [
-            "wsl",
-            self.DEFAULT_NODE_PATH,
-            self.DEFAULT_CLAWDBOT_PATH,
-            "--profile", self.profile,
-            *args
-        ]
-        return cmd
-    
-    def is_available(self) -> bool:
-        """Check if Clawdbot is available and configured."""
-        if self._clawdbot_available is not None:
-            return self._clawdbot_available
+    def _load_token(self) -> Optional[str]:
+        """Load bot token from Clawdbot config file."""
+        if self._bot_token:
+            return self._bot_token
         
         try:
             result = subprocess.run(
-                self._build_command("--version"),
+                ["wsl", "cat", self.DEFAULT_CONFIG_PATH],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=5
             )
-            self._clawdbot_available = result.returncode == 0
+            if result.returncode == 0:
+                config = json.loads(result.stdout)
+                self._bot_token = config.get("channels", {}).get("slack", {}).get("botToken")
+                return self._bot_token
         except Exception as e:
-            logger.warning(f"Clawdbot not available: {e}")
-            self._clawdbot_available = False
+            logger.warning(f"Failed to load Slack token: {e}")
         
-        return self._clawdbot_available
+        return None
     
-    def send_message(self, channel: str, text: str, thread_ts: str = None) -> bool:
+    def is_available(self) -> bool:
+        """Check if Slack API is available with valid token."""
+        if self._available is not None:
+            return self._available
+        
+        token = self._load_token()
+        if not token:
+            self._available = False
+            return False
+        
+        try:
+            req = urllib.request.Request(
+                f"{self.SLACK_API_BASE}/auth.test",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
+                data = json.loads(response.read().decode())
+                self._available = data.get("ok", False)
+        except Exception as e:
+            logger.warning(f"Slack API not available: {e}")
+            self._available = False
+        
+        return self._available
+    
+    def send_message(self, channel: str = None, text: str = "", thread_ts: str = None) -> bool:
         """
         Send a message to a Slack channel.
         
         Args:
-            channel: Slack channel name or ID (e.g., "#general" or "C01234567")
+            channel: Slack channel name (e.g., "context" or "#context")
             text: Message text to send
             thread_ts: Optional thread timestamp for replies
             
         Returns:
             True if message was sent successfully
         """
-        if not self.is_available():
-            logger.warning("Clawdbot not available, skipping notification")
+        token = self._load_token()
+        if not token:
+            logger.warning("No Slack token available, skipping notification")
             return False
         
+        target_channel = channel or self.default_channel
+        # Remove leading # if present
+        if target_channel.startswith("#"):
+            target_channel = target_channel[1:]
+        
         try:
-            cmd = self._build_command(
-                "message", "send",
-                "--target", f"slack:{channel}",
-                "--message", text
-            )
-            
+            payload = {
+                "channel": target_channel,
+                "text": text
+            }
             if thread_ts:
-                cmd.extend(["--thread", thread_ts])
+                payload["thread_ts"] = thread_ts
             
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=30
+            data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                f"{self.SLACK_API_BASE}/chat.postMessage",
+                data=data,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json"
+                }
             )
             
-            if result.returncode == 0:
-                logger.info(f"Message sent to {channel}")
-                return True
-            else:
-                logger.error(f"Failed to send message: {result.stderr}")
-                return False
-                
-        except subprocess.TimeoutExpired:
-            logger.error("Clawdbot command timed out")
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode())
+                if result.get("ok"):
+                    logger.info(f"Message sent to #{target_channel}")
+                    return True
+                else:
+                    error = result.get("error", "unknown")
+                    logger.error(f"Failed to send message: {error}")
+                    return False
+                    
+        except urllib.error.URLError as e:
+            logger.error(f"Network error sending message: {e}")
             return False
         except Exception as e:
             logger.error(f"Error sending message: {e}")
             return False
     
-    def send_message_async(self, channel: str, text: str, thread_ts: str = None):
-        """
-        Send a message asynchronously (non-blocking).
-        
-        Args:
-            channel: Slack channel name or ID
-            text: Message text to send
-            thread_ts: Optional thread timestamp
-        """
-        import threading
-        thread = threading.Thread(
-            target=self.send_message,
-            args=(channel, text, thread_ts),
-            daemon=True
-        )
-        thread.start()
-    
-    def upload_file(self, channel: str, file_path: str, comment: str = None) -> bool:
+    def upload_file(self, channel: str, filepath: str, comment: str = None) -> bool:
         """
         Upload a file to a Slack channel.
         
         Args:
-            channel: Slack channel name or ID
-            file_path: Path to the file to upload
-            comment: Optional comment for the file
+            channel: Slack channel name
+            filepath: Path to the file to upload
+            comment: Optional initial comment
             
         Returns:
             True if file was uploaded successfully
         """
-        if not self.is_available():
-            logger.warning("Clawdbot not available, skipping file upload")
+        token = self._load_token()
+        if not token:
+            logger.warning("No Slack token available, skipping upload")
             return False
         
-        # Convert Windows path to WSL path if needed
-        file_path_obj = Path(file_path)
-        if file_path_obj.drive:
-            # Convert C:\path\to\file to /mnt/c/path/to/file
-            wsl_path = f"/mnt/{file_path_obj.drive[0].lower()}{file_path_obj.as_posix()[2:]}"
-        else:
-            wsl_path = str(file_path)
+        target_channel = channel or self.default_channel
+        if target_channel.startswith("#"):
+            target_channel = target_channel[1:]
         
         try:
-            cmd = self._build_command(
-                "file", "upload",
-                "--target", f"slack:{channel}",
-                "--file", wsl_path
-            )
+            # Read file content
+            with open(filepath, "rb") as f:
+                file_content = f.read()
             
+            filename = Path(filepath).name
+            
+            # Use multipart form data for file upload
+            import urllib.parse
+            
+            # For simplicity, use subprocess to call curl for file uploads
+            cmd = [
+                "wsl", "curl", "-s",
+                "-F", f"file=@{filepath}",
+                "-F", f"channels={target_channel}",
+                "-H", f"Authorization: Bearer {token}"
+            ]
             if comment:
-                cmd.extend(["--comment", comment])
+                cmd.extend(["-F", f"initial_comment={comment}"])
+            cmd.append("https://slack.com/api/files.upload")
             
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             if result.returncode == 0:
-                logger.info(f"File uploaded to {channel}: {file_path}")
-                return True
-            else:
-                logger.error(f"Failed to upload file: {result.stderr}")
-                return False
-                
-        except subprocess.TimeoutExpired:
-            logger.error("Clawdbot file upload timed out")
+                response = json.loads(result.stdout)
+                if response.get("ok"):
+                    logger.info(f"File uploaded to #{target_channel}")
+                    return True
+                else:
+                    logger.error(f"Upload failed: {response.get('error')}")
+                    return False
             return False
+            
         except Exception as e:
             logger.error(f"Error uploading file: {e}")
             return False
 
 
-# Singleton instance for easy access
-_client: Optional[ClawdbotClient] = None
+# Backward compatibility alias
+ClawdbotClient = SlackNotificationClient
 
 
-def get_clawdbot_client() -> ClawdbotClient:
-    """Get the singleton ClawdbotClient instance."""
+# Singleton instance
+_client: Optional[SlackNotificationClient] = None
+
+
+def get_clawdbot_client() -> SlackNotificationClient:
+    """Get the singleton SlackNotificationClient instance."""
     global _client
     if _client is None:
-        _client = ClawdbotClient()
+        _client = SlackNotificationClient()
     return _client
 
 
-def notify_slack(channel: str, text: str, blocking: bool = False) -> bool:
+def notify_slack(message: str, channel: str = None) -> bool:
     """
-    Convenience function to send a Slack notification.
+    Send a notification to Slack.
     
     Args:
-        channel: Slack channel name or ID
-        text: Message text
-        blocking: If True, wait for message to be sent. If False, send asynchronously.
+        message: Message text to send
+        channel: Optional channel override (default: #context)
         
     Returns:
-        True if message was queued/sent successfully
+        True if message was sent successfully
     """
     client = get_clawdbot_client()
-    if blocking:
-        return client.send_message(channel, text)
-    else:
-        client.send_message_async(channel, text)
-        return True
+    return client.send_message(channel=channel, text=message)
+

@@ -395,7 +395,8 @@ class SpreadsheetPanel(ctk.CTkFrame):
             self._thumbnail_refs.append(web_thumb)
             web_thumb_label = tk.Label(web_id_frame, image=web_thumb, bg=row_bg, cursor="hand2")
             web_thumb_label.pack(pady=2)
-            web_thumb_label.bind("<Button-1>", lambda e, b=web_bbox: self._on_thumbnail_click(b, "web", pair))
+            # ★ 修正: bboxも一緒に渡してregion.rectとの不一致を回避
+            web_thumb_label.bind("<Button-1>", lambda e, r=web_region, b=web_bbox, p=pair: self._on_thumbnail_click(r, "web", p, b))
 
         # 3. Web Text (LEFT, expand)
         web_text_frame = ctk.CTkFrame(row, fg_color=row_bg)
@@ -431,7 +432,8 @@ class SpreadsheetPanel(ctk.CTkFrame):
             self._thumbnail_refs.append(pdf_thumb)
             pdf_thumb_label = tk.Label(pdf_id_frame, image=pdf_thumb, bg=row_bg, cursor="hand2")
             pdf_thumb_label.pack(pady=2)
-            pdf_thumb_label.bind("<Button-1>", lambda e, b=pdf_bbox: self._on_thumbnail_click(b, "pdf", pair))
+            # ★ 修正: bboxも一緒に渡してregion.rectとの不一致を回避
+            pdf_thumb_label.bind("<Button-1>", lambda e, r=pdf_region, b=pdf_bbox, p=pair: self._on_thumbnail_click(r, "pdf", p, b))
 
         # 7. Action Buttons (Similar/Match/Recalc) - Phase 1.9.7: 配置改善
         action_frame = ctk.CTkFrame(row, fg_color=row_bg, width=80)
@@ -532,10 +534,29 @@ class SpreadsheetPanel(ctk.CTkFrame):
             log_diagnostic(traceback.format_exc())
             return None
 
-    def _on_thumbnail_click(self, bbox, source: str, pair):
-        """Handle thumbnail click - notify parent to highlight region"""
-        if self.on_row_select and bbox:
-            self.on_row_select(pair.web_id, pair.pdf_id, pair)
+    def _on_thumbnail_click(self, region, source: str, pair, bbox=None):
+        """Handle thumbnail click - notify parent to highlight region
+        
+        Args:
+            region: EditableRegion (area_code用)
+            source: "web" or "pdf"
+            pair: SyncPair
+            bbox: [x1, y1, x2, y2] サムネイル生成に使った座標（ハイライト用）
+        """
+        if self.on_row_select:
+            # ★ 修正: bboxがあればpairに設定して親に渡す
+            if bbox:
+                if source == "web":
+                    pair.web_bbox = bbox
+                else:
+                    pair.pdf_bbox = bbox
+            
+            area_code = getattr(region, 'area_code', None) if region else None
+            if source == "web":
+                self.on_row_select(area_code or pair.web_id, pair.pdf_id, pair)
+            else:
+                self.on_row_select(pair.web_id, area_code or pair.pdf_id, pair)
+            log_diagnostic(f"[Thumb] Clicked: {source} - {area_code}, bbox={bbox}")
 
     def _on_row_click(self, row_widget, pair):
         """Handle row click - highlight and notify parent"""
@@ -635,13 +656,18 @@ class SpreadsheetPanel(ctk.CTkFrame):
             print(f"⟳ 再計算エラー: {e}")
     
     def _apply_diff_highlight(self, w_widget, p_widget, t1: str, t2: str):
-        """テキスト差分を色分けして表示 (Gemini SemanticDiff + LCSフォールバック)"""
+        """テキスト差分を色分けして表示 (改良版: シンプルで正確)
+        
+        ルール:
+        - 両方に存在するテキスト → 白 (normal)
+        - 片方のみのテキスト → 緑 (diff)
+        """
         import re
         
-        # Tags: 一致=白、差分のみ=緑
-        w_widget.tag_config("normal", foreground="#E0E0E0")
-        w_widget.tag_config("diff", foreground="#4CAF50", background="#1A3D1A")
-        p_widget.tag_config("normal", foreground="#E0E0E0")
+        # Tags設定
+        w_widget.tag_config("normal", foreground="#FFFFFF")  # 一致=白
+        w_widget.tag_config("diff", foreground="#4CAF50", background="#1A3D1A")  # 差分=緑背景
+        p_widget.tag_config("normal", foreground="#FFFFFF")
         p_widget.tag_config("diff", foreground="#4CAF50", background="#1A3D1A")
         
         if not t1 and not t2:
@@ -649,200 +675,49 @@ class SpreadsheetPanel(ctk.CTkFrame):
             p_widget.configure(state="disabled")
             return
         
-        # テキスト正規化 (括弧・接尾辞除去)
-        def normalize_for_matching(text):
-            """マッチング用に正規化 - 括弧・接尾辞を除去"""
-            if not text:
-                return ""
-            # 括弧類を除去
-            text = re.sub(r'[【】「」『』（）()\[\]《》〈〉・：:、。]', '', text)
-            # 空白・改行を除去
-            text = re.sub(r'\s+', '', text)
-            return text[:200]
-        
-        # マッチング用正規化テキスト
-        match_t1 = normalize_for_matching(t1)
-        match_t2 = normalize_for_matching(t2)
-        
-        # 表示用テキスト (空白のみ除去)
+        # 空白・改行を除去した比較用テキスト
         def clean(text):
             if not text:
                 return ""
-            text = re.sub(r'\s+', '', text)
-            return text[:200]
+            return re.sub(r'\s+', '', text)[:self.MAX_TEXT_LENGTH]
         
         clean_t1 = clean(t1)
         clean_t2 = clean(t2)
         
-        # ★ Gemini SemanticDiff を試行
-        matches = []
-        try:
-            from app.sdk.similarity.semantic_diff import get_semantic_diff
-            semantic = get_semantic_diff()
-            result = semantic.analyze(t1[:300], t2[:300])
-            matches = result.matches if result else []
-            if matches:
-                log_diagnostic(f"[SemanticDiff] Found {len(matches)} matches via Gemini")
-        except Exception as e:
-            log_diagnostic(f"[SemanticDiff] Fallback to LCS: {e}")
+        # SequenceMatcherで正確なマッチング
+        matcher = difflib.SequenceMatcher(None, clean_t1, clean_t2)
         
-        # Geminiマッチがあれば使用、なければLCSフォールバック
-        if matches:
-            # Geminiマッチを使用
-            def highlight_with_matches(widget, text, match_list):
-                text = text[:200]
-                clean_text = re.sub(r'\s+', '', text)
-                
-                # マッチ位置を収集
-                match_ranges = []
-                for phrase in sorted(match_list, key=len, reverse=True):
-                    if len(phrase) < 3:
-                        continue
-                    pattern = re.escape(phrase)
-                    for m in re.finditer(pattern, clean_text, re.IGNORECASE):
-                        match_ranges.append((m.start(), m.end()))
-                
-                # 範囲をソート・マージ
-                match_ranges.sort()
-                merged = []
-                for start, end in match_ranges:
-                    if merged and start <= merged[-1][1]:
-                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-                    else:
-                        merged.append((start, end))
-                
-                # 色分け表示
-                pos = 0
-                for start, end in merged:
-                    if pos < start:
-                        widget.insert("end", clean_text[pos:start], "diff")
-                    widget.insert("end", clean_text[start:end], "normal")
-                    pos = end
-                if pos < len(clean_text):
-                    widget.insert("end", clean_text[pos:], "diff")
-            
-            highlight_with_matches(w_widget, t1, matches)
-            highlight_with_matches(p_widget, t2, matches)
-        else:
-            # ★ N-gram + LCS ハイブリッドマッチング (正規化テキスト使用)
-            # Step 1: N-gramで共通フレーズを検出 (4文字スライディングウィンドウ)
-            NGRAM_SIZE = 4  # 5→4 に縮小して粒度を細かく
-            
-            def extract_ngrams(text, n=NGRAM_SIZE):
-                """スライディングウィンドウでN-gram抽出"""
-                ngrams = {}
-                for i in range(len(text) - n + 1):
-                    gram = text[i:i+n]
-                    if gram not in ngrams:
-                        ngrams[gram] = []
-                    ngrams[gram].append(i)
-                return ngrams
-            
-            # ★ 正規化テキストでN-gram抽出 (括弧なし)
-            t1_ngrams = extract_ngrams(match_t1, NGRAM_SIZE)
-            t2_ngrams = extract_ngrams(match_t2, NGRAM_SIZE)
-            
-            # 共通N-gramを検出
-            common_ngrams = set(t1_ngrams.keys()) & set(t2_ngrams.keys())
-            log_diagnostic(f"[N-gram] Found {len(common_ngrams)} common {NGRAM_SIZE}-grams")
-            
-            # Step 2: 正規化テキストのマッチ範囲を構築
-            def build_match_ranges(ngrams, common_set, n=NGRAM_SIZE):
-                """共通N-gramの位置からマッチ範囲を構築"""
-                ranges = []
-                for gram in common_set:
-                    if gram in ngrams:
-                        for pos in ngrams[gram]:
-                            ranges.append((pos, pos + n))
-                
-                # 範囲をソート・マージ
-                ranges.sort()
-                merged = []
-                for start, end in ranges:
-                    if merged and start <= merged[-1][1]:
-                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-                    else:
-                        merged.append((start, end))
-                return merged
-            
-            # ★ Step 3: 明示的な共通部分文字列検索 (N-gram漏れを補完)
-            # 正規化テキストで見つかった共通部分を、表示テキストで位置特定
-            
-            def find_common_substrings(text1, text2, min_len=4):
-                """両方のテキストに存在する部分文字列を検出"""
-                common = set()
-                # text1の全部分文字列をチェック
-                for length in range(min_len, min(30, len(text1)) + 1):
-                    for i in range(len(text1) - length + 1):
-                        substr = text1[i:i+length]
-                        if substr in text2:
-                            common.add(substr)
-                return common
-            
-            # 正規化テキストで共通部分を検出
-            common_substrings = find_common_substrings(match_t1, match_t2, 4)
-            log_diagnostic(f"[Substring] Found {len(common_substrings)} common substrings (4+ chars)")
-            
-            # 長いものを優先してマッチ位置を特定
-            def find_positions_in_text(text, substrings):
-                """テキスト内のマッチ位置を検出"""
-                ranges = []
-                # 長い順にソート（重複を避けるため）
-                for substr in sorted(substrings, key=len, reverse=True):
-                    if len(substr) >= 4:
-                        pos = 0
-                        while True:
-                            idx = text.find(substr, pos)
-                            if idx == -1:
-                                break
-                            ranges.append((idx, idx + len(substr)))
-                            pos = idx + 1
-                return ranges
-            
-            # 表示テキストでマッチ位置を検出
-            t1_ranges = find_positions_in_text(clean_t1, common_substrings)
-            t2_ranges = find_positions_in_text(clean_t2, common_substrings)
-            
-            # Step 4: LCSも追加 (短いマッチを補完)
-            matcher = difflib.SequenceMatcher(None, clean_t1, clean_t2)
-            for m in matcher.get_matching_blocks():
-                if m.size >= 3:
-                    t1_ranges.append((m.a, m.a + m.size))
-                    t2_ranges.append((m.b, m.b + m.size))
-            
-            # 範囲を再マージ
-            def merge_ranges(ranges):
-                ranges.sort()
-                merged = []
-                for start, end in ranges:
-                    if merged and start <= merged[-1][1]:
-                        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-                    else:
-                        merged.append((start, end))
-                return merged
-            
-            t1_merged = merge_ranges(t1_ranges)
-            t2_merged = merge_ranges(t2_ranges)
-            
-            # t1表示
-            pos = 0
-            for start, end in t1_merged:
-                if pos < start:
-                    w_widget.insert("end", clean_t1[pos:start], "diff")
-                w_widget.insert("end", clean_t1[start:end], "normal")
-                pos = end
-            if pos < len(clean_t1):
-                w_widget.insert("end", clean_t1[pos:], "diff")
-            
-            # t2表示
-            pos = 0
-            for start, end in t2_merged:
-                if pos < start:
-                    p_widget.insert("end", clean_t2[pos:start], "diff")
-                p_widget.insert("end", clean_t2[start:end], "normal")
-                pos = end
-            if pos < len(clean_t2):
-                p_widget.insert("end", clean_t2[pos:], "diff")
+        # t1のマッチ範囲を収集
+        t1_match_ranges = []
+        t2_match_ranges = []
+        
+        for block in matcher.get_matching_blocks():
+            if block.size >= 2:  # 2文字以上の一致を採用
+                t1_match_ranges.append((block.a, block.a + block.size))
+                t2_match_ranges.append((block.b, block.b + block.size))
+        
+        # t1を色分けして表示
+        pos = 0
+        for start, end in t1_match_ranges:
+            if pos < start:
+                # マッチしない部分 → 緑
+                w_widget.insert("end", clean_t1[pos:start], "diff")
+            # マッチ部分 → 白
+            w_widget.insert("end", clean_t1[start:end], "normal")
+            pos = end
+        # 残り
+        if pos < len(clean_t1):
+            w_widget.insert("end", clean_t1[pos:], "diff")
+        
+        # t2を色分けして表示
+        pos = 0
+        for start, end in t2_match_ranges:
+            if pos < start:
+                p_widget.insert("end", clean_t2[pos:start], "diff")
+            p_widget.insert("end", clean_t2[start:end], "normal")
+            pos = end
+        if pos < len(clean_t2):
+            p_widget.insert("end", clean_t2[pos:], "diff")
         
         w_widget.configure(state="disabled")
         p_widget.configure(state="disabled")

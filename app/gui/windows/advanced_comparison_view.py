@@ -627,26 +627,47 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self.spreadsheet_panel.set_on_match_search(self._handle_match_search)
     
     def _on_spreadsheet_row_select(self, web_id: str, pdf_id: str, pair):
-        """Spreadsheet行選択時: Source領域をハイライト"""
-        print(f"[Source Sync] Highlighting: Web={web_id}, PDF={pdf_id}")
+        """Spreadsheet行選択時: Source領域をハイライト
+        
+        ★ 修正: pair.web_bbox/pdf_bboxを優先して使用
+        サムネイル生成時と同じ座標を使うことで位置ずれを解消
+        """
+        print(f"\n{'='*50}")
+        print(f"[Source Sync] CALLBACK RECEIVED")
+        print(f"  web_id={web_id}, pdf_id={pdf_id}")
+        
+        # Canvas scale情報をログ
+        web_scale = getattr(self.web_canvas, 'scale_x', 'NOT SET')
+        pdf_scale = getattr(self.pdf_canvas, 'scale_x', 'NOT SET')
+        print(f"  web_canvas.scale_x={web_scale}")
+        print(f"  pdf_canvas.scale_x={pdf_scale}")
 
-        # Web側の領域を探してハイライト
-        web_region = None
-        for r in self.web_regions:
-            if r.area_code == web_id:
-                web_region = r
-                break
+        # ★ pair.bboxを優先（サムネイル生成時と同じ座標）
+        web_bbox = getattr(pair, 'web_bbox', None)
+        pdf_bbox = getattr(pair, 'pdf_bbox', None)
+        print(f"  pair.web_bbox={web_bbox}")
+        print(f"  pair.pdf_bbox={pdf_bbox}")
+        
+        # bboxがない場合のみregionから取得（フォールバック）
+        if not web_bbox:
+            for r in self.web_regions:
+                if r.area_code == web_id and hasattr(r, 'rect'):
+                    web_bbox = r.rect
+                    print(f"  web_bbox from region.rect: {web_bbox}")
+                    break
+        
+        if not pdf_bbox:
+            for r in self.pdf_regions:
+                if r.area_code == pdf_id and hasattr(r, 'rect'):
+                    pdf_bbox = r.rect
+                    print(f"  pdf_bbox from region.rect: {pdf_bbox}")
+                    break
+        
+        print(f"{'='*50}\n")
 
-        # PDF側の領域を探してハイライト
-        pdf_region = None
-        for r in self.pdf_regions:
-            if r.area_code == pdf_id:
-                pdf_region = r
-                break
-
-        # Canvasでハイライト表示
-        self._highlight_region_on_canvas(self.web_canvas, web_region, "#FF6F00")
-        self._highlight_region_on_canvas(self.pdf_canvas, pdf_region, "#2196F3")
+        # ★ bboxを直接使ってハイライト
+        self._highlight_bbox_on_canvas(self.web_canvas, web_bbox, "#FF6F00")
+        self._highlight_bbox_on_canvas(self.pdf_canvas, pdf_bbox, "#2196F3")
         
         # テキストボックスにも表示
         if web_region and hasattr(self, 'web_text_box'):
@@ -696,6 +717,57 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                     center_y = (sy1 + sy2) / 2
                     scroll_pos = max(0, min(1, (center_y - 100) / total_height))
                     canvas.yview_moveto(scroll_pos)
+            except Exception as e:
+                print(f"[Scroll] Error: {e}")
+
+    def _highlight_bbox_on_canvas(self, canvas, bbox, color: str):
+        """Canvas上で指定bboxをハイライト表示 + スクロール
+        
+        ★ 新規追加: region.rectではなくbboxを直接使用することで
+        サムネイル生成時と同じ座標でハイライト
+        """
+        if not bbox:
+            print(f"[Highlight] SKIP: bbox is None")
+            return
+
+        # 既存のハイライトを削除
+        canvas.delete("highlight")
+
+        # 座標を取得
+        x1, y1, x2, y2 = bbox
+        print(f"[Highlight] bbox=({x1}, {y1}, {x2}, {y2})")
+
+        # スケール係数を取得
+        scale_x = getattr(canvas, 'scale_x', 1.0)
+        scale_y = getattr(canvas, 'scale_y', 1.0)
+        offset_x = getattr(canvas, 'offset_x', 0)
+        offset_y = getattr(canvas, 'offset_y', 0)
+        print(f"[Highlight] scale=({scale_x}, {scale_y}), offset=({offset_x}, {offset_y})")
+        
+        sx1 = x1 * scale_x + offset_x
+        sy1 = y1 * scale_y + offset_y
+        sx2 = x2 * scale_x + offset_x
+        sy2 = y2 * scale_y + offset_y
+        print(f"[Highlight] canvas_rect=({sx1}, {sy1}, {sx2}, {sy2})")
+
+        # ハイライト矩形を描画 (太い枠線 + 点線)
+        canvas.create_rectangle(
+            sx1, sy1, sx2, sy2,
+            outline=color, width=4, dash=(8, 4),
+            tags="highlight"
+        )
+
+        # 領域が見えるようにスクロール
+        scrollregion = canvas.cget('scrollregion')
+        if scrollregion:
+            try:
+                parts = scrollregion.split()
+                total_height = float(parts[3]) if len(parts) >= 4 else 1
+                if total_height > 0:
+                    center_y = (sy1 + sy2) / 2
+                    scroll_pos = max(0, min(1, (center_y - 100) / total_height))
+                    canvas.yview_moveto(scroll_pos)
+                    print(f"[Highlight] Scrolled to {scroll_pos:.2f}")
             except Exception as e:
                 print(f"[Scroll] Error: {e}")
 
@@ -1897,9 +1969,10 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                             outline = sync_colors[region.sync_number % len(sync_colors)]
                             width = 2
                         else:
-                            # 未マッチ
-                            outline = "#F44336"
-                            width = 2
+                            # ★ 修正: 未比較は中立色 (灰色) を使用
+                            # 赤は「不一致」を示唆するため、比較前には不適切
+                            outline = "#808080"  # 中立灰色
+                            width = 1  # 細い線で控えめに表示
 
                         # 矩形描画
                         canvas.create_rectangle(
@@ -2260,7 +2333,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             # 保存
             self.sync_pairs = sync_pairs
             
-            # 領域のsimilarityをsync_pairsから更新
+            # 領域のsimilarity と sync_color をsync_pairsから更新
             sync_map_web = {sp.web_id: sp for sp in sync_pairs if sp.web_id}
             sync_map_pdf = {sp.pdf_id: sp for sp in sync_pairs if sp.pdf_id}
             
@@ -2268,32 +2341,49 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 sp = sync_map_web.get(region.area_code)
                 if sp:
                     region.similarity = sp.similarity
+                    # ★ 新機能: sync_colorをコピー
+                    if hasattr(sp, 'sync_color'):
+                        region.sync_color = sp.sync_color
             
             for region in self.pdf_regions:
                 sp = sync_map_pdf.get(region.area_code)
                 if sp:
                     region.similarity = sp.similarity
+                    if hasattr(sp, 'sync_color'):
+                        region.sync_color = sp.sync_color
             
             # 描画更新 (update_ui=Trueの場合のみ)
             if update_ui:
                 self._redraw_regions_with_sync()
             
-                # 全体Sync率計算 (マッチ済みペアの平均類似度)
-                matched_pairs = [sp for sp in sync_pairs if sp.similarity > 0]
-                overall_sync = sum(sp.similarity for sp in matched_pairs) / len(matched_pairs) if matched_pairs else 0
-                overall_percent = overall_sync * 100
+                # ★ 改善: 全体Sync率計算 
+                # 旧: マッチ済みペアの平均類似度
+                # 新: (マッチ文字数 / 総文字数) で計算
+                total_web_chars = sum(len(r.text) for r in self.web_regions if r.text)
+                total_pdf_chars = sum(len(r.text) for r in self.pdf_regions if r.text)
+                total_chars = total_web_chars + total_pdf_chars
                 
-                color = "#4CAF50" if overall_percent >= 50 else "#FF9800" if overall_percent >= 30 else "#F44336"
+                matched_chars = 0
+                for sp in sync_pairs:
+                    if sp.similarity > 0 and sp.web_text and sp.pdf_text:
+                        # 類似度 × 文字数で加重計算
+                        avg_len = (len(sp.web_text) + len(sp.pdf_text)) / 2
+                        matched_chars += avg_len * sp.similarity * 2  # 両方にあるので×2
+                
+                overall_percent = (matched_chars / total_chars * 100) if total_chars > 0 else 0
+                
+                color = "#4CAF50" if overall_percent >= 70 else "#FF9800" if overall_percent >= 40 else "#F44336"
                 self.sync_rate_label.configure(text=f"Sync Rate: {overall_percent:.1f}%", text_color=color)
                 self.sync_rate_display.configure(text=f"Sync: {overall_percent:.1f}%")
                 
-                # ステータス更新
-                high_count = sum(1 for sp in sync_pairs if sp.similarity >= 0.5)
-                mid_count = sum(1 for sp in sync_pairs if 0.3 <= sp.similarity < 0.5)
-                low_count = sum(1 for sp in sync_pairs if sp.similarity < 0.3)
+                # ステータス更新 (閾値も調整)
+                high_count = sum(1 for sp in sync_pairs if sp.similarity >= 0.70)
+                mid_count = sum(1 for sp in sync_pairs if 0.40 <= sp.similarity < 0.70)
+                low_count = sum(1 for sp in sync_pairs if 0 < sp.similarity < 0.40)
+                unmatched = sum(1 for sp in sync_pairs if sp.similarity == 0)
                 
                 self.status_label.configure(
-                    text=f"✅ Sync完了: 🟢{high_count} 🟡{mid_count} 🔴{low_count}"
+                    text=f"✅ Sync完了: 🟢{high_count} 🟡{mid_count} 🟠{low_count} ⚪{unmatched}"
                 )
                 
                 # Excelエクスポートボタンを有効化（あれば）

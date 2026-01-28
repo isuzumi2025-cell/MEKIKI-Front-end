@@ -350,31 +350,6 @@ class UnifiedApp(ctk.CTk):
             hover_color="#7C3AED"
         )
         self.hybrid_btn.pack(fill="x", padx=10, pady=(15, 5))
-
-        # コンテ素材抽出ボタン（アンバー系）
-        self.storyboard_btn = ctk.CTkButton(
-            self.sidebar,
-            text="📎 コンテ素材抽出",
-            command=self._open_storyboard_extractor,
-            height=BTN_HEIGHT,
-            corner_radius=BTN_CORNER,
-            font=BTN_FONT,
-            fg_color="#F59E0B",
-            hover_color="#D97706"
-        )
-        self.storyboard_btn.pack(fill="x", padx=10, pady=5)
-        
-        # Slack通知トグル（緑系）
-        self.slack_notify_var = ctk.BooleanVar(value=False)
-        self.slack_notify_toggle = ctk.CTkSwitch(
-            self.sidebar,
-            text="📢 Slack通知",
-            variable=self.slack_notify_var,
-            font=("Meiryo", 11),
-            onvalue=True,
-            offvalue=False
-        )
-        self.slack_notify_toggle.pack(fill="x", padx=10, pady=(10, 5))
         
         self._build_footer_tools()
     
@@ -542,27 +517,6 @@ class UnifiedApp(ctk.CTk):
         from app.gui.windows.report_editor import ReportEditorFrame
         view = ReportEditorFrame(self.content)
         view.pack(fill="both", expand=True)
-    
-    def _open_storyboard_extractor(self):
-        """コンテ素材抽出ツールを開く"""
-        try:
-            from app.gui.windows.storyboard_extractor import StoryboardExtractor
-            
-            # 既存のウィンドウがあれば前面に
-            if hasattr(self, '_storyboard_window') and self._storyboard_window.winfo_exists():
-                self._storyboard_window.focus_force()
-                self._storyboard_window.lift()
-                return
-            
-            # 新しいウィンドウを作成
-            self._storyboard_window = StoryboardExtractor(self)
-            self.status_label.configure(text="📎 コンテ素材抽出ツールを開きました")
-            
-        except Exception as e:
-            print(f"❌ StoryboardExtractor起動エラー: {e}")
-            import traceback
-            traceback.print_exc()
-            messagebox.showerror("エラー", f"コンテ素材抽出ツールの起動に失敗しました:\n{e}")
     
     def _start_new_crawl(self):
         """新規クロール開始"""
@@ -757,21 +711,13 @@ class UnifiedApp(ctk.CTk):
                     
                     def progress_cb(current_url, current, total):
                         nonlocal dialog_alive
-                        if not dialog_alive:
-                            return
-                        try:
-                            # Capture values for thread safety
-                            msg = f"📄 {current}/{total}: {current_url[:40]}..."
-                            def update_label():
-                                nonlocal dialog_alive
-                                try:
-                                    if dialog_alive and progress_label and progress_label.winfo_exists():
-                                        progress_label.configure(text=msg)
-                                except Exception:
-                                    dialog_alive = False
-                            self.after(0, update_label)
-                        except Exception:
-                            dialog_alive = False
+                        if dialog_alive:
+                            try:
+                                self.after(0, lambda: progress_label.configure(
+                                    text=f"📄 {current}/{total}: {current_url[:40]}..."
+                                ) if progress_label.winfo_exists() else None)
+                            except:
+                                dialog_alive = False
                     
                     results = scraper.crawl(
                         start_url=url,
@@ -794,18 +740,6 @@ class UnifiedApp(ctk.CTk):
                         except Exception as ex:
                             print(f"Error handling crawl results: {ex}")
                         messagebox.showinfo("完了", f"{len(results)} ページのクロールが完了しました！")
-                        
-                        # Slack通知 (トグルがONの場合)
-                        if self.slack_notify_var.get():
-                            try:
-                                from app.sdk.notification import notify_slack
-                                notify_slack(
-                                    "#general",
-                                    f"✅ MEKIKI: Webクロールが完了しました ({len(results)} ページ)\nURL: {url}",
-                                    blocking=False
-                                )
-                            except Exception as ex:
-                                print(f"[Slack] 通知エラー: {ex}")
                     
                     self.after(0, on_crawl_complete)
                     
@@ -1166,8 +1100,6 @@ class UnifiedApp(ctk.CTk):
         2. PDF: PyMuPDF 埋め込みテキスト優先（5px padding で文字欠け防止）
         3. テキスト正規化（日本語スペース削除）
         4. パラグラフ間マッチング → LiveComparisonSheet表示
-        
-        Phase 1.9: 観測性追加 + 文字種対応フィルタ
         """
         if not hasattr(self, 'comparison_view') or not self.comparison_view:
             self.status_label.configure(text="⚠️ 先に比較マトリクスを開いてください")
@@ -1180,17 +1112,8 @@ class UnifiedApp(ctk.CTk):
             import fitz  # PyMuPDF
             import os
             
-            # ★ Phase 1.9: トレース & フィルタ
-            from app.sdk.ocr import get_trace_manager, get_text_filter, get_text_normalizer
-            
             # 🔥 ハイブリッドOCRモード (Cloud Vision + Gemini補正)
             USE_HYBRID_OCR = True
-            
-            # ★ Phase 1.9.0: トレース有効化（開発者トグル）
-            DEBUG_TRACE_ENABLED = True
-            trace_manager = get_trace_manager() if DEBUG_TRACE_ENABLED else None
-            text_filter = get_text_filter()
-            text_normalizer = get_text_normalizer()
 
             view = self.comparison_view
 
@@ -1290,22 +1213,10 @@ class UnifiedApp(ctk.CTk):
                         self.update()
                     
                     clusters, raw_words = ocr_engine.extract_text(img)
-                    
-                    # ★ Phase 1.9.0: トレース作成
-                    trace = None
-                    if trace_manager:
-                        trace = trace_manager.create_trace(f"web_{i+1}")
-                        trace.image_size = [img.width, img.height]
 
                     for cluster in clusters:
                         # テキスト正規化（日本語スペース削除）
                         raw_text = cluster.get('text', '')
-                        rect = cluster.get('rect', [0, 0, 100, 100])
-                        confidence = cluster.get('confidence', 0.8)
-                        
-                        # ★ Phase 1.9.0: 生トークンをトレース
-                        if trace:
-                            trace.add_raw_token(raw_text, rect, confidence)
                         
                         # 🔥 Hybrid補正（長文のみ適用）
                         if hybrid_engine and len(raw_text) >= 20:
@@ -1316,17 +1227,11 @@ class UnifiedApp(ctk.CTk):
                             except:
                                 pass
                         
-                        # ★ Phase 1.9.3: 正規化
-                        normalized_text = text_normalizer.normalize(raw_text, mode="compact")
+                        normalized_text = self._normalize_japanese_text(raw_text)
 
-                        # ★ Phase 1.9.1: 文字種対応フィルタ（5文字固定を置換）
-                        should_keep, drop_reason = text_filter.should_keep(
-                            normalized_text, 
-                            confidence,
-                            tuple(rect)
-                        )
-                        
-                        if should_keep:
+
+                        if len(normalized_text) >= 5:
+                            rect = cluster.get('rect', [0, 0, 100, 100])
                             # ★ 縦連結オフセットを追加
                             adjusted_rect = [
                                 rect[0],
@@ -1345,22 +1250,8 @@ class UnifiedApp(ctk.CTk):
                                 line_count=normalized_text.count("\n") + 1
                             )
                             web_paragraphs.append(p)
-                            
-                            # ★ トレース: フィルタ通過
-                            if trace:
-                                trace.add_filtered_token(normalized_text, adjusted_rect, confidence)
-                        else:
-                            # ★ トレース: ドロップ
-                            if trace:
-                                trace.add_dropped_token(normalized_text, rect, drop_reason, confidence)
 
-                    # ★ Phase 1.9.0: トレースにパラグラフ追加
-                    if trace:
-                        for p in web_paragraphs:
-                            if p.id.startswith(f"W{i+1}_"):
-                                trace.add_paragraph(p.id, p.text, p.bbox)
-
-                    print(f"   Web page {i+1}: {len(clusters)} clusters → {len([p for p in web_paragraphs if p.id.startswith(f'W{i+1}_')])} paragraphs (Phase 1.9 TextFilter, y_offset={web_y_offset})")
+                    print(f"   Web page {i+1}: {len(clusters)} clusters → {len([c for c in clusters if len(self._normalize_japanese_text(c.get('text', ''))) >= 5])} paragraphs (engine_cloud, y_offset={web_y_offset})")
 
                     # 次ページ用のオフセット更新
                     web_y_offset += img.height
@@ -1422,36 +1313,30 @@ class UnifiedApp(ctk.CTk):
                             clip_rect = expanded_rect & page.rect
 
                             block_text = page.get_text("text", clip=clip_rect).strip()
-                            
-                            # ★ Phase 1.9.3: 正規化
-                            normalized_text = text_normalizer.normalize(block_text, mode="compact")
-                            
-                            # ★ Phase 1.9.1: 文字種対応フィルタ
-                            scaled_bbox = [
-                                int(bbox[0] * DPI_SCALE),
-                                int(bbox[1] * DPI_SCALE + y_offset),
-                                int(bbox[2] * DPI_SCALE),
-                                int(bbox[3] * DPI_SCALE + y_offset)
-                            ]
-                            should_keep, drop_reason = text_filter.should_keep(
-                                normalized_text, 0.9, tuple(scaled_bbox)  # PDF埋め込みは高信頼度
-                            )
 
-                            if should_keep:
+                            if len(block_text) >= 5:
+                                # ★ bbox を画像座標系にスケーリング
+                                scaled_bbox = [
+                                    int(bbox[0] * DPI_SCALE),
+                                    int(bbox[1] * DPI_SCALE + y_offset),  # 縦連結オフセット追加
+                                    int(bbox[2] * DPI_SCALE),
+                                    int(bbox[3] * DPI_SCALE + y_offset)
+                                ]
+
                                 p = Paragraph(
                                     id=f"P{page_num+1}_emb_{para_idx}",
-                                    text=normalized_text,
+                                    text=block_text,
                                     bbox=scaled_bbox,
                                     page=page_num + 1,
                                     column=0,
-                                    line_count=normalized_text.count("\n") + 1
+                                    line_count=block_text.count("\n") + 1
                                 )
                                 page_paragraphs.append(p)
-                                total_chars += len(normalized_text)
+                                total_chars += len(block_text)
                                 para_idx += 1
 
                         pdf_paragraphs.extend(page_paragraphs)
-                        print(f"   PDF page {page_num+1}: {len(page_paragraphs)} paragraphs (Phase 1.9 TextFilter, y_offset={y_offset})")
+                        print(f"   PDF page {page_num+1}: {len(page_paragraphs)} paragraphs (埋め込みテキスト, y_offset={y_offset})")
 
                         # 次ページ用の縦オフセットを更新
                         y_offset += page_height_scaled
@@ -1479,18 +1364,8 @@ class UnifiedApp(ctk.CTk):
 
                         for cluster in clusters:
                             raw_text = cluster.get('text', '')
-                            rect = cluster.get('rect', [0, 0, 100, 100])
-                            confidence = cluster.get('confidence', 0.8)
-                            
-                            # ★ Phase 1.9.3: 正規化
-                            normalized_text = text_normalizer.normalize(raw_text, mode="compact")
-                            
-                            # ★ Phase 1.9.1: 文字種対応フィルタ
-                            should_keep, drop_reason = text_filter.should_keep(
-                                normalized_text, confidence, tuple(rect)
-                            )
-                            
-                            if should_keep:
+                            if len(raw_text) >= 5:
+                                rect = cluster.get('rect', [0, 0, 100, 100])
                                 # ★ 縦連結オフセットを追加
                                 adjusted_rect = [
                                     rect[0],
@@ -1502,15 +1377,15 @@ class UnifiedApp(ctk.CTk):
                                 para_id = cluster.get('paragraph_id', f'P-{cluster_id}')
                                 p = Paragraph(
                                     id=f"P{i+1}_{para_id}",
-                                    text=normalized_text,
+                                    text=raw_text,
                                     bbox=adjusted_rect,
                                     page=i + 1,
                                     column=0,
-                                    line_count=normalized_text.count("\n") + 1
+                                    line_count=raw_text.count("\n") + 1
                                 )
                                 pdf_paragraphs.append(p)
 
-                        print(f"   PDF page {i+1}: {len(clusters)} clusters (Phase 1.9 TextFilter, y_offset={pdf_ocr_y_offset})")
+                        print(f"   PDF page {i+1}: {len(clusters)} paragraphs (OCR, y_offset={pdf_ocr_y_offset})")
 
                         # 次ページ用のオフセット更新
                         pdf_ocr_y_offset += img.height
@@ -1518,13 +1393,6 @@ class UnifiedApp(ctk.CTk):
                     except Exception as e:
                         print(f"   PDF page {i+1} error: {e}")
 
-            # ★ Phase 1.9.0: トレース保存＆サマリー出力
-            if trace_manager and trace_manager.traces:
-                trace_manager.print_summary()
-                saved_paths = trace_manager.save_all()
-                if saved_paths:
-                    print(f"[AI Mode] ✅ OCR Trace saved: {len(saved_paths)} files")
-            
             print(f"[AI Mode] Extracted - Web: {len(web_paragraphs)}, PDF: {len(pdf_paragraphs)}")
 
             # Step 3: パラグラフ間マッチング（テキスト類似度）
@@ -1730,6 +1598,10 @@ class UnifiedApp(ctk.CTk):
                     # ★ PhotoImage参照をviewにも保持（GC防止）
                     view._web_photo_ref = view.web_canvas.image
                     print(f"[AI Mode] Web canvas displayed, scale={getattr(view.web_canvas, 'scale_x', 'N/A')}")
+                    # ★ 即座に領域描画（タブ切替前に）
+                    if hasattr(view, '_redraw_regions'):
+                        view._redraw_regions()
+                        print(f"[AI Mode] Web regions redrawn")
 
                 # PDF描画前にタブ切り替え
                 if hasattr(view, 'view_tabs'):
@@ -1742,6 +1614,10 @@ class UnifiedApp(ctk.CTk):
                     # ★ PhotoImage参照をviewにも保持（GC防止）
                     view._pdf_photo_ref = view.pdf_canvas.image
                     print(f"[AI Mode] PDF canvas displayed, scale={getattr(view.pdf_canvas, 'scale_x', 'N/A')}")
+                    # ★ 即座に領域描画（PDFタブ表示中に）
+                    if hasattr(view, '_redraw_regions'):
+                        view._redraw_regions()
+                        print(f"[AI Mode] PDF regions redrawn")
 
                 # 最後にWebタブに戻す
                 if hasattr(view, 'view_tabs'):
@@ -1749,16 +1625,6 @@ class UnifiedApp(ctk.CTk):
                     view.update_idletasks()
             except Exception as e:
                 print(f"[AI Mode] Canvas display error: {e}")
-                import traceback
-                traceback.print_exc()
-
-            # ★ 領域を再描画（ユニーク番号とシンクロカラー付き）
-            try:
-                if hasattr(view, '_redraw_regions'):
-                    view._redraw_regions()
-                    print(f"[AI Mode] Regions redrawn on canvas")
-            except Exception as e:
-                print(f"[AI Mode] Redraw error: {e}")
                 import traceback
                 traceback.print_exc()
 

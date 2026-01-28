@@ -251,7 +251,7 @@ class GeminiAutoMatcher:
     def _embedding_rerank(self, query: str, candidates: List[MatchResult]) -> List[MatchResult]:
         """Embedding による再ランキング (コスト制御付き)"""
         try:
-            from app.sdk.similarity import EmbeddingSimilarSearch
+            from app.sdk.similarity.embedding_search import EmbeddingSimilarSearch
             
             # キャッシュ付きで実行
             search = EmbeddingSimilarSearch(threshold=0.5)

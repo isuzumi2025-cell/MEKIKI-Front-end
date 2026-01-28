@@ -261,3 +261,70 @@ class GeminiAutoMatcher:
 4. **確認**: ステータス「対向検索中...」表示
 5. **確認**: シートにPDF側マッチ行追加（サムネ+ID+テキスト）
 6. **確認**: ステータス「○% マッチ」表示
+
+---
+
+## 8. 回帰調査プロセス (Regression Investigation Protocol)
+
+> **適用**: すべての性能/精度回帰の調査に必須
+
+### 8.1 Discovery（差分特定）
+
+```bash
+# 1. 安定版バックアップを特定
+ls -la OCR_backup_*
+
+# 2. ファイル統計比較
+wc -l current/unified_app.py backup/unified_app.py
+
+# 3. 対象メソッドの行範囲特定
+grep -n "def _run_ai_analysis_mode" current/unified_app.py
+```
+
+### 8.2 Analysis（影響評価）
+
+| 評価項目 | 確認内容 |
+|----------|----------|
+| 機能差分 | 新規追加/削除/変更されたロジック |
+| 依存関係 | SDKインポート、外部API呼び出し |
+| 性能影響 | 同期/非同期、ループ内API呼び出し |
+| 品質影響 | フィルタ閾値、正規化ロジック |
+
+### 8.3 Benchmark（定量比較）
+
+```python
+# 同一PDFで両バージョンを実行
+# 記録項目:
+- Match数
+- Sync Rate (%)
+- 処理時間 (秒)
+- パラグラフ検出数
+- bbox サイズ分布
+```
+
+### 8.4 Solution Design（最適解設計）
+
+| 評価軸 | 重み |
+|--------|------|
+| 即効性 | ⭐⭐⭐ |
+| 機能維持 | ⭐⭐⭐⭐ |
+| 保守性 | ⭐⭐⭐⭐⭐ |
+| 将来拡張 | ⭐⭐⭐ |
+
+### 8.5 Implementation（実装原則）
+
+1. **1変更 = 1コミット** - 原子的変更のみ
+2. **段階的適用** - フラグで切り替え可能に
+3. **ロールバック準備** - `git stash` または `git branch`
+4. **ベンチマーク実行** - 変更前後で比較
+
+### 8.6 Verification（検証チェックリスト）
+
+- [ ] 安定版バックアップと同等以上の品質
+- [ ] 新機能がある場合はオプション化
+- [ ] パフォーマンス劣化なし
+- [ ] UIに影響なし
+
+---
+
+**Tags**: #Runbook #RegressionInvestigation #QualityAssurance #v12.4.8

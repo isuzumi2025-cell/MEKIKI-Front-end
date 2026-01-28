@@ -88,6 +88,14 @@ class GeminiClient(LLMClient):
             print(f"❌ Gemini init error: {e}")
     
     def generate(self, prompt: str, images: Optional[List[Any]] = None) -> Optional[str]:
+        # グローバル無効化チェック
+        try:
+            from app.config import DISABLE_GEMINI_API
+            if DISABLE_GEMINI_API:
+                return None  # Gemini無効時はNone返却
+        except ImportError:
+            pass
+        
         if not self.model:
             return None
         try:

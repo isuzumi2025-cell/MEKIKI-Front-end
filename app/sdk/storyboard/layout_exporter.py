@@ -220,7 +220,7 @@ class LayoutExporter:
             return
         
         image_layer = getattr(self.layer_result, 'image_layer', None)
-        if not image_layer or not hasattr(image_layer, 'images'):
+        if not image_layer or not hasattr(image_layer, 'blocks'):
             return
         
         ws = wb.create_sheet(title="Images")
@@ -231,7 +231,7 @@ class LayoutExporter:
             ws.cell(row=1, column=col, value=header)
         
         # データ
-        for i, img_block in enumerate(image_layer.images, 1):
+        for i, img_block in enumerate(image_layer.blocks, 1):
             bbox = getattr(img_block, 'bbox', (0, 0, 0, 0))
             ws.cell(row=i+1, column=1, value=i)
             ws.cell(row=i+1, column=2, value=getattr(img_block, 'page_num', 0) + 1)
@@ -276,8 +276,8 @@ class LayoutExporter:
                 
                 # 画像
                 image_layer = getattr(self.layer_result, 'image_layer', None)
-                if image_layer and hasattr(image_layer, 'images'):
-                    for i, img_block in enumerate(image_layer.images):
+                if image_layer and hasattr(image_layer, 'blocks'):
+                    for i, img_block in enumerate(image_layer.blocks):
                         bbox = getattr(img_block, 'bbox', (0, 0, 0, 0))
                         rows.append({
                             "id": len(rows) + 1,
@@ -342,8 +342,8 @@ class LayoutExporter:
                 
                 # 画像レイヤー
                 image_layer = getattr(self.layer_result, 'image_layer', None)
-                if image_layer and hasattr(image_layer, 'images'):
-                    for i, img_block in enumerate(image_layer.images):
+                if image_layer and hasattr(image_layer, 'blocks'):
+                    for i, img_block in enumerate(image_layer.blocks):
                         if hasattr(img_block, 'image') and img_block.image:
                             img_block.image.save(os.path.join(output_dir, f"image_{i+1:04d}.png"))
                             exported += 1

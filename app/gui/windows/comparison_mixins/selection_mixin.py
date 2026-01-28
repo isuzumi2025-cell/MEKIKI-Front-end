@@ -30,6 +30,36 @@ class SelectionMixin:
     - self.inline_spreadsheet を想定（シート反映用）
     """
     
+    def _canvas_to_image_coords(self, rect, source: str) -> list:
+        """
+        キャンバス座標を元画像座標に逆変換
+        
+        Args:
+            rect: (x1, y1, x2, y2) キャンバス座標
+            source: "web" or "pdf"
+        
+        Returns:
+            [x1, y1, x2, y2] 元画像座標
+        """
+        canvas = self.web_canvas if source == "web" else self.pdf_canvas
+        
+        if not canvas:
+            return [int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])]
+        
+        scale_x = getattr(canvas, 'scale_x', 1.0)
+        scale_y = getattr(canvas, 'scale_y', 1.0)
+        
+        # 逆変換: キャンバス座標 / スケール = 元画像座標
+        if scale_x > 0 and scale_y > 0:
+            return [
+                int(rect[0] / scale_x),
+                int(rect[1] / scale_y),
+                int(rect[2] / scale_x),
+                int(rect[3] / scale_y)
+            ]
+        
+        return [int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])]
+    
     def _init_selection_manager(self):
         """SelectionManager初期化"""
         if SelectionManager is None:
@@ -239,7 +269,8 @@ class SelectionMixin:
                 
                 new_region = EditableRegion(
                     id=region_id,
-                    rect=[int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])],
+                    # ★ 修正: キャンバス座標を元画像座標に逆変換
+                    rect=self._canvas_to_image_coords(rect, source),
                     text=text,
                     area_code=area_code,
                     sync_number=None,

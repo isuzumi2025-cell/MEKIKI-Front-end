@@ -113,10 +113,10 @@ class SheetGenerator:
         if hasattr(self.layer_result, 'image_layer'):
             image_layer = self.layer_result.image_layer
         
-        if not image_layer or not hasattr(image_layer, 'images'):
+        if not image_layer or not hasattr(image_layer, 'blocks'):
             return rows
         
-        for i, img_block in enumerate(image_layer.images):
+        for i, img_block in enumerate(image_layer.blocks):
             # サムネイル
             thumbnail = None
             if hasattr(img_block, 'image') and img_block.image:

@@ -60,6 +60,14 @@ class SemanticDiff:
         Returns:
             DiffResult: 一致・差分情報
         """
+        # グローバル無効化チェック
+        try:
+            from app.config import DISABLE_GEMINI_API
+            if DISABLE_GEMINI_API:
+                return self._fallback_diff(text1, text2)
+        except ImportError:
+            pass
+        
         if not self.client or not self.client.model:
             print("⚠️ Gemini not available, using fallback")
             return self._fallback_diff(text1, text2)
