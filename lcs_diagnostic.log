@@ -1267,3 +1267,185 @@
 [00:54:40] LOG_FILE path: C:\Users\raiko\OneDrive\Desktop\26\OCR\lcs_diagnostic.log
 [00:54:40] [SpreadsheetPanel] __init__ called
 [00:54:40] [SpreadsheetPanel] UI built successfully
+[01:49:45] === SpreadsheetPanel MODULE LOADED ===
+[01:49:45] LOG_FILE path: C:\Users\raiko\OneDrive\Desktop\26\OCR\lcs_diagnostic.log
+[01:49:45] [SpreadsheetPanel] __init__ called
+[01:49:45] [SpreadsheetPanel] UI built successfully
+[01:54:30] === SpreadsheetPanel MODULE LOADED ===
+[01:54:30] LOG_FILE path: C:\Users\raiko\OneDrive\Desktop\26\OCR\lcs_diagnostic.log
+[01:54:30] [SpreadsheetPanel] __init__ called
+[01:54:30] [SpreadsheetPanel] UI built successfully
+[02:01:08] ============================================================
+[02:01:08] [LCS update_data] DIAGNOSTIC
+[02:01:08]   sync_pairs count: 782
+[02:01:08]   web_regions count: 382
+[02:01:08]   pdf_regions count: 740
+[02:01:08]   web_image: (3840, 187920)
+[02:01:08]   pdf_image: (5315, 36001)
+[02:01:08]   web_pages: 4
+[02:01:08]   pdf_pages: 6
+[02:01:08]   web_pages[0] image: (3840, 36720)
+[02:01:08]   First SyncPair:
+[02:01:08]     web_id: Col0-W1_P-29
+[02:01:08]     pdf_id: Col0-P2_emb_261
+[02:01:08]     web_bbox: [2550, 27968, 2576, 28025]
+[02:01:08]     pdf_bbox: [2420, 1324, 2440, 1346]
+[02:01:08]     web_text: '70\n69'
+[02:01:08]     pdf_text: '70\n69'
+[02:01:08]   First web_region:
+[02:01:08]     area_code: Col0-W1_P-1
+[02:01:08]     id: Col0-W1_P-1
+[02:01:08]     rect: [960, 182, 2729, 2924]
+[02:01:08]     page_id: N/A
+[02:01:08]   First pdf_region:
+[02:01:08]     area_code: Col0-P1_emb_1
+[02:01:08]     id: Col0-P1_emb_1
+[02:01:08]     rect: [1309, 3002, 2242, 3156]
+[02:01:08] ============================================================
+[02:01:08] [KEY CHECK] web_id=Col0-W1_P-29 -> found=True
+[02:01:08] [KEY CHECK] pdf_id=Col0-P2_emb_261 -> found=True
+[02:01:08] [_refresh_rows] Starting VIRTUAL: 782 pairs total
+[02:01:08] [_refresh_rows] web_image: (3840, 187920)
+[02:01:08] [_refresh_rows] pdf_image: (5315, 36001)
+[02:01:08] [Row 0] web_id=Col0-W1_P-29, pdf_id=Col0-P2_emb_261
+[02:01:08]   web_region found: True
+[02:01:08]   pdf_region found: True
+[02:01:08]   pair.web_bbox: [2550, 27968, 2576, 28025]
+[02:01:08]   pair.pdf_bbox: [2420, 1324, 2440, 1346]
+[02:01:08]   self.web_image: (3840, 187920)
+[02:01:08]   self.pdf_image: (5315, 36001)
+[02:01:08] [SSOT] Row 0: web_region.rect=[2550, 27968, 2576, 28025], text_len=5
+[02:01:08] [SSOT] Row 0: pdf_region.rect=[2420, 1324, 2440, 1346], text_len=5
+[02:01:08] [Row 0] web_id=Col0-W1_P-29, pdf_id=Col0-P2_emb_261
+[02:01:08]   web_region found: True
+[02:01:08]   pdf_region found: True
+[02:01:08]   pair.web_bbox: [2550, 27968, 2576, 28025]
+[02:01:08]   pair.pdf_bbox: [2420, 1324, 2440, 1346]
+[02:01:08]   self.web_image: (3840, 187920)
+[02:01:08]   self.pdf_image: (5315, 36001)
+[02:01:08] [SSOT] Row 0: web_region.rect=[2550, 27968, 2576, 28025], text_len=5
+[02:01:08] [SSOT] Row 0: pdf_region.rect=[2420, 1324, 2440, 1346], text_len=5
+[02:01:08] [Row 1] web_id=Col0-W2_P-135, pdf_id=Col0-P4_emb_84
+[02:01:08]   web_region found: True
+[02:01:08]   pdf_region found: True
+[02:01:08]   pair.web_bbox: [838, 43785, 1827, 44108]
+[02:01:08]   pair.pdf_bbox: [1491, 1274, 2239, 1394]
+[02:01:08]   self.web_image: (3840, 187920)
+[02:01:08]   self.pdf_image: (5315, 36001)
+[02:01:08] [SSOT] Row 1: web_region.rect=[838, 43785, 1827, 44108], text_len=99
+[02:01:08] [SSOT] Row 1: pdf_region.rect=[1491, 1274, 2239, 1394], text_len=92
+[02:01:08] [Row 2] web_id=Col0-W1_P-13, pdf_id=Col0-P1_emb_37
+[02:01:08]   web_region found: True
+[02:01:08]   pdf_region found: True
+[02:01:08]   pair.web_bbox: [1881, 18889, 1939, 19276]
+[02:01:08]   pair.pdf_bbox: [563, 1027, 830, 1087]
+[02:01:08]   self.web_image: (3840, 187920)
+[02:01:08]   self.pdf_image: (5315, 36001)
+[02:01:08] [SSOT] Row 2: web_region.rect=[1881, 18889, 1939, 19276], text_len=6
+[02:01:08] [SSOT] Row 2: pdf_region.rect=[563, 1027, 830, 1087], text_len=7
+[02:01:09] [Virtual] Rendered rows 0 to 24 (total: 782)
+[02:01:17] [Virtual] Rendered rows 4 to 28 (total: 782)
+[02:01:20] [Row 0] web_id=Col0-W1_P-29, pdf_id=Col0-P2_emb_261
+[02:01:20]   web_region found: True
+[02:01:20]   pdf_region found: True
+[02:01:20]   pair.web_bbox: [2550, 27968, 2576, 28025]
+[02:01:20]   pair.pdf_bbox: [2420, 1324, 2440, 1346]
+[02:01:20]   self.web_image: (3840, 187920)
+[02:01:20]   self.pdf_image: (5315, 36001)
+[02:01:20] [SSOT] Row 0: web_region.rect=[2550, 27968, 2576, 28025], text_len=5
+[02:01:20] [SSOT] Row 0: pdf_region.rect=[2420, 1324, 2440, 1346], text_len=5
+[02:01:20] [Row 1] web_id=Col0-W2_P-135, pdf_id=Col0-P4_emb_84
+[02:01:20]   web_region found: True
+[02:01:20]   pdf_region found: True
+[02:01:20]   pair.web_bbox: [838, 43785, 1827, 44108]
+[02:01:20]   pair.pdf_bbox: [1491, 1274, 2239, 1394]
+[02:01:20]   self.web_image: (3840, 187920)
+[02:01:20]   self.pdf_image: (5315, 36001)
+[02:01:20] [SSOT] Row 1: web_region.rect=[838, 43785, 1827, 44108], text_len=99
+[02:01:20] [SSOT] Row 1: pdf_region.rect=[1491, 1274, 2239, 1394], text_len=92
+[02:01:20] [Row 2] web_id=Col0-W1_P-13, pdf_id=Col0-P1_emb_37
+[02:01:20]   web_region found: True
+[02:01:20]   pdf_region found: True
+[02:01:20]   pair.web_bbox: [1881, 18889, 1939, 19276]
+[02:01:20]   pair.pdf_bbox: [563, 1027, 830, 1087]
+[02:01:20]   self.web_image: (3840, 187920)
+[02:01:20]   self.pdf_image: (5315, 36001)
+[02:01:20] [SSOT] Row 2: web_region.rect=[1881, 18889, 1939, 19276], text_len=6
+[02:01:20] [SSOT] Row 2: pdf_region.rect=[563, 1027, 830, 1087], text_len=7
+[02:01:20] [Virtual] Rendered rows 0 to 24 (total: 782)
+[02:01:23] [Thumb] Clicked: web - Col0-W2_P-107
+[02:09:36] === SpreadsheetPanel MODULE LOADED ===
+[02:09:36] LOG_FILE path: C:\Users\raiko\OneDrive\Desktop\26\OCR\lcs_diagnostic.log
+[02:09:36] [SpreadsheetPanel] __init__ called
+[02:09:36] [SpreadsheetPanel] UI built successfully
+[02:09:36] [SpreadsheetPanel] __init__ called
+[02:09:36] [SpreadsheetPanel] UI built successfully
+[02:16:38] ============================================================
+[02:16:38] [LCS update_data] DIAGNOSTIC
+[02:16:38]   sync_pairs count: 782
+[02:16:38]   web_regions count: 382
+[02:16:38]   pdf_regions count: 740
+[02:16:38]   web_image: (3840, 187920)
+[02:16:38]   pdf_image: (5315, 36001)
+[02:16:38]   web_pages: 4
+[02:16:38]   pdf_pages: 6
+[02:16:38]   web_pages[0] image: (3840, 36720)
+[02:16:38]   First SyncPair:
+[02:16:38]     web_id: Col0-W1_P-29
+[02:16:38]     pdf_id: Col0-P2_emb_261
+[02:16:38]     web_bbox: [2550, 27968, 2576, 28025]
+[02:16:38]     pdf_bbox: [2420, 1324, 2440, 1346]
+[02:16:38]     web_text: '70\n69'
+[02:16:38]     pdf_text: '70\n69'
+[02:16:38]   First web_region:
+[02:16:38]     area_code: Col0-W1_P-1
+[02:16:38]     id: Col0-W1_P-1
+[02:16:38]     rect: [960, 182, 2729, 2924]
+[02:16:38]     page_id: N/A
+[02:16:38]   First pdf_region:
+[02:16:38]     area_code: Col0-P1_emb_1
+[02:16:38]     id: Col0-P1_emb_1
+[02:16:38]     rect: [1309, 3002, 2242, 3156]
+[02:16:38] ============================================================
+[02:16:38] [KEY CHECK] web_id=Col0-W1_P-29 -> found=True
+[02:16:38] [KEY CHECK] pdf_id=Col0-P2_emb_261 -> found=True
+[02:16:38] [_refresh_rows] Starting VIRTUAL: 782 pairs total
+[02:16:38] [_refresh_rows] web_image: (3840, 187920)
+[02:16:38] [_refresh_rows] pdf_image: (5315, 36001)
+[02:16:38] [Row 0] web_id=Col0-W1_P-29, pdf_id=Col0-P2_emb_261
+[02:16:38]   web_region found: True
+[02:16:38]   pdf_region found: True
+[02:16:38]   pair.web_bbox: [2550, 27968, 2576, 28025]
+[02:16:38]   pair.pdf_bbox: [2420, 1324, 2440, 1346]
+[02:16:38]   self.web_image: (3840, 187920)
+[02:16:38]   self.pdf_image: (5315, 36001)
+[02:16:38] [SSOT] Row 0: web_region.rect=[2550, 27968, 2576, 28025], text_len=5
+[02:16:38] [SSOT] Row 0: pdf_region.rect=[2420, 1324, 2440, 1346], text_len=5
+[02:16:38] [Row 0] web_id=Col0-W1_P-29, pdf_id=Col0-P2_emb_261
+[02:16:38]   web_region found: True
+[02:16:38]   pdf_region found: True
+[02:16:38]   pair.web_bbox: [2550, 27968, 2576, 28025]
+[02:16:38]   pair.pdf_bbox: [2420, 1324, 2440, 1346]
+[02:16:38]   self.web_image: (3840, 187920)
+[02:16:38]   self.pdf_image: (5315, 36001)
+[02:16:38] [SSOT] Row 0: web_region.rect=[2550, 27968, 2576, 28025], text_len=5
+[02:16:38] [SSOT] Row 0: pdf_region.rect=[2420, 1324, 2440, 1346], text_len=5
+[02:16:38] [Row 1] web_id=Col0-W2_P-135, pdf_id=Col0-P4_emb_84
+[02:16:38]   web_region found: True
+[02:16:38]   pdf_region found: True
+[02:16:38]   pair.web_bbox: [838, 43785, 1827, 44108]
+[02:16:38]   pair.pdf_bbox: [1491, 1274, 2239, 1394]
+[02:16:38]   self.web_image: (3840, 187920)
+[02:16:38]   self.pdf_image: (5315, 36001)
+[02:16:38] [SSOT] Row 1: web_region.rect=[838, 43785, 1827, 44108], text_len=99
+[02:16:38] [SSOT] Row 1: pdf_region.rect=[1491, 1274, 2239, 1394], text_len=92
+[02:16:38] [Row 2] web_id=Col0-W1_P-13, pdf_id=Col0-P1_emb_37
+[02:16:38]   web_region found: True
+[02:16:38]   pdf_region found: True
+[02:16:38]   pair.web_bbox: [1881, 18889, 1939, 19276]
+[02:16:38]   pair.pdf_bbox: [563, 1027, 830, 1087]
+[02:16:38]   self.web_image: (3840, 187920)
+[02:16:38]   self.pdf_image: (5315, 36001)
+[02:16:38] [SSOT] Row 2: web_region.rect=[1881, 18889, 1939, 19276], text_len=6
+[02:16:38] [SSOT] Row 2: pdf_region.rect=[563, 1027, 830, 1087], text_len=7
+[02:16:38] [Virtual] Rendered rows 0 to 24 (total: 782)

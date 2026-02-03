@@ -214,3 +214,23 @@
 {"timestamp": "2026-02-02T01:31:16.944761", "level": "INFO", "logger": "__main__", "message": "メインウィンドウの初期化完了", "module": "logger", "function": "_log", "line": 189}
 {"timestamp": "2026-02-02T01:31:20.144459", "level": "INFO", "logger": "__main__", "message": "Slack非同期リスナーをバックグラウンドで開始しました", "module": "logger", "function": "_log", "line": 189}
 {"timestamp": "2026-02-02T01:40:49.440503", "level": "INFO", "logger": "__main__", "message": "MEKIKI OCR 正常終了", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:44:41.302561", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:44:41.317561", "level": "INFO", "logger": "__main__", "message": "MEKIKI OCR 起動中...", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:44:41.318561", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:44:42.810855", "level": "INFO", "logger": "__main__", "message": "メインウィンドウの初期化完了", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:44:43.170750", "level": "WARNING", "logger": "__main__", "message": "Slackリスナーの起動に失敗しました: 'cp932' codec can't encode character '\\U0001f3a7' in position 0: illegal multibyte sequence", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:46:53.952352", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:46:53.953357", "level": "INFO", "logger": "__main__", "message": "MEKIKI OCR 起動中...", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:46:53.953357", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:46:55.501335", "level": "INFO", "logger": "__main__", "message": "メインウィンドウの初期化完了", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:46:55.845008", "level": "INFO", "logger": "__main__", "message": "Slack非同期リスナーをバックグラウンドで開始しました", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:52:15.473809", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:52:15.473809", "level": "INFO", "logger": "__main__", "message": "MEKIKI OCR 起動中...", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:52:15.473809", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:52:16.907621", "level": "INFO", "logger": "__main__", "message": "メインウィンドウの初期化完了", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T01:52:17.249302", "level": "INFO", "logger": "__main__", "message": "Slack非同期リスナーをバックグラウンドで開始しました", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T02:07:17.218301", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T02:07:17.219301", "level": "INFO", "logger": "__main__", "message": "MEKIKI OCR 起動中...", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T02:07:17.219301", "level": "INFO", "logger": "__main__", "message": "============================================================", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T02:07:18.655154", "level": "INFO", "logger": "__main__", "message": "メインウィンドウの初期化完了", "module": "logger", "function": "_log", "line": 189}
+{"timestamp": "2026-02-04T02:07:18.997731", "level": "INFO", "logger": "__main__", "message": "Slack非同期リスナーをバックグラウンドで開始しました", "module": "logger", "function": "_log", "line": 189}

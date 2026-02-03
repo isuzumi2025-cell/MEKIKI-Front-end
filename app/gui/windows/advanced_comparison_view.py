@@ -109,6 +109,13 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self.page_regions: List[Tuple[int, int]] = []  # [(y_start, y_end), ...]
         self.current_page: int = 1
         
+        # ★ ByCursor Fix: ページリストの初期化
+        self.web_pages_list: List = []
+        self.pdf_pages_list: List = []
+        self.web_pages: List = []
+        self.pdf_pages: List = []
+        self.current_pdf_idx: int = 0
+        
         # 選択状態
         self.selected_region: Optional[EditableRegion] = None
         self.drag_handle: Optional[str] = None  # "nw", "ne", "sw", "se", "move"
@@ -1852,6 +1859,9 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         else:
             self.status_label.configure(text="⚠️ Webデータがありません")
             
+        # ★ ByCursor Fix: web_pages_listを同期
+        self.web_pages_list = self.web_pages
+            
         # ★ Webステッチ画像をキャッシュ (初回のみ)
         if self.web_pages:
             print("[Cache] Generating Web Stitch Cache...")
@@ -1896,6 +1906,9 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             print(f"[Cache] PDF Stitch Generated: {self._pdf_stitch_cache.size}")
         
         print(f"📄 PDF合計: {len(self.pdf_pages)}ページ")
+        
+        # ★ ByCursor Fix: pdf_pages_listを同期
+        self.pdf_pages_list = self.pdf_pages
         
         # 10ページごとに縦連結した画像を作成
         # ★ Stitch-Localism Migration: Disable Stitching to enforce Single Page View for Accuracy

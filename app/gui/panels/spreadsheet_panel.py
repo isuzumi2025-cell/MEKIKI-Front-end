@@ -291,7 +291,8 @@ class SpreadsheetPanel(ctk.CTkFrame):
             if i < len(self.sync_pairs):
                 pair = self.sync_pairs[i]
                 row_widget = self._create_row(i, pair)
-                self._visible_rows[i] = row_widget
+                if row_widget:  # ★ ByCursor Fix: None check
+                    self._visible_rows[i] = row_widget
 
         # Add bottom spacer for remaining rows
         remaining_rows = len(self.sync_pairs) - end_idx
@@ -333,9 +334,17 @@ class SpreadsheetPanel(ctk.CTkFrame):
                 continue
 
             try:
-                # Generate Thumbnail (Sync but batched)
-                # This ensures we NEVER skip a thumbnail if the queue has it
-                thumb = self._create_thumbnail(region.rect, source)
+                # ★ ByCursor Fix: Page-Aware Thumbnail (page_idを使用)
+                # Generate Thumbnail using page_id for accurate cropping
+                pages = getattr(self, 'web_pages', []) if source == "web" else getattr(self, 'pdf_pages', [])
+                fallback_image = self.web_image if source == "web" else self.pdf_image
+                
+                # 優先: Page-Aware (region.page_idがある場合)
+                if hasattr(region, 'page_id') and region.page_id > 0:
+                    thumb = ThumbnailManager.create_page_aware_thumbnail(region, pages, fallback_image)
+                else:
+                    # フォールバック: Global Bbox
+                    thumb = self._create_thumbnail(region.rect, source)
                 
                 if thumb:
                     self._thumbnail_refs.append(thumb)
@@ -397,11 +406,22 @@ class SpreadsheetPanel(ctk.CTkFrame):
 
     def _create_row(self, index: int, pair):
         """Create a single row with thumbnails below ID"""
+        # ★ ByCursor Fix: ウィジェット有効性チェック
+        try:
+            if not self.scroll_frame.winfo_exists():
+                return None
+        except Exception:
+            return None
+            
         row_bg = "#2D2D2D" if index % 2 == 0 else "#252525"
 
-        row = ctk.CTkFrame(self.scroll_frame, fg_color=row_bg, corner_radius=0, height=self.ROW_HEIGHT)
-        row.pack(fill="x", pady=1)
-        row.pack_propagate(False)
+        try:
+            row = ctk.CTkFrame(self.scroll_frame, fg_color=row_bg, corner_radius=0, height=self.ROW_HEIGHT)
+            row.pack(fill="x", pady=1)
+            row.pack_propagate(False)
+        except Exception as e:
+            log_diagnostic(f"[Row {index}] Creation failed: {e}")
+            return None
 
         # Get regions from map
         web_region = self.web_map.get(pair.web_id)

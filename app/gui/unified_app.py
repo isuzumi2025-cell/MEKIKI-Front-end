@@ -751,10 +751,11 @@ class UnifiedApp(ctk.CTk):
                     self.after(0, on_crawl_complete)
                     
                 except Exception as e:
+                    error_msg = str(e)
                     def show_error():
                         nonlocal dialog_alive
                         dialog_alive = False
-                        messagebox.showerror("エラー", f"クロールに失敗しました: {str(e)}")
+                        messagebox.showerror("エラー", f"クロールに失敗しました: {error_msg}")
                     self.after(0, show_error)
 
             import threading
@@ -1548,6 +1549,8 @@ class UnifiedApp(ctk.CTk):
                     self.source = source  # "web" or "pdf"
                     self.sync_number = sync_number  # マッチペアの番号
                     self.original_id = p.id  # 元のパラグラフID（デバッグ用）
+                    # ★ ByCursor Fix: page_idを設定（サムネイル生成に必須）
+                    self.page_id = getattr(p, 'page', 1)  # Paragraph.pageからpage_idを設定
 
             # ParaSyncPairからsimilarityとsync_numberを取得するマップ作成
             web_similarity_map = {}
