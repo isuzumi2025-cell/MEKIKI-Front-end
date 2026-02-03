@@ -10,6 +10,7 @@ from typing import List, Dict, Optional, Callable, Tuple
 from PIL import Image, ImageTk
 from dataclasses import dataclass
 import io
+from app.gui.managers.thumbnail_manager import ThumbnailManager
 
 
 @dataclass  
@@ -241,33 +242,18 @@ class ComparisonSpreadsheetWindow(ctk.CTkToplevel):
         self._refresh_rows()
     
     def _generate_thumbnails(self):
-        """サムネイル生成"""
+        """サムネイル生成 (ThumbnailManager利用)"""
         self.thumbnails = {}
-        thumb_h = 50
         
         for row in self.rows:
             web_thumb = None
             pdf_thumb = None
             
             if self.web_image and row.web_rect:
-                try:
-                    x1, y1, x2, y2 = row.web_rect
-                    cropped = self.web_image.crop((max(0,x1), max(0,y1), min(self.web_image.width,x2), min(self.web_image.height,y2)))
-                    if cropped.height > 0:
-                        ratio = thumb_h / cropped.height
-                        resized = cropped.resize((min(int(cropped.width * ratio), 90), thumb_h), Image.Resampling.LANCZOS)
-                        web_thumb = ImageTk.PhotoImage(resized)
-                except: pass
+                web_thumb = ThumbnailManager.create_thumbnail(self.web_image, row.web_rect)
             
             if self.pdf_image and row.pdf_rect:
-                try:
-                    x1, y1, x2, y2 = row.pdf_rect
-                    cropped = self.pdf_image.crop((max(0,x1), max(0,y1), min(self.pdf_image.width,x2), min(self.pdf_image.height,y2)))
-                    if cropped.height > 0:
-                        ratio = thumb_h / cropped.height
-                        resized = cropped.resize((min(int(cropped.width * ratio), 90), thumb_h), Image.Resampling.LANCZOS)
-                        pdf_thumb = ImageTk.PhotoImage(resized)
-                except: pass
+                pdf_thumb = ThumbnailManager.create_thumbnail(self.pdf_image, row.pdf_rect)
             
             self.thumbnails[row.row_no] = (web_thumb, pdf_thumb)
     

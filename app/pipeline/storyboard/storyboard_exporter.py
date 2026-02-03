@@ -230,20 +230,28 @@ class StoryboardExporter:
                 row += 1
     
     def _resize_for_excel(self, image: Image.Image) -> Image.Image:
-        """Excel用にアスペクト比を維持してリサイズ"""
+        """Excel用にアスペクト比を維持してリサイズ（ImageSegmentを使用）"""
         max_w = self.config.image_max_width
         max_h = self.config.image_max_height
         
+        # まずサイズをチェック
         w, h = image.size
-        
-        # アスペクト比維持
         ratio = min(max_w / w, max_h / h)
-        if ratio < 1:
+        
+        if ratio >= 1:
+            return image  # リサイズ不要
+        
+        try:
+            from app.sdk.core.segment import ImageSegment
+            # max_long_edgeを計算（短い方を基準に）
+            max_long_edge = max(max_w, max_h)
+            segment = ImageSegment.from_image(image, max_long_edge=max_long_edge)
+            return segment.resized_image if segment.resized_image else image
+        except ImportError:
+            # フォールバック: 従来のリサイズ
             new_w = int(w * ratio)
             new_h = int(h * ratio)
             return image.resize((new_w, new_h), Image.Resampling.LANCZOS)
-        
-        return image
     
     def export_to_pptx(
         self, 

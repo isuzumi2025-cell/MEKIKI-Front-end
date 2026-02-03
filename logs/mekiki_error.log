@@ -1,0 +1,35 @@
+[2026-02-01 02:16:00] 🔥 CRITICAL - __main__ - Fatal error: 'cp932' codec can't encode character '\u26a0' in position 0: illegal multibyte sequence
+  📍 C:\Users\raiko\OneDrive\Desktop\26\OCR\app\core\logger.py:189
+Traceback (most recent call last):
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\config\api_manager.py", line 189, in load
+    print(f"✅ API keys loaded from {self.config_file}")
+UnicodeEncodeError: 'cp932' codec can't encode character '\u2705' in position 0: illegal multibyte sequence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\config.py", line 57, in load_keys
+    keys = manager.load()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\config\api_manager.py", line 192, in load
+    print(f"⚠️ Failed to load API keys: {e}")
+UnicodeEncodeError: 'cp932' codec can't encode character '\u26a0' in position 0: illegal multibyte sequence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\main.py", line 37, in main
+    from app.gui.unified_app import UnifiedApp
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\gui\__init__.py", line 1, in <module>
+    from .main_window import MainWindow
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\gui\main_window.py", line 29, in <module>
+    from app.core.analyzer import ContentAnalyzer
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\core\analyzer.py", line 11, in <module>
+    from app.core.llm_client import LLMClient
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\app\core\llm_client.py", line 3, in <module>
+    from config import Config
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\config.py", line 96, in <module>
+    Config.load_keys()
+  File "C:\Users\raiko\OneDrive\Desktop\26\OCR\config.py", line 69, in load_keys
+    print(f"⚠️ Failed to load API keys via manager: {e}")
+UnicodeEncodeError: 'cp932' codec can't encode character '\u26a0' in position 0: illegal multibyte sequence

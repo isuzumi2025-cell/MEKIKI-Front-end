@@ -277,6 +277,13 @@ class UnifiedApp(ctk.CTk):
 
         self._build_sidebar()
         self._show_welcome()
+    
+    def _update_status_threadsafe(self, text: str):
+        """★ スレッドセーフなステータス更新（バックグラウンドスレッドから呼び出し可能）"""
+        def update():
+            if hasattr(self, 'status_label') and self.status_label.winfo_exists():
+                self.status_label.configure(text=text)
+        self.after(0, update)
 
     def _build_sidebar(self):
         """サイドバー構築"""
@@ -342,7 +349,7 @@ class UnifiedApp(ctk.CTk):
         self.hybrid_btn = ctk.CTkButton(
             self.sidebar,
             text="🔀 ハイブリッドOCR",
-            command=self._run_ai_analysis_mode,
+            command=self._run_hybrid_ocr,  # ★ 修正: 正しい関数を呼び出し
             height=BTN_HEIGHT,
             corner_radius=BTN_CORNER,
             font=BTN_FONT,
@@ -790,6 +797,14 @@ class UnifiedApp(ctk.CTk):
             
             print(f"✅ クロール結果処理完了: {count} ページ")
             
+            # Notify Comparison View if active
+            if hasattr(self, 'comparison_view') and self.comparison_view.winfo_exists():
+                try:
+                    self.comparison_view._load_from_queue()
+                    print("✅ Comparison View Updated")
+                except Exception as e:
+                    print(f"Error updating comparison view: {e}")
+            
         except Exception as e:
             print(f"Error handling results: {e}")
     
@@ -901,6 +916,16 @@ class UnifiedApp(ctk.CTk):
         else:
             self._show_comparison_matrix()
             self.after(500, lambda: self.comparison_view._run_ocr_analysis() if hasattr(self, 'comparison_view') else None)
+    
+    def _run_hybrid_ocr(self):
+        """★ Phase 44統合: ハイブリッドOCR実行（PDF埋め込みテキスト優先）"""
+        # Note: 実際のOCRロジックは_run_ai_analysis_modeに実装されている
+        if hasattr(self, 'comparison_view') and self.comparison_view:
+            self._run_ai_analysis_mode()
+        else:
+            self._show_comparison_matrix()
+            self.after(500, self._run_ai_analysis_mode)
+
     
     def _run_text_comparison_from_sidebar(self):
         """サイドバーから全文比較を呼び出し"""
@@ -1028,12 +1053,17 @@ class UnifiedApp(ctk.CTk):
                 
                 # SpreadsheetPanelを更新
                 if hasattr(view, 'spreadsheet_panel'):
+                    # ★ ページ情報も渡す（サムネイル生成用）
+                    web_pages_list = getattr(view, 'web_pages', None)
+                    pdf_pages_list = getattr(view, 'pdf_pages', None)
                     view.spreadsheet_panel.update_data(
                         llm_sync_pairs,
                         llm_web_regions,
                         llm_pdf_regions,
                         web_image,
-                        pdf_image
+                        pdf_image,
+                        web_pages_list,
+                        pdf_pages_list
                     )
                 
                 # Sync Rate更新
@@ -1095,16 +1125,41 @@ class UnifiedApp(ctk.CTk):
     def _run_ai_analysis_mode(self):
         """
         🤖 AI分析モード: ハイブリッドアーキテクチャ版
+        ★ バックグラウンドスレッドで実行してUIフリーズを防止
+        """
+        if not hasattr(self, 'comparison_view') or not self.comparison_view:
+            self.status_label.configure(text="⚠️ 先に比較マトリクスを開いてください")
+            return
+        
+        # ★ 既に処理中なら無視
+        if hasattr(self, '_ai_analysis_running') and self._ai_analysis_running:
+            self.status_label.configure(text="⏳ AI分析実行中...")
+            return
+        
+        self._ai_analysis_running = True
+        self.status_label.configure(text="🤖 AI分析モード開始（バックグラウンド）...")
+        self.update()
+        
+        import threading
+        
+        def run_in_background():
+            try:
+                self._run_ai_analysis_mode_impl()
+            finally:
+                self._ai_analysis_running = False
+        
+        thread = threading.Thread(target=run_in_background, daemon=True)
+        thread.start()
+    
+    def _run_ai_analysis_mode_impl(self):
+        """
+        🤖 AI分析モードの実際の処理（バックグラウンドスレッドで実行）
 
         1. Web: engine_cloud.py のクラスタリングで長文パラグラフ抽出
         2. PDF: PyMuPDF 埋め込みテキスト優先（5px padding で文字欠け防止）
         3. テキスト正規化（日本語スペース削除）
         4. パラグラフ間マッチング → LiveComparisonSheet表示
         """
-        if not hasattr(self, 'comparison_view') or not self.comparison_view:
-            self.status_label.configure(text="⚠️ 先に比較マトリクスを開いてください")
-            return
-
         try:
             from app.core.engine_cloud import CloudOCREngine
             from app.core.paragraph_detector import Paragraph
@@ -1232,23 +1287,20 @@ class UnifiedApp(ctk.CTk):
 
                         if len(normalized_text) >= 5:
                             rect = cluster.get('rect', [0, 0, 100, 100])
-                            # ★ 縦連結オフセットを追加
-                            adjusted_rect = [
-                                rect[0],
-                                rect[1] + web_y_offset,
-                                rect[2],
-                                rect[3] + web_y_offset
-                            ]
+                            # ★ 座標はページ相対のまま保持（スティッチ座標は使わない）
+                            # Phase 44: ページ相対座標を使用
                             cluster_id = cluster.get('id', 0)
                             para_id = cluster.get('paragraph_id', f'P-{cluster_id}')
                             p = Paragraph(
                                 id=f"W{i+1}_{para_id}",
                                 text=normalized_text,
-                                bbox=adjusted_rect,
+                                bbox=rect,  # ★ ページ相対座標
                                 page=i + 1,
                                 column=0,
                                 line_count=normalized_text.count("\n") + 1
                             )
+                            # ★ スティッチ座標は別属性として保持（サムネイル生成用）
+                            p.stitched_y_offset = web_y_offset
                             web_paragraphs.append(p)
 
                     print(f"   Web page {i+1}: {len(clusters)} clusters → {len([c for c in clusters if len(self._normalize_japanese_text(c.get('text', ''))) >= 5])} paragraphs (engine_cloud, y_offset={web_y_offset})")
@@ -1315,12 +1367,13 @@ class UnifiedApp(ctk.CTk):
                             block_text = page.get_text("text", clip=clip_rect).strip()
 
                             if len(block_text) >= 5:
-                                # ★ bbox を画像座標系にスケーリング
+                                # ★ bbox を画像座標系にスケーリング（ページ相対のまま）
+                                # Phase 44: y_offset を含めない（ページ相対座標）
                                 scaled_bbox = [
                                     int(bbox[0] * DPI_SCALE),
-                                    int(bbox[1] * DPI_SCALE + y_offset),  # 縦連結オフセット追加
+                                    int(bbox[1] * DPI_SCALE),  # ★ ページ相対
                                     int(bbox[2] * DPI_SCALE),
-                                    int(bbox[3] * DPI_SCALE + y_offset)
+                                    int(bbox[3] * DPI_SCALE)   # ★ ページ相対
                                 ]
 
                                 p = Paragraph(
@@ -1331,6 +1384,8 @@ class UnifiedApp(ctk.CTk):
                                     column=0,
                                     line_count=block_text.count("\n") + 1
                                 )
+                                # ★ スティッチ座標は別属性として保持（サムネイル生成用）
+                                p.stitched_y_offset = y_offset
                                 page_paragraphs.append(p)
                                 total_chars += len(block_text)
                                 para_idx += 1
@@ -1366,23 +1421,20 @@ class UnifiedApp(ctk.CTk):
                             raw_text = cluster.get('text', '')
                             if len(raw_text) >= 5:
                                 rect = cluster.get('rect', [0, 0, 100, 100])
-                                # ★ 縦連結オフセットを追加
-                                adjusted_rect = [
-                                    rect[0],
-                                    rect[1] + pdf_ocr_y_offset,
-                                    rect[2],
-                                    rect[3] + pdf_ocr_y_offset
-                                ]
+                                # ★ 座標はページ相対のまま保持
+                                # Phase 44: ページ相対座標を使用
                                 cluster_id = cluster.get('id', 0)
                                 para_id = cluster.get('paragraph_id', f'P-{cluster_id}')
                                 p = Paragraph(
                                     id=f"P{i+1}_{para_id}",
                                     text=raw_text,
-                                    bbox=adjusted_rect,
+                                    bbox=rect,  # ★ ページ相対座標
                                     page=i + 1,
                                     column=0,
                                     line_count=raw_text.count("\n") + 1
                                 )
+                                # ★ スティッチ座標は別属性として保持
+                                p.stitched_y_offset = pdf_ocr_y_offset
                                 pdf_paragraphs.append(p)
 
                         print(f"   PDF page {i+1}: {len(clusters)} paragraphs (OCR, y_offset={pdf_ocr_y_offset})")
@@ -1572,14 +1624,19 @@ class UnifiedApp(ctk.CTk):
 
             # ★ 先にスプレッドシートを更新（これがキャンバスに影響しないように）
             if hasattr(view, 'spreadsheet_panel'):
+                # ★ ページ情報も渡す（サムネイル生成用）
+                web_pages_list = getattr(view, 'web_pages', None)
+                pdf_pages_list = getattr(view, 'pdf_pages', None)
                 view.spreadsheet_panel.update_data(
                     sync_pairs,
                     web_regions,
                     pdf_regions,
                     stitched_web,
-                    stitched_pdf
+                    stitched_pdf,
+                    web_pages_list,
+                    pdf_pages_list
                 )
-                print(f"[AI Mode] Spreadsheet updated")
+                print(f"[AI Mode] Spreadsheet updated (pages: web={len(web_pages_list) if web_pages_list else 0}, pdf={len(pdf_pages_list) if pdf_pages_list else 0})")
 
             # ★ タブを先に切り替え（キャンバスが表示状態でないと描画が反映されない可能性）
             try:
@@ -1679,7 +1736,11 @@ class UnifiedApp(ctk.CTk):
             # ★ 遅延デバッグ: 500ms後にキャンバス状態を再確認
             def delayed_canvas_check():
                 try:
-                    if view.web_canvas:
+                    # ★ ウィジェット存在確認（bad window path name エラー防止）
+                    if not view.winfo_exists():
+                        return
+                    
+                    if view.web_canvas and view.web_canvas.winfo_exists():
                         all_items = view.web_canvas.find_all()
                         image_items = view.web_canvas.find_withtag("image")
                         region_items = view.web_canvas.find_withtag("region")
@@ -1691,7 +1752,7 @@ class UnifiedApp(ctk.CTk):
                         print(f"[AI Mode +500ms] web_canvas scrollregion={scrollregion}")
                         if hasattr(view.web_canvas, 'scale_x'):
                             print(f"[AI Mode +500ms] web_canvas scale_x={view.web_canvas.scale_x:.4f}")
-                    if view.pdf_canvas:
+                    if view.pdf_canvas and view.pdf_canvas.winfo_exists():
                         all_items = view.pdf_canvas.find_all()
                         image_items = view.pdf_canvas.find_withtag("image")
                         region_items = view.pdf_canvas.find_withtag("region")

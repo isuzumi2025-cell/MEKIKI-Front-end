@@ -30,11 +30,11 @@ def main():
     """
     try:
         logger.info("=" * 60)
-        logger.info("MEKIKI OCR Starting")
+        logger.info("MEKIKI OCR 起動中...")
         logger.info("=" * 60)
 
-        # GUI起動
-        from app.gui.main_window_v2 import MainWindow
+        # GUI起動 - ★ UnifiedApp使用（正しいエントリーポイント）
+        from app.gui.unified_app import UnifiedApp
         import customtkinter as ctk
 
         # CustomTkinter設定
@@ -42,14 +42,25 @@ def main():
         ctk.set_default_color_theme("blue")
 
         # メインウィンドウ起動
-        app = MainWindow()
+        app = UnifiedApp()
 
-        logger.info("Main window initialized successfully")
+        logger.info("メインウィンドウの初期化完了")
+
+        # Slackリスナーをバックグラウンドで起動 (asyncio版)
+        slack_listener = None
+        try:
+            from app.sdk.integration.notification.slack_listener_async import start_async_listener
+            slack_listener = start_async_listener()
+            logger.info("Slack非同期リスナーをバックグラウンドで開始しました")
+        except ImportError as e:
+            logger.warning(f"Slackリスナーが利用できません: {e}")
+        except Exception as e:
+            logger.warning(f"Slackリスナーの起動に失敗しました: {e}")
 
         # イベントループ開始
         app.mainloop()
 
-        logger.info("MEKIKI OCR Exiting normally")
+        logger.info("MEKIKI OCR 正常終了")
 
     except Exception as e:
         # クリティカルエラー

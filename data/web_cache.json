@@ -1,0 +1,6 @@
+{
+  "grok api setup": {
+    "result": "xAI Grok API Setup:\n1. console.x.ai にアクセス\n2. X Premium サブスクリプションが必要（24-48時間で有効化）\n3. API Keys セクションで Generate API Key\n4. 無料枠: /月のベータクレジット\n\nPython連携:\n- pip install openai\n- base_url = https://api.x.ai/v1\n- モデル: grok-2, grok-beta",
+    "timestamp": "2026-01-31T14:08:18.915258"
+  }
+}

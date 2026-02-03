@@ -146,7 +146,7 @@ class APIKeyManager:
 
             return decrypted_bytes.decode('utf-8')
         except Exception as e:
-            print(f"⚠️ Decryption error: {e}")
+            print(f"[WARN] Decryption error: {e}")
             return ""
 
     def load(self) -> APIKeys:
@@ -186,10 +186,10 @@ class APIKeyManager:
                         decrypted = self._decrypt(encrypted_value)
                         setattr(keys, key_name, decrypted)
 
-                print(f"✅ API keys loaded from {self.config_file}")
+                print(f"[OK] API keys loaded from {self.config_file}")
 
             except Exception as e:
-                print(f"⚠️ Failed to load API keys: {e}")
+                print(f"[WARN] Failed to load API keys: {e}")
 
         # 環境変数に設定（他のモジュールが参照できるように）
         self._set_environment_variables(keys)
@@ -220,7 +220,7 @@ class APIKeyManager:
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(encrypted_data, f, indent=2)
 
-            print(f"✅ API keys saved to {self.config_file}")
+            print(f"[OK] API keys saved to {self.config_file}")
 
             # 環境変数を更新
             self._set_environment_variables(keys)
@@ -231,7 +231,7 @@ class APIKeyManager:
             return True
 
         except Exception as e:
-            print(f"❌ Failed to save API keys: {e}")
+            print(f"[ERR] Failed to save API keys: {e}")
             return False
 
     def _set_environment_variables(self, keys: APIKeys):

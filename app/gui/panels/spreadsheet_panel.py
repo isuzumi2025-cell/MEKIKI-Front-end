@@ -1,10 +1,14 @@
 import customtkinter as ctk
 import tkinter as tk
+from tkinter import ttk
 from typing import List, Any, Callable, Optional
+import concurrent.futures
 from PIL import Image, ImageTk
 import difflib
+import time
 from datetime import datetime
 from pathlib import Path
+from app.gui.managers.thumbnail_manager import ThumbnailManager
 
 # ファイルロギング設定
 LOG_FILE = Path(__file__).parent.parent.parent.parent / "lcs_diagnostic.log"
@@ -61,6 +65,9 @@ class SpreadsheetPanel(ctk.CTkFrame):
         self._visible_range = (0, 0)  # (start_index, end_index)
         self._rows_per_page = 15  # Number of visible rows to render
         self._scroll_update_pending = False
+        self._thumbnail_queue = []
+        self._thumbnail_job = None
+        # self._executor removed - reverting to safe sync batching
 
         self._build_ui()
         log_diagnostic("[SpreadsheetPanel] UI built successfully")
@@ -129,9 +136,16 @@ class SpreadsheetPanel(ctk.CTkFrame):
         self.scroll_frame._parent_canvas.bind("<Button-5>", self._on_scroll_event)  # Linux scroll down
 
     def update_data(self, sync_pairs: List[Any], web_regions: List[Any], pdf_regions: List[Any],
-                    web_image=None, pdf_image=None):
-        """Update data and refresh display"""
+                    web_image=None, pdf_image=None, web_pages=None, pdf_pages=None):
+        """Update data and refresh display
+        
+        Args:
+            web_pages: List of page dicts with 'image' key for page-aware thumbnails
+            pdf_pages: List of page dicts with 'image' key for page-aware thumbnails
+        """
         self.sync_pairs = sync_pairs
+        self.web_pages = web_pages  # ★ ページリスト保存
+        self.pdf_pages = pdf_pages  # ★ ページリスト保存
 
         # === DIAGNOSTIC LOG START ===
         log_diagnostic("="*60)
@@ -141,6 +155,12 @@ class SpreadsheetPanel(ctk.CTkFrame):
         log_diagnostic(f"  pdf_regions count: {len(pdf_regions)}")
         log_diagnostic(f"  web_image: {web_image.size if web_image else 'None'}")
         log_diagnostic(f"  pdf_image: {pdf_image.size if pdf_image else 'None'}")
+        # ★ PAGE-AWARE診断
+        log_diagnostic(f"  web_pages: {len(web_pages) if web_pages else 'None'}")
+        log_diagnostic(f"  pdf_pages: {len(pdf_pages) if pdf_pages else 'None'}")
+        if web_pages and len(web_pages) > 0:
+            first_page = web_pages[0]
+            log_diagnostic(f"  web_pages[0] image: {first_page.get('image').size if first_page.get('image') else 'None'}")
 
         if sync_pairs:
             sp = sync_pairs[0]
@@ -158,6 +178,7 @@ class SpreadsheetPanel(ctk.CTkFrame):
             log_diagnostic(f"    area_code: {getattr(r, 'area_code', 'N/A')}")
             log_diagnostic(f"    id: {getattr(r, 'id', 'N/A')}")
             log_diagnostic(f"    rect: {getattr(r, 'rect', 'N/A')}")
+            log_diagnostic(f"    page_id: {getattr(r, 'page_id', 'N/A')}")  # ★ 追加
 
         if pdf_regions:
             r = pdf_regions[0]
@@ -246,10 +267,17 @@ class SpreadsheetPanel(ctk.CTkFrame):
         start_idx, end_idx = self._visible_range
 
         # Clear existing visible rows
+        # Clear existing visible rows
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
         self._visible_rows = {}
         self._thumbnail_refs = []
+        
+        # Cancel pending thumbnail job
+        if self._thumbnail_job:
+            self.after_cancel(self._thumbnail_job)
+            self._thumbnail_job = None
+        self._thumbnail_queue = []  # Clear queue
 
         # Add top spacer for scrolled-past rows
         if start_idx > 0:
@@ -274,6 +302,52 @@ class SpreadsheetPanel(ctk.CTkFrame):
             bottom_spacer.pack_propagate(False)
 
         log_diagnostic(f"[Virtual] Rendered rows {start_idx} to {end_idx-1} (total: {len(self.sync_pairs)})")
+        
+        # Start Async Thumbnail Generation
+        self._process_thumbnail_queue()
+
+    def _process_thumbnail_queue(self):
+        """
+        Process pending thumbnails in small batches to keep UI responsive.
+        Reverted to robust logic: Guarantee processing to verify data integrity.
+        """
+        if not self._thumbnail_queue:
+            return
+
+        # Process exactly 3 thumbnails per batch (Balanced Speed/Stability)
+        # 10ms limit was too aggressive and caused missing thumbnails.
+        batch_size = 3
+        count = 0
+        
+        while self._thumbnail_queue and count < batch_size:
+            task = self._thumbnail_queue.pop(0)
+            label = task['label']
+            region = task['region']
+            source = task['source']
+            
+            # Skip if label destroyed (scrolled out of view)
+            try:
+                if not label.winfo_exists():
+                    continue
+            except:
+                continue
+
+            try:
+                # Generate Thumbnail (Sync but batched)
+                # This ensures we NEVER skip a thumbnail if the queue has it
+                thumb = self._create_thumbnail(region.rect, source)
+                
+                if thumb:
+                    self._thumbnail_refs.append(thumb)
+                    label.configure(image=thumb, text="") # Remove placeholder text
+            except Exception as e:
+                print(f"Error generating thumbnail: {e}")
+            
+            count += 1
+        
+        # Schedule next batch
+        if self._thumbnail_queue:
+            self._thumbnail_job = self.after(20, self._process_thumbnail_queue)
 
     def _on_scroll_event(self, event):
         """Handle scroll events to trigger virtual list updates"""
@@ -343,23 +417,19 @@ class SpreadsheetPanel(ctk.CTkFrame):
             log_diagnostic(f"  self.web_image: {self.web_image.size if self.web_image else 'None'}")
             log_diagnostic(f"  self.pdf_image: {self.pdf_image.size if self.pdf_image else 'None'}")
 
-        # Get text (prefer pair data, fallback to region)
-        w_txt = getattr(pair, 'web_text', '') or (web_region.text if web_region else "")
-        p_txt = getattr(pair, 'pdf_text', '') or (pdf_region.text if pdf_region else "")
-
-        # Get bbox (prefer pair data, fallback to region)
-        web_bbox = getattr(pair, 'web_bbox', None)
-        if not web_bbox and web_region and hasattr(web_region, 'rect'):
-            web_bbox = web_region.rect
-
-        pdf_bbox = getattr(pair, 'pdf_bbox', None)
-        if not pdf_bbox and pdf_region and hasattr(pdf_region, 'rect'):
-            pdf_bbox = pdf_region.rect
-
-        # === BBOX DIAGNOSTIC (first 3 rows only) ===
+        # ★★★ SSOT刷新: regionから直接取得（pair経由の間接参照を排除） ★★★
+        # テキスト: regionが真実のソース
+        w_txt = web_region.text if web_region and hasattr(web_region, 'text') else ""
+        p_txt = pdf_region.text if pdf_region and hasattr(pdf_region, 'text') else ""
+        
+        # bbox: regionが真実のソース（pair.web_bboxは使わない）
+        web_bbox = web_region.rect if web_region and hasattr(web_region, 'rect') else None
+        pdf_bbox = pdf_region.rect if pdf_region and hasattr(pdf_region, 'rect') else None
+        
+        # === SSOT DIAGNOSTIC ===
         if index < 3:
-            log_diagnostic(f"  final web_bbox: {web_bbox}")
-            log_diagnostic(f"  final pdf_bbox: {pdf_bbox}")
+            log_diagnostic(f"[SSOT] Row {index}: web_region.rect={web_bbox}, text_len={len(w_txt)}")
+            log_diagnostic(f"[SSOT] Row {index}: pdf_region.rect={pdf_bbox}, text_len={len(p_txt)}")
 
         # Score calculation
         sim_percent = int(pair.similarity * 100)
@@ -390,13 +460,20 @@ class SpreadsheetPanel(ctk.CTkFrame):
 
         ctk.CTkLabel(web_id_frame, text=pair.web_id or "-", text_color="#4CAF50", font=("Meiryo", 8)).pack(pady=(2, 0))
 
-        web_thumb = self._create_thumbnail(self.web_image, web_bbox)
-        if web_thumb:
-            self._thumbnail_refs.append(web_thumb)
-            web_thumb_label = tk.Label(web_id_frame, image=web_thumb, bg=row_bg, cursor="hand2")
-            web_thumb_label.pack(pady=2)
-            # ★ 修正: bboxも一緒に渡してregion.rectとの不一致を回避
-            web_thumb_label.bind("<Button-1>", lambda e, r=web_region, b=web_bbox, p=pair: self._on_thumbnail_click(r, "web", p, b))
+        # ★ Async Loading: Placeholder first
+        web_thumb_label = tk.Label(web_id_frame, bg=row_bg, cursor="hand2", text="...", fg="#888")
+        web_thumb_label.pack(pady=2)
+        # Bind click (linkage works even without image)
+        web_thumb_label.bind("<Button-1>", lambda e, r=web_region: self._on_thumbnail_click(r, "web", pair))
+        
+        # Queue for async generation
+        if web_region:
+            self._thumbnail_queue.append({
+                'label': web_thumb_label,
+                'region': web_region,
+                'source': 'web',
+                'pair': pair
+            })
 
         # 3. Web Text (LEFT, expand)
         web_text_frame = ctk.CTkFrame(row, fg_color=row_bg)
@@ -418,7 +495,7 @@ class SpreadsheetPanel(ctk.CTkFrame):
         pdf_text_widget.pack(fill="both", expand=True, padx=2, pady=2)
         
         # ★ Diff Highlight 適用 (一致=グレー、差分=赤/青)
-        self._apply_diff_highlight(web_text_widget, pdf_text_widget, w_txt[:200], p_txt[:200])
+        self._apply_diff_highlight(web_text_widget, pdf_text_widget, w_txt, p_txt)
 
         # 6. PDF ID + Thumbnail (LEFT - last)
         pdf_id_frame = ctk.CTkFrame(row, fg_color=row_bg, width=100)
@@ -427,13 +504,20 @@ class SpreadsheetPanel(ctk.CTkFrame):
 
         ctk.CTkLabel(pdf_id_frame, text=pair.pdf_id or "-", text_color="#2196F3", font=("Meiryo", 8)).pack(pady=(2, 0))
 
-        pdf_thumb = self._create_thumbnail(self.pdf_image, pdf_bbox)
-        if pdf_thumb:
-            self._thumbnail_refs.append(pdf_thumb)
-            pdf_thumb_label = tk.Label(pdf_id_frame, image=pdf_thumb, bg=row_bg, cursor="hand2")
-            pdf_thumb_label.pack(pady=2)
-            # ★ 修正: bboxも一緒に渡してregion.rectとの不一致を回避
-            pdf_thumb_label.bind("<Button-1>", lambda e, r=pdf_region, b=pdf_bbox, p=pair: self._on_thumbnail_click(r, "pdf", p, b))
+        # ★ Async Loading: Placeholder first
+        pdf_thumb_label = tk.Label(pdf_id_frame, bg=row_bg, cursor="hand2", text="...", fg="#888")
+        pdf_thumb_label.pack(pady=2)
+        # Bind click
+        pdf_thumb_label.bind("<Button-1>", lambda e, r=pdf_region: self._on_thumbnail_click(r, "pdf", pair))
+
+        # Queue for async generation
+        if pdf_region:
+             self._thumbnail_queue.append({
+                'label': pdf_thumb_label,
+                'region': pdf_region,
+                'source': 'pdf',
+                'pair': pair
+            })
 
         # 7. Action Buttons (Similar/Match/Recalc) - Phase 1.9.7: 配置改善
         action_frame = ctk.CTkFrame(row, fg_color=row_bg, width=80)
@@ -490,73 +574,26 @@ class SpreadsheetPanel(ctk.CTkFrame):
 
         return row
 
-    def _create_thumbnail(self, source_image, bbox):
-        """Create a thumbnail from the source image and bbox [x1, y1, x2, y2]"""
-        if not source_image:
-            log_diagnostic("[Thumb] FAIL: source_image is None")
-            return None
-        if not bbox:
-            log_diagnostic("[Thumb] FAIL: bbox is None")
-            return None
-
-        try:
-            x1, y1, x2, y2 = bbox
-            x1 = max(0, int(x1))
-            y1 = max(0, int(y1))
-            x2 = min(source_image.width, int(x2))
-            y2 = min(source_image.height, int(y2))
-
-            if x2 <= x1 or y2 <= y1:
-                log_diagnostic(f"[Thumb] FAIL: Invalid bbox after clamp ({x1},{y1},{x2},{y2}) img={source_image.size}")
-                return None
-
-            cropped = source_image.crop((x1, y1, x2, y2))
-            log_diagnostic(f"[Thumb] OK: cropped {cropped.size} from bbox ({x1},{y1},{x2},{y2})")
-
-            # Resize to fit within THUMB_WIDTH x THUMB_HEIGHT
-            aspect = cropped.height / cropped.width if cropped.width > 0 else 1
-            if aspect > self.THUMB_HEIGHT / self.THUMB_WIDTH:
-                new_h = self.THUMB_HEIGHT
-                new_w = max(1, int(new_h / aspect))
-            else:
-                new_w = self.THUMB_WIDTH
-                new_h = max(1, int(new_w * aspect))
-
-            resized = cropped.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            # レガシー方式: ImageTk.PhotoImage を使用
-            photo_img = ImageTk.PhotoImage(resized)
-            log_diagnostic(f"[Thumb] SUCCESS: PhotoImage created ({new_w}x{new_h})")
-            return photo_img
-
-        except Exception as e:
-            log_diagnostic(f"[Thumb] EXCEPTION: {e}")
-            import traceback
-            log_diagnostic(traceback.format_exc())
-            return None
-
-    def _on_thumbnail_click(self, region, source: str, pair, bbox=None):
-        """Handle thumbnail click - notify parent to highlight region
+    def _create_page_aware_thumbnail(self, region, pages_list, fallback_image, source: str):
+        """Delegate to ThumbnailManager"""
+        return ThumbnailManager.create_page_aware_thumbnail(region, pages_list, fallback_image)
+    
+    def _create_thumbnail(self, bbox, source="web"):
+        """Delegate to ThumbnailManager (Virtual Cropping from Global BBox)"""
+        pages = getattr(self, 'web_pages', []) if source == "web" else getattr(self, 'pdf_pages', [])
+        image = self.web_image if source == "web" else self.pdf_image
         
-        Args:
-            region: EditableRegion (area_code用)
-            source: "web" or "pdf"
-            pair: SyncPair
-            bbox: [x1, y1, x2, y2] サムネイル生成に使った座標（ハイライト用）
-        """
-        if self.on_row_select:
-            # ★ 修正: bboxがあればpairに設定して親に渡す
-            if bbox:
-                if source == "web":
-                    pair.web_bbox = bbox
-                else:
-                    pair.pdf_bbox = bbox
-            
-            area_code = getattr(region, 'area_code', None) if region else None
+        return ThumbnailManager.create_thumbnail_from_global_bbox(bbox, pages, image)
+
+    def _on_thumbnail_click(self, region, source: str, pair):
+        """Handle thumbnail click - notify parent to highlight region (Canonical pattern)"""
+        if self.on_row_select and region:
+            # ★ Use region.area_code for proper Source panel linkage
             if source == "web":
-                self.on_row_select(area_code or pair.web_id, pair.pdf_id, pair)
+                self.on_row_select(region.area_code, pair.pdf_id, pair)
             else:
-                self.on_row_select(pair.web_id, area_code or pair.pdf_id, pair)
-            log_diagnostic(f"[Thumb] Clicked: {source} - {area_code}, bbox={bbox}")
+                self.on_row_select(pair.web_id, region.area_code, pair)
+            log_diagnostic(f"[Thumb] Clicked: {source} - {getattr(region, 'area_code', 'N/A')}")
 
     def _on_row_click(self, row_widget, pair):
         """Handle row click - highlight and notify parent"""

@@ -9,6 +9,7 @@ from typing import Optional, Dict, List, Callable, Tuple
 from PIL import Image, ImageTk
 import io
 import base64
+import threading  # ★ Async Support
 
 
 class ComparisonMatrixWindow(ctk.CTkToplevel):
@@ -344,7 +345,7 @@ class ComparisonMatrixWindow(ctk.CTkToplevel):
         canvas.configure(scrollregion=canvas.bbox("all"))
     
     def _run_comparison(self):
-        """比較実行"""
+        """比較実行 (非同期UI対応)"""
         if not self.web_text:
             self.web_text = self.web_textbox.get("1.0", "end").strip()
         if not self.pdf_text:
@@ -354,11 +355,46 @@ class ComparisonMatrixWindow(ctk.CTkToplevel):
             self.status_label.configure(text="⚠️ 両方のテキストが必要です")
             return
         
-        # Diff計算
-        from difflib import SequenceMatcher
+        # UI update to show processing
+        self.status_label.configure(text="⏳ 比較計算中...")
+        self.sync_display.configure(text="Calc...")
+        self.diff_text.delete("1.0", "end")
+        self.diff_text.insert("1.0", "計算中...")
         
-        matcher = SequenceMatcher(None, self.web_text, self.pdf_text)
-        ratio = matcher.ratio()
+        # Start background thread
+        thread = threading.Thread(target=self._run_comparison_worker)
+        thread.daemon = True
+        thread.start()
+
+    def _run_comparison_worker(self):
+        """Background thread for heavy text comparison"""
+        try:
+            from difflib import SequenceMatcher
+            
+            # Heavy computation
+            matcher = SequenceMatcher(None, self.web_text, self.pdf_text)
+            ratio = matcher.ratio()
+            opcodes = matcher.get_opcodes()
+            
+            # Calculate stats
+            added = deleted = changed = 0
+            for tag, i1, i2, j1, j2 in opcodes:
+                if tag == 'replace':
+                    changed += 1
+                elif tag == 'delete':
+                    deleted += 1
+                elif tag == 'insert':
+                    added += 1
+            
+            # Schedule UI update on main thread
+            self.after(10, lambda: self._update_comparison_ui(ratio, opcodes, added, deleted, changed))
+            
+        except Exception as e:
+            print(f"Comparison Error: {e}")
+            self.after(10, lambda: self.status_label.configure(text=f"❌ エラー: {e}"))
+
+    def _update_comparison_ui(self, ratio, opcodes, added, deleted, changed):
+        """Update UI with results (Main Thread)"""
         
         # Sync Rate更新
         sync_rate = int(ratio * 100)
@@ -376,11 +412,11 @@ class ComparisonMatrixWindow(ctk.CTkToplevel):
         self.sync_display.configure(text_color=color)
         self.sync_rate_label.configure(text_color=color)
         
-        # Diff詳細
+        # Diff詳細表示
         self.diff_text.delete("1.0", "end")
         
-        opcodes = matcher.get_opcodes()
-        added = deleted = changed = 0
+        # Note: Building huge text content might still slightly block, but much less than matching.
+        # We can optimize this by inserting in chunks if needed, but usually insert is fast enough for <100k chars.
         
         for tag, i1, i2, j1, j2 in opcodes:
             if tag == 'equal':
@@ -388,14 +424,21 @@ class ComparisonMatrixWindow(ctk.CTkToplevel):
             elif tag == 'replace':
                 self.diff_text.insert("end", f"[-{self.web_text[i1:i2]}-]", "deleted")
                 self.diff_text.insert("end", f"[+{self.pdf_text[j1:j2]}+]", "added")
-                changed += 1
             elif tag == 'delete':
                 self.diff_text.insert("end", f"[-{self.web_text[i1:i2]}-]", "deleted")
-                deleted += 1
             elif tag == 'insert':
                 self.diff_text.insert("end", f"[+{self.pdf_text[j1:j2]}+]", "added")
-                added += 1
         
+        # Apply tags colors if not already defined? 
+        # CtkTextbox might not support tags fully like tk.Text. 
+        # Check if tags need config. CtkTextbox wraps tk.Text.
+        try:
+             # Access underlying tk widget for tag config
+             self.diff_text._textbox.tag_config("deleted", background="#3D1B1B", foreground="#FF9999")
+             self.diff_text._textbox.tag_config("added", background="#1B3D1B", foreground="#99FF99")
+        except:
+             pass
+
         self.diff_stats.configure(text=f"追加: {added} | 削除: {deleted} | 変更: {changed}")
         
         # 校正ヒント生成

@@ -16,7 +16,7 @@ try:
     _USE_NEW_API_MANAGER = True
 except ImportError:
     _USE_NEW_API_MANAGER = False
-    print("⚠️ New API Manager not available, using legacy config")
+    print("[WARN] New API Manager not available, using legacy config")
 
 
 class Config:
@@ -63,14 +63,14 @@ class Config:
                 cls.ANTHROPIC_API_KEY = keys.anthropic_api_key or cls.ANTHROPIC_API_KEY
 
                 # 環境変数に設定（既に manager._set_environment_variables で設定済み）
-                print("✅ API keys loaded via secure manager")
+                print("[OK] API keys loaded via secure manager")
 
             except Exception as e:
-                print(f"⚠️ Failed to load API keys via manager: {e}")
-                print("   Falling back to environment variables")
+                print(f"[WARN] Failed to load API keys via manager: {e}")
+                print("       Falling back to environment variables")
         else:
             # レガシーモード: 環境変数のみ
-            print("ℹ️ Using legacy API key loading (environment variables only)")
+            print("[INFO] Using legacy API key loading (environment variables only)")
 
     @classmethod
     def get_api_key(cls, provider: str) -> str:

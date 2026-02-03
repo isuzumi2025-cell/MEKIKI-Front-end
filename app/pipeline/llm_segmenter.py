@@ -112,17 +112,24 @@ Web画像とPDF画像を見て、両方に共通するテキストセグメン�
             
             # 画像をバイトに変換（Gemini API用）
             def image_to_part(img: Image.Image):
-                """PIL ImageをGemini Part形式に変換"""
+                """PIL ImageをGemini Part形式に変換（ImageSegmentを使用）"""
+                try:
+                    from app.sdk.core.segment import ImageSegment
+                    segment = ImageSegment.from_image(img, max_long_edge=1024)
+                    target_img = segment.resized_image if segment.resized_image else img
+                except ImportError:
+                    # フォールバック: 従来のリサイズ
+                    target_img = img
+                    max_dim = 1024
+                    if img.width > max_dim or img.height > max_dim:
+                        scale = min(max_dim / img.width, max_dim / img.height)
+                        target_img = img.resize((int(img.width * scale), int(img.height * scale)))
+                
                 img_byte_arr = io.BytesIO()
                 # RGBに変換
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
-                # リサイズ（大きすぎる場合）
-                max_dim = 1024
-                if img.width > max_dim or img.height > max_dim:
-                    scale = min(max_dim / img.width, max_dim / img.height)
-                    img = img.resize((int(img.width * scale), int(img.height * scale)))
-                img.save(img_byte_arr, format='JPEG', quality=85)
+                if target_img.mode != 'RGB':
+                    target_img = target_img.convert('RGB')
+                target_img.save(img_byte_arr, format='JPEG', quality=85)
                 return {
                     "mime_type": "image/jpeg",
                     "data": base64.b64encode(img_byte_arr.getvalue()).decode()

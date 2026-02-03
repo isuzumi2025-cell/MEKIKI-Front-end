@@ -234,12 +234,17 @@ class ParagraphMatcher:
     
     def calculate_similarity(self, text1: str, text2: str) -> float:
         """
-        2つのテキスト間の類似度を計算 (複合スコア版)
+        2つのテキスト間の類似度を計算 (複合スコア版 + 速度最適化)
         
         複数の手法を組み合わせて精度向上:
         1. SequenceMatcher (文字列全体)
         2. 単語レベルJaccard類似度
         3. 文字N-gram重複率
+        
+        ★ 速度最適化:
+        - 早期棄却（長さ比率チェック）
+        - 単語重複ゼロの場合はスキップ
+        - LCSをハッシュセットで高速化
         """
         if not text1 or not text2:
             return 0.0
@@ -255,16 +260,34 @@ class ParagraphMatcher:
         if norm1 == norm2:
             return 1.0
         
-        # 1. SequenceMatcherで類似度計算 (40%)
-        seq_score = SequenceMatcher(None, norm1, norm2).ratio()
+        # ★ 速度最適化1: 長さ比率による早期棄却
+        len1, len2 = len(norm1), len(norm2)
+        if len1 > 0 and len2 > 0:
+            length_ratio = min(len1, len2) / max(len1, len2)
+            # 長さが5倍以上違うと類似度が低い可能性が高い
+            if length_ratio < 0.2 and min(len1, len2) > 20:
+                return 0.05  # 早期棄却
         
-        # 2. 単語レベルJaccard類似度 (30%)
+        # 2. 単語レベルJaccard類似度 (30%) - 先に計算して早期棄却判定に使用
         words1 = set(norm1.split())
         words2 = set(norm2.split())
-        if words1 or words2:
-            jaccard = len(words1 & words2) / len(words1 | words2) if (words1 | words2) else 0.0
+        if words1 and words2:
+            intersection = words1 & words2
+            union = words1 | words2
+            jaccard = len(intersection) / len(union) if union else 0.0
+            
+            # ★ 速度最適化2: 単語重複ゼロの長文は早期棄却
+            if len(intersection) == 0 and min(len1, len2) > 50:
+                return 0.02  # ほぼ無関係
         else:
             jaccard = 0.0
+        
+        # 1. SequenceMatcherで類似度計算 (40%)
+        # ★ 速度最適化3: 長文の場合はautojunkを有効化
+        if max(len1, len2) > 500:
+            seq_score = SequenceMatcher(lambda x: x in ' \t\n', norm1, norm2).ratio()
+        else:
+            seq_score = SequenceMatcher(None, norm1, norm2).ratio()
         
         # 3. 文字N-gram (bi-gram) 重複率 (30%)
         def get_ngrams(text, n=2):
@@ -283,22 +306,35 @@ class ParagraphMatcher:
         # ★ Phase 4: アンカーチェック - 8文字以上の共通部分がないとマッチとみなさない
         # これにより「JR九州...」vs「59五所神社...」のような虚構マッチを防止
         if combined >= 0.25:  # 閾値を超えた場合のみチェック
-            # 最長共通部分文字列を探索
-            lcs_length = 0
-            shorter = norm1 if len(norm1) <= len(norm2) else norm2
-            longer = norm2 if len(norm1) <= len(norm2) else norm1
+            # ★ 速度最適化4: ハッシュセットによるLCS高速化
+            shorter = norm1 if len1 <= len2 else norm2
+            longer = norm2 if len1 <= len2 else norm1
             
-            for length in range(min(8, len(shorter)), 0, -1):
-                for i in range(len(shorter) - length + 1):
-                    substring = shorter[i:i+length]
-                    if substring in longer:
-                        lcs_length = length
+            # 8文字のサブストリングをハッシュセットで検索
+            lcs_length = 0
+            target_len = min(8, len(shorter))
+            
+            if target_len >= 8:
+                # 長い方の8-gramセットを構築
+                longer_8grams = set(longer[i:i+8] for i in range(len(longer) - 7))
+                # 短い方から8-gramを検索
+                for i in range(len(shorter) - 7):
+                    if shorter[i:i+8] in longer_8grams:
+                        lcs_length = 8
                         break
-                if lcs_length >= 8:
-                    break
+            
+            # 8文字未満の場合は従来ロジック（短いテキスト用）
+            if lcs_length < 8 and target_len < 8:
+                for length in range(target_len, 0, -1):
+                    for i in range(len(shorter) - length + 1):
+                        if shorter[i:i+length] in longer:
+                            lcs_length = length
+                            break
+                    if lcs_length > 0:
+                        break
             
             # 8文字以上の共通部分がなければスコアを大幅に削減
-            if lcs_length < 8 and len(norm1) >= 10 and len(norm2) >= 10:
+            if lcs_length < 8 and len1 >= 10 and len2 >= 10:
                 combined = min(combined, 0.20)  # 最大0.20に制限
         
         return combined
@@ -323,14 +359,48 @@ class ParagraphMatcher:
         if not web_paragraphs or not pdf_paragraphs:
             return web_paragraphs, pdf_paragraphs, []
         
-        print(f"[ParagraphMatcher] マッチング開始: Web {len(web_paragraphs)}件 x PDF {len(pdf_paragraphs)}件")
+        import time
+        start_time = time.time()
+        total_comparisons = len(web_paragraphs) * len(pdf_paragraphs)
+        print(f"[ParagraphMatcher] マッチング開始: Web {len(web_paragraphs)}件 x PDF {len(pdf_paragraphs)}件 (最大{total_comparisons}比較)")
         
-        # 全ペアの融合スコアを計算 (マルチシグナル)
-        pairs = []
+        # ★ 速度最適化: 単語ハッシュによる事前フィルタリング
+        # 各パラグラフの単語セットを事前計算
+        web_word_sets = {}
+        pdf_word_sets = {}
         for w in web_paragraphs:
+            norm_text = self.normalize_text(w.text)
+            web_word_sets[w.id] = set(norm_text.split()) if norm_text else set()
+        for p in pdf_paragraphs:
+            norm_text = self.normalize_text(p.text)
+            pdf_word_sets[p.id] = set(norm_text.split()) if norm_text else set()
+        
+        # 全ペアの融合スコアを計算 (マルチシグナル + 早期棄却)
+        pairs = []
+        skipped = 0
+        for w in web_paragraphs:
+            w_words = web_word_sets.get(w.id, set())
+            w_text_len = len(w.text) if w.text else 0
+            
             for p in pdf_paragraphs:
+                p_words = pdf_word_sets.get(p.id, set())
+                p_text_len = len(p.text) if p.text else 0
+                
+                # ★ 速度最適化: 早期棄却チェック
+                # 1. 両方とも長文で単語重複ゼロ → スキップ
+                if w_words and p_words:
+                    if len(w_words & p_words) == 0 and min(w_text_len, p_text_len) > 30:
+                        skipped += 1
+                        continue
+                
+                # 2. 長さ比率が極端に違う → スキップ
+                if w_text_len > 0 and p_text_len > 0:
+                    ratio = min(w_text_len, p_text_len) / max(w_text_len, p_text_len)
+                    if ratio < 0.1 and min(w_text_len, p_text_len) > 50:
+                        skipped += 1
+                        continue
+                
                 # 融合スコア計算 (テキスト40% + 空間30% + 構文10%)
-                # 画像類似度 (20%) は事前計算が必要なので後で追加可能
                 sim = self.calculate_fusion_score(
                     text1=w.text,
                     text2=p.text,
@@ -340,6 +410,9 @@ class ParagraphMatcher:
                 )
                 if sim > 0.1:  # 最低閾値
                     pairs.append((w.id, p.id, sim))
+        
+        elapsed = time.time() - start_time
+        print(f"[ParagraphMatcher] 比較完了: {len(pairs)}候補 / {total_comparisons - skipped}実行 (スキップ{skipped}) [{elapsed:.2f}秒]")
         
         # 類似度が高い順にソート
         pairs.sort(key=lambda x: x[2], reverse=True)

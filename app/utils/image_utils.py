@@ -1,6 +1,9 @@
 """
 Image Utilities Module
 画像処理ユーティリティ - リサイズ、変換、サムネイル生成
+
+関連モジュール:
+- app.models.segment: ImageSegment, CoordinateConverter, BBox
 """
 from PIL import Image, ImageDraw, ImageFont
 from typing import Tuple, Optional

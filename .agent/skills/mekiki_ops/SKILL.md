@@ -14,12 +14,35 @@ MEKIKIプロジェクトの自律運用を支援するスキル。以下のタ�
 
 > **全タスク開始前に以下を実行すること**
 
-1. `Vault/00_Runbook/autonomous_behavior_framework.md` 参照 ★NEW
-2. `Vault/00_Runbook/autonomous_methodology.md` 参照
-3. `Vault/10_Projects/mekiki/backup_catalog.md` 確認
-4. `Vault/50_Logs/incidents/` 過去インシデント確認
-5. Clawdbot通知（作業開始）
-6. 計画書作成 → ユーザー承認
+### 必須参照（省略禁止）
+
+1. `Vault/00_Runbook/project_sanctuary.md` 📛 **聖域定義書** ★PRIORITY
+2. `Vault/00_Runbook/autonomous_behavior_framework.md`
+3. `Vault/00_Runbook/autonomous_methodology.md`
+4. `Vault/10_Projects/mekiki/backup_catalog.md` 確認
+5. `Vault/50_Logs/incidents/` 過去インシデント確認
+6. Clawdbot通知（作業開始）
+7. 計画書作成 → ユーザー承認
+
+### 静的解析ゲート（コード変更前必須）★NEW
+
+```bash
+# Python文法チェック
+python -m py_compile <target_file>
+
+# 型チェック（推奨）
+mypy <target_file> --ignore-missing-imports 2>/dev/null || echo "mypy not installed"
+
+# 禁止パターン検出
+grep -n "import \*" <target_file> && echo "⚠️ ワイルドカードimport検出"
+```
+
+### GPT-5.2 戦略相談（複雑なタスク時）★NEW
+
+```python
+from app.utils.gpt_bridge import consult_gpt_strategist
+response = consult_gpt_strategist("問題の説明をここに")
+```
 
 **ワークフロー**: `/start-work` v2.0.0 で自動実行
 

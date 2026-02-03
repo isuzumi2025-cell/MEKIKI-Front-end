@@ -135,10 +135,52 @@ class DisplayMixin:
                         if not hasattr(region, 'rect') or len(region.rect) < 4:
                             continue
 
-                        x1 = region.rect[0] * scale_x + offset_x
-                        y1 = region.rect[1] * scale_y + offset_y
-                        x2 = region.rect[2] * scale_x + offset_x
-                        y2 = region.rect[3] * scale_y + offset_y
+                        # ★ Phase 45: Global-to-Local Coordinate Mapping (Orchestra Fix)
+                        # Canvasは「現在のページ画像」を表示しているため、ステッチ座標(Y=15000等)を
+                        # そのまま描画すると画面外になる。ページオフセットを引いてローカル座標に戻す。
+                        
+                        current_page = getattr(self, 'current_page', 1)
+                        
+                        if source == "web":
+                            # ページフィルタリング: 現在のページ以外の領域は描画しない（または薄く描画）
+                            # region.page_id がある場合のみチェック
+                            r_page = getattr(region, 'page_id', -1)
+                            if r_page != -1 and r_page != current_page:
+                                continue # 別ページの領域はスキップ
+                            
+                            # 座標変換: Global -> Local
+                            # stored offsets: self.web_page_offsets
+                            offsets = getattr(self, 'web_page_offsets', [0])
+                            
+                            # current_page is 1-based index
+                            page_idx = current_page - 1
+                            if 0 <= page_idx < len(offsets):
+                                y_offset = offsets[page_idx]
+                                # Note: region.rect is Global (Stitch) Coordinates
+                                y1_src = region.rect[1] - y_offset
+                                y2_src = region.rect[3] - y_offset
+                                
+                                # Xはそのまま
+                                x1_src = region.rect[0]
+                                x2_src = region.rect[2]
+                                
+                                # スケール適用
+                                x1 = x1_src * scale_x + offset_x
+                                y1 = y1_src * scale_y + offset_y
+                                x2 = x2_src * scale_x + offset_x
+                                y2 = y2_src * scale_y + offset_y
+                            else:
+                                # Fallback (should not happen if offsets synced)
+                                x1 = region.rect[0] * scale_x + offset_x
+                                y1 = region.rect[1] * scale_y + offset_y
+                                x2 = region.rect[2] * scale_x + offset_x
+                                y2 = region.rect[3] * scale_y + offset_y
+                        else:
+                            # PDF (or unset source) uses standard scaling
+                            x1 = region.rect[0] * scale_x + offset_x
+                            y1 = region.rect[1] * scale_y + offset_y
+                            x2 = region.rect[2] * scale_x + offset_x
+                            y2 = region.rect[3] * scale_y + offset_y
 
                         # ★ 修正: sync_numberでバッジ番号と色を決定
                         sync_num = getattr(region, 'sync_number', None)

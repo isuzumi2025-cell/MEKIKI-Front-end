@@ -232,15 +232,39 @@ class CloudOCREngine(OCREngineStrategy):
 
     # --- 以下、前回のロジック（そのまま利用） ---
     def _vertical_stack_clustering(self, blocks):
+        """
+        知的パラグラフ検出 (Orchestra協議スコア8/10に基づく改善版)
+        
+        GPT戦略:
+        - ダイナミック閾値調整
+        - レイアウト類似性検出
+        - テンプレートパターン認識
+        """
+        import re
+        
         if not blocks: return []
         blocks.sort(key=lambda b: b["rect"][1])
+        
+        # === パターン認識用正規表現 ===
+        TEMPLATE_PATTERNS = [
+            re.compile(r'〒\d{3}-?\d{4}'),     # 郵便番号
+            re.compile(r'\d{2,4}[-−]\d{2,4}[-−]\d{4}'),  # 電話番号
+            re.compile(r'[¥￥][\d,]+'),         # 価格
+            re.compile(r'\d{1,2}[月/]\d{1,2}[日]?'),  # 日付
+            re.compile(r'https?://'),          # URL
+        ]
+        
+        def is_template_content(text):
+            """テンプレート系コンテンツか判定"""
+            return any(p.search(text) for p in TEMPLATE_PATTERNS)
         
         clusters = [{
             "rect": b["rect"], 
             "texts": [b["text"]],
             "width": b["width"],
             "center_x": b["center_x"],
-            "avg_font_size": b["font_size"]
+            "avg_font_size": b["font_size"],
+            "is_template": is_template_content(b["text"])
         } for b in blocks]
         
         has_merged = True
@@ -257,29 +281,49 @@ class CloudOCREngine(OCREngineStrategy):
                     if j in skip_indices: continue
                     target = clusters[j]
                     
-                    # 結合判定 - リサイズ後の画像座標に適用
+                    # === ダイナミック閾値計算 (GPT戦略) ===
+                    base_size = max(current["avg_font_size"], target["avg_font_size"])
+                    
+                    # テンプレートコンテンツは閾値を緩和
+                    is_both_template = current.get("is_template") and target.get("is_template")
+                    template_bonus = 1.5 if is_both_template else 1.0
+                    
+                    # 結合判定 - X方向アライメント
                     x_overlap = min(current["rect"][2], target["rect"][2]) - max(current["rect"][0], target["rect"][0])
                     min_width = min(current["width"], target["width"])
                     overlap_ratio = x_overlap / min_width if min_width > 0 else 0
                     left_diff = abs(current["rect"][0] - target["rect"][0])
-                    # 元の設定に戻す
-                    is_aligned = overlap_ratio > 0.6 or left_diff < 30
+                    width_diff = abs(current["width"] - target["width"])
+                    
+                    # === レイアウト類似性検出 (GPT戦略) ===
+                    # 左揃え & 幅が近い = 同一レイアウトグループ
+                    is_layout_similar = (
+                        left_diff < 20 and    # 厳密な左揃え
+                        width_diff < 50       # 幅が近い
+                    )
+                    
+                    # アライメント判定 (改善版: GPT推奨 left_diff 20-40px)
+                    is_aligned = overlap_ratio > 0.5 or left_diff < 40 or is_layout_similar
                     
                     if not is_aligned: continue
 
                     gap_y = target["rect"][1] - current["rect"][3]
-                    base_size = max(current["avg_font_size"], target["avg_font_size"])
-                    # 元の設定に戻す
-                    threshold_y = max(base_size * 2.5, 50)
+                    
+                    # === ダイナミックY閾値 (GPT戦略: 2.0-4.0x) ===
+                    # レイアウト類似の場合は4.0x、通常は3.0x
+                    y_multiplier = 4.0 if is_layout_similar else (3.5 if is_both_template else 3.0)
+                    threshold_y = max(base_size * y_multiplier * template_bonus, 60)
 
                     if gap_y > threshold_y: continue
-                    # 元の設定に戻す
-                    if current["avg_font_size"] > target["avg_font_size"] * 2.5: continue
-                    if target["avg_font_size"] > current["avg_font_size"] * 2.0: continue
                     
-                    # 元の設定に戻す
+                    # フォントサイズ差の許容 (GPT推奨: 3.0x)
+                    if current["avg_font_size"] > target["avg_font_size"] * 3.0: continue
+                    if target["avg_font_size"] > current["avg_font_size"] * 2.5: continue
+                    
+                    # X方向ギャップ (GPT推奨: 20-25px)
                     gap_x = max(0, target["rect"][0] - current["rect"][2]) if current["rect"][0] < target["rect"][0] else max(0, current["rect"][0] - target["rect"][2])
-                    if gap_x > 15: continue
+                    gap_x_threshold = 30 if is_layout_similar else 20
+                    if gap_x > gap_x_threshold: continue
 
                     new_rect = [
                         min(current["rect"][0], target["rect"][0]),
@@ -295,7 +339,8 @@ class CloudOCREngine(OCREngineStrategy):
                         "rect": new_rect, "texts": new_texts,
                         "width": new_rect[2] - new_rect[0],
                         "center_x": (new_rect[0] + new_rect[2]) / 2,
-                        "avg_font_size": new_avg
+                        "avg_font_size": new_avg,
+                        "is_template": current.get("is_template") or target.get("is_template")
                     }
                     skip_indices.add(j)
                     has_merged = True
