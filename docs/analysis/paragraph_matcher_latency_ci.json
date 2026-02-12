@@ -1,0 +1,41 @@
+{
+  "config": {
+    "dataset": "kyushu-temple",
+    "web_count": 100,
+    "pdf_count": 100,
+    "repeats": 3,
+    "slo_first_sec": 2.0,
+    "slo_rerun_sec": 0.5,
+    "dataset_path": "C:\\Users\\raiko\\OneDrive\\Desktop\\26\\OCR\\exports\\metadata_20260206_031356.csv"
+  },
+  "samples": [
+    {
+      "iteration": 1,
+      "first_sec": 0.4916670999955386,
+      "rerun_sec": 0.009778599996934645
+    },
+    {
+      "iteration": 2,
+      "first_sec": 0.47696699999505654,
+      "rerun_sec": 0.010225999998510815
+    },
+    {
+      "iteration": 3,
+      "first_sec": 0.47280450000835117,
+      "rerun_sec": 0.010194500006036833
+    }
+  ],
+  "first_run": {
+    "avg": 0.4804795333329821,
+    "min": 0.47280450000835117,
+    "max": 0.4916670999955386,
+    "p95": 0.4916670999955386
+  },
+  "rerun": {
+    "avg": 0.010066366667160764,
+    "min": 0.009778599996934645,
+    "max": 0.010225999998510815,
+    "p95": 0.010225999998510815
+  },
+  "slo_passed": true
+}

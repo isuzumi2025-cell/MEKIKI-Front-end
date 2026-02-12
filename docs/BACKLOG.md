@@ -1,16 +1,16 @@
-# MEKIKI Genius — Backlog (ID-based)
+# MEKIKI Genius - Backlog (ID-based)
 
 > Status values: DONE / NEXT / IN-PROGRESS / BLOCKED / DEFER
 
 ## A. Stabilization & UX (Phase 1 closeout)
 - **B-001** (DONE) Remove duplicate Spreadsheet panel implementations; keep component-based SpreadsheetPanel only.
-- **B-002** (DONE) Fix “Simulate” button to launch Unified Inspection Editor.
-- **B-003** (DONE) Fix “Advanced Match” to run the correct unified pipeline.
+- **B-002** (DONE) Fix "Simulate" button to launch Unified Inspection Editor.
+- **B-003** (DONE) Fix "Advanced Match" to run the correct unified pipeline.
 - **B-004** (NEXT) Strengthen error handling so exceptions do not crash the app (graceful recovery + user-facing message).
 
 ## B. State Management (SSOT enforcement)
 - **S-001** (DONE) Introduce ComparisonState / state model; migrate AdvancedComparisonView to use it.
-- **S-002** (NEXT) Enforce “UI is a view only”: remove remaining ad-hoc UI patch methods; all updates derive from UnifiedMatchResult.
+- **S-002** (NEXT) Enforce "UI is a view only": remove remaining ad-hoc UI patch methods; all updates derive from UnifiedMatchResult.
 - **S-003** (NEXT) Add internal invariants:
   - No duplicate IDs
   - Every SyncPair references existing regions
@@ -18,32 +18,53 @@
 
 ## C. Matching Engine (Hybrid pipeline)
 - **M-001** (DONE) AnchorMatcher (Anchor & Grow) optimized.
-- **M-002** (DONE) Optimization pipeline: Silent Sync → RangeOpt → Silent Sync → AnchorMatch.
+- **M-002** (DONE) Optimization pipeline: Silent Sync -> RangeOpt -> Silent Sync -> AnchorMatch.
 - **M-003** (NEXT) Strategy Selector:
-  - If anchors insufficient → fall back to bag-of-words / text-only matcher
-  - Otherwise → Anchor alignment then text refinement
+  - If anchors are insufficient -> fall back to bag-of-words / text-only matcher
+  - Otherwise -> anchor alignment then text refinement
 - **M-004** (DEFER) Isomorphic graph matching exploration (only if needed for hard cases).
 
 ## D. Template Propagation (Genius Edition)
 - **P-001** (DONE) Implement StructurePropagator core logic.
-- **P-002** (DONE) Integrate Propagate button in GUI (“✨ 類似検出”).
+- **P-002** (DONE) Integrate Propagate button in GUI.
 - [x] **P-003** (DONE) Implement VisualPropagator (OpenCV template matching).
-- [x] **P-FIX** (DONE) Enable VisualPropagator in GUI (Pass image arg to propagate).
-- [ ] **P-004** (NEXT / CRITICAL) Verify Template Propagation with “03 Sugawara Shrine” template (Kyushu Temple sample).
+- [x] **P-FIX** (DONE) Enable VisualPropagator in GUI (pass image arg to propagate).
+- [ ] **P-004** (NEXT / CRITICAL) Verify Template Propagation with "03 Sugawara Shrine" template (Kyushu Temple sample).
 - **P-005** (NEXT) Add debug telemetry:
   - number of anchors found
   - number of projected boxes pre/post NMS
   - reasons for rejection (overlap, out-of-bounds, low score)
 
 ## E. Refactoring (Phase 2 recommended)
-- **R-001** (NEXT) Model layer separation: comparison_model.py (WebRegions/PdfRegions/SyncPairs).
-- **R-002** (NEXT) Logic layer separation: move _calculate_* methods into core/engine/matching_engine.py.
+- **R-001** (NEXT) Model layer separation: `comparison_model.py` (WebRegions/PdfRegions/SyncPairs).
+- **R-002** (NEXT) Logic layer separation: move `_calculate_*` methods into `core/engine/matching_engine.py`.
 - **R-003** (NEXT) View layer slimming: AdvancedComparisonView handles input + render only.
 
 ## F. Quality & Regression Protection
 - **Q-001** (NEXT) Golden Sample test set:
-  - preserve known “good” pairs and expected Sync Rate / match count
+  - preserve known "good" pairs and expected Sync Rate / match count
   - automated check to prevent regression during refactor
 - **Q-002** (NEXT) Performance baseline:
   - spreadsheet rendering O(N) without repeated lookups (cache previews/diffs)
   - smooth scrolling and no redundant refresh loops
+
+## G. Spec Hardening (2026-02-12 RFC)
+- **G-001** (DONE) Formalize identity rules:
+  - `area_code` uniqueness scope
+  - `SyncPair` reference validity (empty counterpart allowed only in pending state)
+- **G-002** (DONE) Formalize coordinate contract:
+  - global storage coordinates
+  - view-only transform policy
+  - `EditableRegion.rect` and `SyncPair.*_bbox` consistency
+- **G-003** (IN-PROGRESS) Define quality and speed KPIs:
+  - Top-1 match precision
+  - false-match ratio
+  - latency SLO for initial run and rerun
+- **G-004** (NEXT) Security boundary for runtime config:
+  - environment key whitelist
+  - debug log redaction policy
+  - shared storage permission policy
+- **G-005** (DONE) KPI/SLO measurement harness:
+  - [x] fixed 100x100 benchmark fixture (Kyushu Temple metadata baseline)
+  - [x] report first-run/rerun latency
+  - [x] fail-on-regression threshold in CI
