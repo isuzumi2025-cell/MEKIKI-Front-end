@@ -1,0 +1,58 @@
+name: MEKIKI ParagraphMatcher SLO Check
+
+on:
+  push:
+    paths:
+      - "app/core/paragraph_matcher.py"
+      - "scripts/benchmark_paragraph_matcher_latency.py"
+      - "exports/metadata_20260206_031356.csv"
+      - "tests/test_benchmark_paragraph_matcher_latency.py"
+      - ".github/workflows/mekiki-paragraphmatcher-slo-check.yml"
+  pull_request:
+    paths:
+      - "app/core/paragraph_matcher.py"
+      - "scripts/benchmark_paragraph_matcher_latency.py"
+      - "exports/metadata_20260206_031356.csv"
+      - "tests/test_benchmark_paragraph_matcher_latency.py"
+      - ".github/workflows/mekiki-paragraphmatcher-slo-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  paragraphmatcher-slo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install pytest
+
+      - name: Run benchmark unit tests
+        run: pytest tests/test_benchmark_paragraph_matcher_latency.py -q -p no:cacheprovider
+
+      - name: Enforce ParagraphMatcher SLO (Kyushu Temple baseline)
+        run: >
+          python scripts/benchmark_paragraph_matcher_latency.py
+          --dataset kyushu-temple
+          --web-count 100
+          --pdf-count 100
+          --repeats 3
+          --slo-first-sec 2.0
+          --slo-rerun-sec 0.5
+          --output-json docs/analysis/paragraph_matcher_latency_ci.json
+          --enforce-slo
+
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paragraph-matcher-latency-report
+          path: docs/analysis/paragraph_matcher_latency_ci.json
