@@ -24,6 +24,7 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 import io
 import base64
 import difflib
+import re
 from dataclasses import dataclass
 from app.pipeline.metadata_exporter import export_ocr_metadata
 from app.utils.image_cache import LRUImageCache
@@ -62,6 +63,8 @@ class EditableRegion:
     
     # ★ Phase 44: ページID (Web: ページ番号, PDF: -1 = スティッチ)
     page_id: int = -1  # -1 = ページ情報なし（スティッチモード）
+    coord_system: str = "local"  # local=page-relative, global=stitched
+    stitched_y_offset: int = 0
     
     # キャンバス上でのID
     canvas_rect_id: Optional[int] = None
@@ -79,6 +82,8 @@ class EditableRegion:
             "similarity": self.similarity,
             "source": self.source,
             "page_id": self.page_id,
+            "coord_system": self.coord_system,
+            "stitched_y_offset": self.stitched_y_offset,
             "canvas_rect_id": self.canvas_rect_id,
             "canvas_text_id": self.canvas_text_id,
         }
@@ -128,9 +133,28 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
         # ★ 描画中フラグ（configureイベント干渉防止）
         self._display_in_progress: bool = False
+        self._is_fullscreen: bool = False
 
         # FR-01: 画像表示モード ("cover" or "fit")
         self.display_mode: str = "cover"
+
+        # Source-specific display mode state
+        self.display_mode_by_source: Dict[str, str] = {
+            "web": "cover",
+            "pdf": "fit",
+        }
+
+        # Rendering quality guards for dense pages
+        self.min_region_area_by_source: Dict[str, int] = {"web": 64, "pdf": 300}
+        self.max_regions_per_view_by_source: Dict[str, int] = {"web": 240, "pdf": 240}
+        # Display policy: PDF shows selected/matched first by default
+        self.region_display_mode_by_source: Dict[str, str] = {"web": "all", "pdf": "all"}
+        self.show_unmatched_area_labels_by_source: Dict[str, bool] = {"web": True, "pdf": True}
+        self.pdf_region_merge_gap_px: int = 28
+        self.pdf_region_merge_x_overlap_ratio: float = 0.35
+        self.pdf_max_regions_per_page: int = 240
+        self.pdf_card_merge_max_area_ratio: float = 0.28
+        self.pdf_card_merge_min_keep_ratio: float = 0.45
 
         # 同期データ (初期化必須)
         self.sync_pairs: List = []
@@ -158,8 +182,12 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self._image_cache_pdf = LRUImageCache(max_size=20, max_memory_mb=250)
         
         # ★ B5: Crosshair Sanity Check
-        self._crosshair_enabled = True  # クロスヘア表示フラグ
+        self._crosshair_enabled = False  # クロスヘア表示フラグ
         self._last_crosshair_pos = None  # 最後のクロスヘア位置
+
+        # Region diagnostics store (per source) for reproducible drift analysis.
+        self._last_region_diagnostics: Dict[str, Dict] = {}
+        self._overlay_log_sample_limit: int = 3
 
         # ★ SDK Phase 2: SelectionMixin 初期化
         if _HAS_SELECTION_MIXIN and hasattr(self, '_init_selection_manager'):
@@ -210,6 +238,27 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         except Exception:
             pass
         print(f"[STATUS] {text}")
+    def _safe_after(self, delay_ms: int, callback: Callable):
+        """Ignore stale after callbacks when widgets are already destroyed."""
+        def _wrapped():
+            try:
+                if not self.winfo_exists():
+                    return
+                callback()
+            except tk.TclError as e:
+                if "invalid command name" in str(e):
+                    print(f"[UI] Skip stale callback: {e}")
+                    return
+                print(f"[UI] TclError in callback: {e}")
+            except Exception as e:
+                print(f"[UI] callback error: {e}")
+
+        try:
+            if not self.winfo_exists():
+                return None
+            return self.after(delay_ms, _wrapped)
+        except Exception:
+            return None
 
     def _build_ui(self):
         """UI構築"""
@@ -387,11 +436,14 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         ).pack(side="left", padx=10, pady=5)
 
         # FR-01: 表示モード切替ボタン
-        self.display_mode_btn = ctk.CTkButton(
-            web_header, text="[Cover]", width=60, height=22, fg_color="#555555",
-            hover_color="#666666", command=self._toggle_display_mode
+        # FR-01: display mode toggle button (Web)
+        self.web_display_mode_btn = ctk.CTkButton(
+            web_header, text="[Web:Cover]", width=90, height=22, fg_color="#555555",
+            hover_color="#666666", command=lambda: self._toggle_display_mode("web")
         )
-        self.display_mode_btn.pack(side="right", padx=5, pady=4)
+        self.web_display_mode_btn.pack(side="right", padx=5, pady=4)
+        # backward compatibility alias
+        self.display_mode_btn = self.web_display_mode_btn
 
         ctk.CTkButton(
             web_header, text="🖊️編集", width=50, height=22, fg_color="#4CAF50",
@@ -424,11 +476,17 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             pdf_header, text="🖊️編集", width=50, height=22, fg_color="#4CAF50",
             command=lambda: self._open_region_editor("pdf")
         ).pack(side="right", padx=10, pady=4)
+
+        self.pdf_display_mode_btn = ctk.CTkButton(
+            pdf_header, text="[PDF:Fit]", width=90, height=22, fg_color="#555555",
+            hover_color="#666666", command=lambda: self._toggle_display_mode("pdf")
+        )
+        self.pdf_display_mode_btn.pack(side="right", padx=5, pady=4)
         
         pdf_nav_frame = ctk.CTkFrame(pdf_header, fg_color="transparent")
         pdf_nav_frame.pack(side="right", padx=5)
         ctk.CTkButton(pdf_nav_frame, text="◀", width=25, height=22, command=self._prev_pdf_page).pack(side="left", padx=1)
-        self.pdf_page_label = ctk.CTkLabel(pdf_nav_frame, text="1/1", font=("Meiryo", 9), width=40)
+        self.pdf_page_label = ctk.CTkLabel(pdf_nav_frame, text="Page 1 / 1", font=("Meiryo", 9), width=90)
         self.pdf_page_label.pack(side="left", padx=2)
         ctk.CTkButton(pdf_nav_frame, text="▶", width=25, height=22, command=self._next_pdf_page).pack(side="left", padx=1)
         
@@ -483,6 +541,9 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             )
             
             print("✅ SimpleSelectionHandler initialized for PDF and Web")
+            # Ctrl+Shift+Delete → 全手動選択クリア
+            self.bind_all("<Control-Shift-Delete>", self._clear_all_manual_selections)
+            print("✅ Ctrl+Shift+Delete bound to clear all manual selections")
         except Exception as e:
             print(f"⚠️ SimpleSelectionHandler failed: {e}")
             # フォールバック: 旧イベントバインディング
@@ -641,54 +702,118 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self.spreadsheet_panel.set_on_similar_search(self._handle_similar_search)
         self.spreadsheet_panel.set_on_match_search(self._handle_match_search)
     
+    def _normalize_region_lookup_key(self, key: str) -> str:
+        key = str(key or "").strip()
+        if not key:
+            return ""
+        # normalize separators/case to stabilize row->region lookup
+        key = key.replace("_", "-").replace(" ", "")
+        return key.upper()
+
+    def _build_region_lookup_map(self, regions):
+        result = {}
+        for r in (regions or []):
+            area_code = getattr(r, "area_code", None)
+            if not area_code:
+                continue
+            norm = self._normalize_region_lookup_key(area_code)
+            if norm:
+                result[norm] = r
+        return result
+
     def _on_spreadsheet_row_select(self, web_id: str, pdf_id: str, pair):
-        """Spreadsheet行選択時: Source領域をハイライト
-        
-        ★ SUCCESS版パターン復元: region.rectを一貫して使用
-        ★ 速度改善: 辞書キャッシュによるO(1)検索
-        """
+        """Spreadsheet row select: page-switch then highlight on both canvases."""
         print(f"[Source Sync] Highlighting: Web={web_id}, PDF={pdf_id}")
-        
-        # ★ 速度改善: 辞書キャッシュを構築（データ変更時のみ再構築）
+
         web_len = len(self.web_regions) if self.web_regions else 0
         pdf_len = len(self.pdf_regions) if self.pdf_regions else 0
-        
-        if not hasattr(self, '_web_region_map') or self._web_region_map is None or getattr(self, '_web_region_cache_len', 0) != web_len:
-            self._web_region_map = {r.area_code: r for r in self.web_regions if hasattr(r, 'area_code')}
+
+        if not hasattr(self, "_web_region_map") or self._web_region_map is None or getattr(self, "_web_region_cache_len", 0) != web_len:
+            self._web_region_map = self._build_region_lookup_map(self.web_regions)
             self._web_region_cache_len = web_len
-        if not hasattr(self, '_pdf_region_map') or self._pdf_region_map is None or getattr(self, '_pdf_region_cache_len', 0) != pdf_len:
-            self._pdf_region_map = {r.area_code: r for r in self.pdf_regions if hasattr(r, 'area_code')}
+        if not hasattr(self, "_pdf_region_map") or self._pdf_region_map is None or getattr(self, "_pdf_region_cache_len", 0) != pdf_len:
+            self._pdf_region_map = self._build_region_lookup_map(self.pdf_regions)
             self._pdf_region_cache_len = pdf_len
-        
-        # ★ O(1)検索
-        web_region = self._web_region_map.get(web_id)
-        pdf_region = self._pdf_region_map.get(pdf_id)
-        
-        # ★ デバッグ: regionが見つからない場合
+
+        web_region = self._web_region_map.get(self._normalize_region_lookup_key(web_id))
+        pdf_region = self._pdf_region_map.get(self._normalize_region_lookup_key(pdf_id))
+
         if not web_region:
-            print(f"[Source Sync] ⚠️ Web region not found: {web_id} (available: {len(self._web_region_map)} regions)")
+            print(f"[Source Sync] 笞・・Web region not found: {web_id} (available={len(self._web_region_map)})")
         if not pdf_region:
-            print(f"[Source Sync] ⚠️ PDF region not found: {pdf_id} (available: {len(self._pdf_region_map)} regions)")
-        
-        # Canvasでハイライト表示
+            print(f"[Source Sync] 笞・・PDF region not found: {pdf_id} (available={len(self._pdf_region_map)})")
+
+        page_changed = False
+        if web_region:
+            page_changed = self._switch_canvas_to_region_page("web", web_region) or page_changed
+        if pdf_region:
+            page_changed = self._switch_canvas_to_region_page("pdf", pdf_region) or page_changed
+        if page_changed:
+            self._redraw_regions()
+
         self._highlight_region_on_canvas(self.web_canvas, web_region, "#FF6F00")
         self._highlight_region_on_canvas(self.pdf_canvas, pdf_region, "#2196F3")
-        
-        # テキストボックスにも表示
-        if web_region and hasattr(self, 'web_text_box'):
+
+        if web_region and hasattr(self, "web_text_box"):
             self.web_text_box.delete("1.0", "end")
             self.web_text_box.insert("1.0", f"[{web_id}]\n{web_region.text}")
-        
-        if pdf_region and hasattr(self, 'pdf_text_box'):
+
+        if pdf_region and hasattr(self, "pdf_text_box"):
             self.pdf_text_box.delete("1.0", "end")
             self.pdf_text_box.insert("1.0", f"[{pdf_id}]\n{pdf_region.text}")
+
+    def _switch_canvas_to_region_page(self, source: str, region) -> bool:
+        """Switch the source canvas to region.page_id when needed."""
+        if not region:
+            return False
+
+        page_id = self._infer_region_page_id(region, source)
+        if not page_id or page_id < 1:
+            return False
+
+        pages = self._get_pages_for_source(source)
+        if not pages or page_id > len(pages):
+            return False
+
+        current_page = self._get_current_page_for_source(source)
+        if current_page == page_id:
+            return False
+
+        page = pages[page_id - 1]
+        if not isinstance(page, dict):
+            return False
+
+        page_image = page.get("image")
+        if page_image is None:
+            return False
+
+        if source == "web":
+            self.current_web_page_idx = page_id - 1
+            self.current_page = page_id
+            self.web_image = page_image
+            self._clear_image_cache("web")
+            self._display_image(self.web_canvas, self.web_image)
+            if hasattr(self, "page_label") and self.page_label.winfo_exists():
+                self.page_label.configure(text=f"Page {page_id} / {len(pages)}")
+            print(f"[Source Sync] Switched web canvas to page {page_id}")
+            return True
+
+        self.current_pdf_idx = page_id - 1
+        self.current_pdf_page_idx = page_id - 1
+        self.current_pdf_page = page_id
+        self.pdf_image = page_image
+        self._clear_image_cache("pdf")
+        self._display_image(self.pdf_canvas, self.pdf_image)
+        if hasattr(self, "pdf_page_label") and self.pdf_page_label.winfo_exists():
+            self.pdf_page_label.configure(text=f"Page {page_id} / {len(pages)}")
+        print(f"[Source Sync] Switched pdf canvas to page {page_id}")
+        return True
 
 
     def _highlight_region_on_canvas(self, canvas, region, color: str):
         """Canvas上で指定領域をハイライト表示 + スクロール
         
-        ★ SUCCESS版復元: シンプルなscale_x/scale_y直接適用パターン
-        ★ PDF連続スティッチ・Web両対応
+        CanvasTransform + page-aware rect正規化を使用
         """
         if not region or not hasattr(region, 'rect'):
             return
@@ -704,18 +829,26 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # 既存のハイライトを削除
         canvas.delete("highlight")
 
-        # 座標を取得
-        x1, y1, x2, y2 = region.rect
+        source = None
+        if canvas == getattr(self, "web_canvas", None):
+            source = "web"
+        elif canvas == getattr(self, "pdf_canvas", None):
+            source = "pdf"
 
-        # ★ SUCCESS版: キャンバスに保存されたスケール値を直接使用
-        scale_x = getattr(canvas, 'scale_x', 1.0)
-        scale_y = getattr(canvas, 'scale_y', 1.0)
+        rect = list(region.rect)
+        if source:
+            rect = self._normalize_region_rect_for_current_view(region, source)
+        if len(rect) < 4:
+            return
 
-        # スケール適用
-        sx1, sy1 = int(x1 * scale_x), int(y1 * scale_y)
-        sx2, sy2 = int(x2 * scale_x), int(y2 * scale_y)
+        from app.gui.sdk.coord_transform import get_canvas_transform
+        transform = get_canvas_transform(canvas)
+        sx1, sy1, sx2, sy2 = transform.src_rect_to_view(rect[0], rect[1], rect[2], rect[3])
         
-        print(f"[Highlight] rect=({x1},{y1},{x2},{y2}) → view=({sx1},{sy1},{sx2},{sy2}) scale=({scale_x:.3f},{scale_y:.3f})")
+        print(
+            f"[Highlight] rect=({rect[0]},{rect[1]},{rect[2]},{rect[3]}) "
+            f"-> view=({sx1},{sy1},{sx2},{sy2})"
+        )
 
         # ハイライト矩形を描画 (太い枠線)
         canvas.create_rectangle(
@@ -911,7 +1044,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                     print(f"[PageConvert] Scroll error: {e}")
         
         # 100ms遅延でハイライト（ページ表示後）
-        canvas.after(100, delayed_highlight)
+        self._safe_after(100, delayed_highlight)
 
 
     def _highlight_bbox_on_canvas(self, canvas, bbox, color: str):
@@ -1310,70 +1443,30 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             self._safe_status(f"❌ フォールバックエラー: {e}")
     
     def _highlight_rect_on_canvas(self, canvas, rect, color="#FFEB3B"):
-        """座標指定でキャンバス上にハイライト描画"""
+        """Draw highlight for a raw rect with page-safe normalization."""
         try:
-            if not canvas or not rect:
+            if not canvas or not rect or len(rect) < 4:
                 return
-            
-            x1, y1, x2, y2 = rect
-            
-            # scale計算
-            scale_y = getattr(canvas, 'scale_y', 1.0)
-            scale_x = getattr(canvas, 'scale_x', scale_y)
-            
-            # スケーリング適用
-            sx1 = int(x1 * scale_x)
-            sy1 = int(y1 * scale_y)
-            sx2 = int(x2 * scale_x)
-            sy2 = int(y2 * scale_y)
-            
-            # 既存のハイライトを削除せずに追加（複数表示）
-            
-            # ★ Global -> Local Coordinate Translation
-            # Canvas displays a single page, but rect is Global (Stitched)
-            
-            local_y1 = y1
-            local_y2 = y2
-            
-            if canvas == getattr(self, 'web_canvas', None):
-                 # Web Canvas Logic
-                 pass # Currently Web Canvas handles scrolling differently, usually it's Stitched? 
-                 # Wait, Web is also Page-Based in the new logic?
-                 # No, Web Tab often displays ONE LONG CANVAS (Stitched)?
-                 # Let's check _on_source_tab_change or usage. 
-                 # If Web is stitched, y1 is correct.
-                 pass
-            elif canvas == getattr(self, 'pdf_canvas', None):
-                 # PDF Canvas Logic: Single Page View
-                 # We must subtract the Y-offset of the current page
-                 
-                 # 1. Calculate offset of current PDF page
-                 current_page_idx = getattr(self, 'current_pdf_page_idx', 0)
-                 y_offset = 0
-                 
-                 if hasattr(self, 'pdf_pages_list') and self.pdf_pages_list:
-                     for i in range(current_page_idx):
-                         if i < len(self.pdf_pages_list):
-                             y_offset += self.pdf_pages_list[i]['image'].height
-                             
-                 # 2. Subtract offset
-                 local_y1 = y1 - y_offset
-                 local_y2 = y2 - y_offset
-                 
-                 # 3. Check if visible on current page
-                 # If completely out of bounds, skip drawing?
-                 # Or just draw (clipping will handle it)?
-                 # Drawing is safer to debug.
-                 
-                 # Update coords for drawing
-                 if y_offset > 0:
-                     print(f"[Highlight] PDF Global {y1} -> Local {local_y1} (Page {current_page_idx+1})")
 
-            # スケーリング適用 (Local Coordsに対して)
-            sx1 = int(x1 * scale_x)
-            sy1 = int(local_y1 * scale_y)
-            sx2 = int(x2 * scale_x)
-            sy2 = int(local_y2 * scale_y)
+            source = "web" if canvas == getattr(self, "web_canvas", None) else "pdf" if canvas == getattr(self, "pdf_canvas", None) else "web"
+            x1, y1, x2, y2 = [int(v) for v in rect]
+            normalized = [x1, y1, x2, y2]
+
+            if source == "pdf":
+                page_id = int(getattr(self, "current_pdf_idx", 0) or 0) + 1
+                page_h = self._get_page_height_for_source("pdf", page_id)
+                # if this rect looks global, convert to local for current page
+                if page_h > 0 and y2 > page_h + 2:
+                    y_off = self._get_page_y_offset_for_source("pdf", page_id)
+                    normalized = [x1, y1 - y_off, x2, y2 - y_off]
+                clipped = self._clip_rect_to_page(normalized, "pdf", page_id)
+                if clipped is None:
+                    return
+                normalized = clipped
+
+            from app.gui.sdk.coord_transform import get_canvas_transform
+            transform = get_canvas_transform(canvas)
+            sx1, sy1, sx2, sy2 = transform.src_rect_to_view(normalized[0], normalized[1], normalized[2], normalized[3])
 
             canvas.create_rectangle(
                 sx1, sy1, sx2, sy2,
@@ -1383,7 +1476,6 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         except Exception as e:
             print(f"[_highlight_rect_on_canvas] Error: {e}")
 
-    
     def _safe_window_exists(self, attr_name: str) -> bool:
         """ウィンドウ参照が有効か安全にチェック"""
         try:
@@ -1407,7 +1499,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # ★ PAGE-AWARE FIX: ページリストを渡す（ステッチではなく）
         # region.page_idで正しいページ画像を選択
         web_pages_list = getattr(self, 'web_pages', None)
-        pdf_pages_list = getattr(self, 'pdf_pages', None)  # Fix: pdf_pages_list -> pdf_pages
+        pdf_pages_list = getattr(self, 'pdf_pages_list', None)  # Fix: pdf_pages_list -> pdf_pages
         
         # フォールバック用にステッチ画像も渡す (キャッシュを使用)
         web_stitch = self._web_stitch_cache
@@ -1422,9 +1514,9 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         if not pdf_stitch and hasattr(self, 'pdf_stitched_groups') and self.pdf_stitched_groups:
              # Group mode fallback
              pdf_stitch = self.pdf_stitched_groups[getattr(self, 'current_pdf_group_idx', 0)]['image']
-        elif not pdf_stitch and hasattr(self, 'pdf_pages') and self.pdf_pages:
+        elif not pdf_stitch and hasattr(self, 'pdf_pages_list') and self.pdf_pages_list:
              print("[_refresh] ⚠️ PDF Stitch Cache Missing, regenerating...")
-             pdf_stitch = self._stitch_pages_vertically([p['image'] for p in self.pdf_pages])
+             pdf_stitch = self._stitch_pages_vertically([p['image'] for p in self.pdf_pages_list])
              self._pdf_stitch_cache = pdf_stitch
         
         print(f"[_refresh_inline_spreadsheet] web_pages={len(web_pages_list) if web_pages_list else 0}, pdf_pages={len(pdf_pages_list) if pdf_pages_list else 0}")
@@ -1554,29 +1646,49 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         # キャッシュ選択（Web/PDF）
         cache = self._image_cache_web if source == "web" else self._image_cache_pdf
 
-        # キャッシュキー生成（サイズ + モード + 画像ハッシュ）
+        # キャッシュキー生成（サイズ + source別モード + 画像ハッシュ）
         image_hash = id(image)  # PIL ImageのIDをハッシュとして使用
-        cache_key = (canvas_width, canvas_height, self.display_mode, image_hash)
+        mode = self.display_mode_by_source.get(source, "cover" if source == "web" else "fit")
+        cache_key = (canvas_width, canvas_height, mode, image_hash)
 
         # キャッシュ確認
         cached_entry = cache.get(cache_key)
 
         if cached_entry:
             # キャッシュヒット：PhotoImageを再利用（LRU）
-            canvas.delete("image")
-            canvas.create_image(-cached_entry.offset_x, -cached_entry.offset_y,
-                              anchor="nw", image=cached_entry.photo, tags="image")
-            canvas.tag_lower("image")
-            canvas.image = cached_entry.photo
-            canvas.scale_x = cached_entry.scale
-            canvas.scale_y = cached_entry.scale
-            canvas.offset_x = cached_entry.offset_x
-            canvas.offset_y = cached_entry.offset_y
+            try:
+                vy = canvas.yview()
+                vx = canvas.xview()
+                saved_y = vy[0] if vy else 0.0
+                saved_x = vx[0] if vx else 0.0
+            except Exception:
+                saved_y, saved_x = 0.0, 0.0
 
-            if self.display_mode == "cover":
-                canvas.configure(scrollregion=(0, 0, canvas_width, canvas_height))
-            else:
-                canvas.configure(scrollregion=(0, 0, cached_entry.width, cached_entry.height))
+            canvas.delete("image")
+
+            photo = cached_entry.photo
+            draw_x = int(-(cached_entry.offset_x or 0))
+            draw_y = int(-(cached_entry.offset_y or 0))
+            canvas.create_image(draw_x, draw_y, anchor="nw", image=photo, tags="image")
+            canvas.tag_lower("image")
+            canvas.image = photo
+
+            from app.gui.sdk.coord_transform import CanvasTransform
+            canvas._coord_tf = CanvasTransform(
+                scale_x=cached_entry.scale,
+                scale_y=cached_entry.scale,
+                offset_x=cached_entry.offset_x,
+                offset_y=cached_entry.offset_y
+            )
+
+            region_w = max(canvas_width, draw_x + cached_entry.width)
+            region_h = max(canvas_height, draw_y + cached_entry.height)
+            canvas.configure(scrollregion=(0, 0, region_w, region_h))
+            try:
+                canvas.yview_moveto(saved_y)
+                canvas.xview_moveto(saved_x)
+            except Exception:
+                pass
 
             # キャッシュ統計をログ出力（デバッグ用）
             stats = cache.get_stats()
@@ -1584,6 +1696,12 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 print(f"📊 {source.upper()} Cache: {stats['hit_rate']:.1%} hit rate "
                       f"({stats['size']}/{stats['max_size']} entries, "
                       f"{stats['memory_mb']:.1f}MB)")
+
+            # B5 fix: キャッシュヒット後もリージョンを再描画する
+            # （_execute_smart_resize 経由でない直接呼び出し時にリージョンが消えるのを防ぐ）
+            if hasattr(self, 'web_regions') and hasattr(self, 'pdf_regions'):
+                if self.web_regions or self.pdf_regions:
+                    self._redraw_regions()
             return
 
         # キャッシュミス：新規生成
@@ -1676,25 +1794,46 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                             print(f"[_display_current_page] Scrolled to page {self.current_page}, y={y_start}")
     
     def _on_source_tab_change(self):
-        """Sourceタブ切り替え時の処理（Overview廃止済み）"""
+        """Keep source tab display and controls consistent."""
         current_tab = self.view_tabs.get()
+
         if current_tab == "Web Source":
             self.primary_source = "web"
-            # Web画像を再表示
-            if hasattr(self, 'web_image') and self.web_image and hasattr(self, 'web_canvas'):
-                self.after(100, lambda: self._display_image(self.web_canvas, self.web_image))
+            if getattr(self, "web_image", None) and hasattr(self, "web_canvas"):
+                self.after(80, lambda: self._display_image(self.web_canvas, self.web_image))
+
+            total_web = len(getattr(self, "web_pages", []) or [])
+            if total_web <= 0:
+                total_web = len(getattr(self, "page_regions", []) or [])
+            total_web = total_web if total_web > 0 else 1
+            cur_web = int(getattr(self, "current_page", 1) or 1)
+            if hasattr(self, "page_label") and self.page_label.winfo_exists():
+                self.page_label.configure(text=f"Page {cur_web} / {total_web}")
+
         elif current_tab == "PDF Source":
             self.primary_source = "pdf"
-            # PDF画像を再表示（複数回遅延呼び出しで確実に表示）
-            if hasattr(self, 'pdf_image') and self.pdf_image and hasattr(self, 'pdf_canvas'):
-                print(f"[_on_source_tab_change] Displaying PDF image: {self.pdf_image.size}")
-                # 即座に1回目
+            pdf_pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None) or []
+            if pdf_pages and hasattr(self, "pdf_canvas"):
+                cur_idx = int(getattr(self, "current_pdf_idx", 0) or 0)
+                if cur_idx < 0 or cur_idx >= len(pdf_pages):
+                    self.current_pdf_idx = 0
+                self._display_single_pdf_page()
+                self.after(180, self._display_single_pdf_page)
+            elif getattr(self, "pdf_image", None) and hasattr(self, "pdf_canvas"):
                 self._display_image(self.pdf_canvas, self.pdf_image)
-                # 200ms後に2回目（レイアウト完了後）
-                self.after(200, lambda: self._display_image(self.pdf_canvas, self.pdf_image))
-                # 500ms後に3回目（確実に表示）
-                self.after(500, lambda: self._display_image(self.pdf_canvas, self.pdf_image))
-    
+                self.after(180, lambda: self._display_image(self.pdf_canvas, self.pdf_image))
+
+            total_pdf = len(pdf_pages) if len(pdf_pages) > 0 else 1
+            cur_pdf = int(getattr(self, "current_pdf_idx", 0) or 0) + 1
+            if cur_pdf < 1:
+                cur_pdf = 1
+            if hasattr(self, "page_label") and self.page_label.winfo_exists():
+                self.page_label.configure(text=f"Page {cur_pdf} / {total_pdf}")
+            if hasattr(self, "pdf_page_label") and self.pdf_page_label.winfo_exists():
+                self.pdf_page_label.configure(text=f"Page {cur_pdf} / {total_pdf}")
+
+        self._update_display_mode_buttons()
+
     def _open_sitemap_viewer(self):
         """サイトマップビューワーウィンドウを開く"""
         try:
@@ -1756,26 +1895,25 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             print(f"[_next_pdf_page] PDFデータが利用できません")
     
     def _display_single_pdf_page(self):
-        """単一PDFページを表示（フォールバック用）"""
-        if not hasattr(self, 'pdf_pages') or not self.pdf_pages:
+        """Display one PDF page."""
+        pdf_pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None) or []
+        if not pdf_pages:
             return
-        idx = getattr(self, 'current_pdf_idx', 0)
-        if 0 <= idx < len(self.pdf_pages):
-            page = self.pdf_pages[idx]
-            self.pdf_image = page.get('image')
+        idx = getattr(self, "current_pdf_idx", 0)
+        if 0 <= idx < len(pdf_pages):
+            page = pdf_pages[idx]
+            self.pdf_image = page.get("image")
             if self.pdf_image:
                 self._clear_image_cache("pdf")
                 self._display_image(self.pdf_canvas, self.pdf_image)
-                self.pdf_page_label.configure(text=f"{idx+1}/{len(self.pdf_pages)}")
+                self.pdf_page_label.configure(text=f"Page {idx+1} / {len(pdf_pages)}")
                 print(f"[_display_single_pdf_page] Showing page {idx+1}")
-                
-                # ★ ページ切り替え時に既存のリージョン・テキストをクリアしない (Global Data Persistence)
-                # self.pdf_regions = []
-                
-                if hasattr(self, 'pdf_text_box'):
+
+                # Keep global data; only clear visible text box.
+                if hasattr(self, "pdf_text_box"):
                     self.pdf_text_box.delete("1.0", "end")
                 self._redraw_regions()
-    
+
     def _display_pdf_group(self):
         """現在のPDFグループを表示"""
         if not hasattr(self, 'pdf_stitched_groups') or not self.pdf_stitched_groups:
@@ -2077,8 +2215,16 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
             # キャンバスサイズ取得（レイアウト完了を待つ）
             self.update_idletasks()
-            self.update()
             canvas.update_idletasks()
+
+            # Save scroll position before redraw (restore after to avoid flicker)
+            try:
+                vy = canvas.yview()
+                vx = canvas.xview()
+                saved_y = vy[0] if vy else 0.0
+                saved_x = vx[0] if vx else 0.0
+            except Exception:
+                saved_y, saved_x = 0.0, 0.0
 
             # キャンバス幅を取得（複数の方法を試行）
             canvas_width = canvas.winfo_width()
@@ -2094,6 +2240,13 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
             # FR-01: キャンバス高さも取得
             canvas_height = canvas.winfo_height()
+            # タブ非表示時は高さが極端に小さい値になるため、ウィンドウ高さから推定
+            if canvas_height <= 300:
+                window_height = self.winfo_height()
+                if window_height > 600:
+                    estimated_height = window_height - 200
+                    canvas_height = max(estimated_height, 400)
+                    print(f"[_display_image] Using window height: {window_height} -> canvas_height: {canvas_height}")
             if canvas_height <= 1:
                 parent = canvas.master
                 if parent:
@@ -2102,19 +2255,28 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 canvas_height = max(self.winfo_height() - 200, 300)
             canvas_height = max(canvas_height, 300)
 
-            print(f"[_display_image] canvas={canvas_width}x{canvas_height}, image={image.size}, mode={self.display_mode}")
+            canvas_source = "web" if canvas == self.web_canvas else "pdf" if canvas == self.pdf_canvas else "unknown"
+            effective_mode = self._resolve_display_mode(canvas_source, image.size, (canvas_width, canvas_height))
+            print(f"[_display_image] canvas={canvas_width}x{canvas_height}, image={image.size}, mode={effective_mode}")
 
-            # FR-01: Cover/Fit モードに応じたスケーリング
+            # FR-01: scale by selected mode
             img_copy = image.copy()
             scale_x = canvas_width / img_copy.width
             scale_y = canvas_height / img_copy.height
 
-            if self.display_mode == "cover":
-                # Cover: キャンバスを埋める（大きい方のスケールを使用）
+            if effective_mode == "cover":
                 scale_factor = max(scale_x, scale_y)
+            elif effective_mode == "fit":
+                # Width-priority fit for source panes: keep x contract stable and scroll vertically.
+                scale_factor = scale_x
             else:
-                # Fit: 全体表示（小さい方のスケールを使用）
                 scale_factor = min(scale_x, scale_y)
+
+            # For PDF fit mode, honor exact fit scale to keep page/overlay contracts consistent.
+            # (minimum-scale forcing can visually desync image-size expectation from [PDF:Fit]).
+            if canvas_source == "pdf" and effective_mode != "fit" and scale_factor < 0.28:
+                print(f"[_display_image] PDF scale too small ({scale_factor:.3f}), applying minimum scale 0.28")
+                scale_factor = 0.28
 
             new_width = max(int(img_copy.width * scale_factor), 1)
             new_height = max(int(img_copy.height * scale_factor), 1)
@@ -2131,34 +2293,34 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             # 画像のみ削除 (regionタグは保持)
             canvas.delete("image")
 
-            # ★ 修正: 画像は常に(0,0)に配置（スクロール可能にするため）
-            # Cover時のオフセットは座標変換計算のみに使用
-            offset_x = 0
-            offset_y = 0
-            if self.display_mode == "cover":
-                # Cover時のオフセット計算（座標変換用）
-                if new_width > canvas_width:
-                    offset_x = (new_width - canvas_width) // 2
-                if new_height > canvas_height:
-                    offset_y = (new_height - canvas_height) // 2
+            # Fit mode is centered to reduce one-sided black area and click confusion.
+            draw_x = 0
+            draw_y = 0
+            if effective_mode == "fit":
+                if new_width < canvas_width:
+                    draw_x = int((canvas_width - new_width) // 2)
+                # Keep top-aligned for deterministic y offsets across pages.
+                draw_y = 0
 
-            # ★ 画像を(0,0)に配置（スクロール可能）
-            canvas.create_image(0, 0, anchor="nw", image=photo, tags="image")
-            canvas.tag_lower("image")  # 画像を最背面に移動
+            canvas.create_image(draw_x, draw_y, anchor="nw", image=photo, tags="image")
+            canvas.tag_lower("image")
             canvas.image = photo
 
-            # ★ scrollregionを画像全体に設定（スクロール可能）
-            canvas.configure(scrollregion=(0, 0, new_width, new_height))
-            
-            # ★ Cover時は中央にスクロール
-            if self.display_mode == "cover" and new_height > canvas_height:
-                center_fraction = offset_y / new_height
-                canvas.yview_moveto(center_fraction)
-            else:
-                canvas.yview_moveto(0)
-            canvas.xview_moveto(0)
+            # Keep scrollregion covering both viewport and rendered image.
+            region_w = max(canvas_width, draw_x + new_width)
+            region_h = max(canvas_height, draw_y + new_height)
+            canvas.configure(scrollregion=(0, 0, region_w, region_h))
 
-            # ★ B2: CanvasTransformを保存（座標変換の唯一の真実）
+            # Restore scroll position if we had one (avoid forced reset)
+            try:
+                canvas.yview_moveto(saved_y)
+                canvas.xview_moveto(saved_x)
+            except Exception:
+                pass
+
+            # CanvasTransform uses src * scale - offset, so centered draw needs negative offsets.
+            offset_x = -draw_x
+            offset_y = -draw_y
             from app.gui.sdk.coord_transform import CanvasTransform
             canvas._coord_tf = CanvasTransform(
                 scale_x=scale_factor,
@@ -2172,6 +2334,8 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             canvas.scale_y = scale_factor
             canvas.offset_x = offset_x
             canvas.offset_y = offset_y
+            canvas.source_width = image.width
+            canvas.source_height = image.height
 
             # ★ デバッグ: キャンバスアイテムを確認
             items = canvas.find_all()
@@ -2188,24 +2352,66 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             self._display_in_progress = False
             self._show_error("画像表示エラー", e, show_traceback=True)
 
-    def _toggle_display_mode(self):
-        """FR-01: Cover/Fit表示モード切替"""
-        self.display_mode = "fit" if self.display_mode == "cover" else "cover"
-        btn_text = "[Fit]" if self.display_mode == "fit" else "[Cover]"
-        self.display_mode_btn.configure(text=btn_text)
-        print(f"[Display Mode] Changed to: {self.display_mode}")
+    def _toggle_display_mode(self, source: Optional[str] = None):
+        """FR-01: Cover/Fit/Smart mode toggle by source."""
+        src = (source or str(getattr(self, "primary_source", "web") or "web")).lower()
+        if src not in ("web", "pdf"):
+            src = "web"
 
-        # モード変更時は古いモードのキャッシュをクリア（不要なメモリ解放）
-        self._clear_image_cache()
+        modes = ["cover", "fit", "smart"]
+        current = self.display_mode_by_source.get(src, "cover" if src == "web" else "fit")
+        try:
+            idx = modes.index(current)
+        except ValueError:
+            idx = 0
+        next_mode = modes[(idx + 1) % len(modes)]
+        self.display_mode_by_source[src] = next_mode
 
-        # 画像を再表示
-        if self.web_image:
+        # backward compatibility field
+        self.display_mode = self.display_mode_by_source.get("web", "cover")
+
+        self._update_display_mode_buttons()
+        self._clear_image_cache(src)
+
+        if src == "web" and getattr(self, "web_image", None):
             self._display_image(self.web_canvas, self.web_image)
-        if self.pdf_image:
+        elif src == "pdf" and getattr(self, "pdf_image", None):
             self._display_image(self.pdf_canvas, self.pdf_image)
 
-        # 領域オーバーレイを再描画
         self._redraw_regions()
+
+    def _update_display_mode_buttons(self):
+        """Update Web/PDF display mode button labels."""
+        web_mode = self.display_mode_by_source.get("web", "cover")
+        pdf_mode = self.display_mode_by_source.get("pdf", "fit")
+
+        if hasattr(self, "web_display_mode_btn") and self.web_display_mode_btn:
+            self.web_display_mode_btn.configure(text=f"[Web:{web_mode.capitalize()}]")
+
+        if hasattr(self, "pdf_display_mode_btn") and self.pdf_display_mode_btn:
+            self.pdf_display_mode_btn.configure(text=f"[PDF:{pdf_mode.capitalize()}]")
+
+    def _resolve_display_mode(self, source: str, image_size: Tuple[int, int], viewport_size: Tuple[int, int]) -> str:
+        """Resolve effective mode for mixed-size sources on one window."""
+        src = str(source or "web").lower()
+        mode = self.display_mode_by_source.get(src, "cover" if src == "web" else "fit")
+        if mode != "smart":
+            return mode
+
+        iw, ih = image_size
+        vw, vh = viewport_size
+        if iw <= 0 or ih <= 0 or vw <= 0 or vh <= 0:
+            return "fit"
+
+        tall_ratio = ih / max(iw, 1)
+        viewport_ratio = vh / max(vw, 1)
+
+        # Avoid tiny rendering for very tall web screenshots.
+        if src == "web":
+            return "cover" if tall_ratio > max(2.4, viewport_ratio * 2.0) else "fit"
+
+        # PDF keeps fit for stable readability/coordinates.
+        return "fit"
 
     def _toggle_scroll_sync(self):
         """スクロール同期のON/OFF切り替え（業務配布対応）"""
@@ -2223,13 +2429,219 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             print("⚠️ Scroll sync manager not initialized")
             return False
 
-    def _redraw_regions(self):
-        """エリア矩形を再描画 (シンク番号で色分け)"""
+    def _get_pages_for_source(self, source: str):
+        if source == "web":
+            pages = getattr(self, "web_pages_list", None) or getattr(self, "web_pages", None)
+        else:
+            pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None)
+        return pages or []
+
+    def _get_current_page_for_source(self, source: str) -> int:
+        if source == "web":
+            return int(getattr(self, "current_page", 1) or 1)
+        if hasattr(self, "current_pdf_idx"):
+            return int(getattr(self, "current_pdf_idx", 0) or 0) + 1
+        return int(getattr(self, "current_page", 1) or 1)
+
+    def _get_page_height_for_source(self, source: str, page_id: Optional[int]) -> int:
+        if not page_id or page_id < 1:
+            return 0
+        pages = self._get_pages_for_source(source)
+        if page_id > len(pages):
+            return 0
         try:
-            # ★ デバッグ出力
+            item = pages[page_id - 1]
+            if isinstance(item, dict):
+                img = item.get("image")
+                return int(getattr(img, "height", 0) or 0)
+        except Exception:
+            pass
+        return 0
+
+    def _get_page_width_for_source(self, source: str, page_id: Optional[int]) -> int:
+        if not page_id or page_id < 1:
+            return 0
+        pages = self._get_pages_for_source(source)
+        if page_id > len(pages):
+            return 0
+        try:
+            item = pages[page_id - 1]
+            if isinstance(item, dict):
+                img = item.get("image")
+                return int(getattr(img, "width", 0) or 0)
+        except Exception:
+            pass
+        return 0
+
+    def _clip_rect_to_page(self, rect, source: str, page_id: Optional[int]):
+        if not rect or len(rect) < 4:
+            return None
+        page_w = self._get_page_width_for_source(source, page_id)
+        page_h = self._get_page_height_for_source(source, page_id)
+        if page_w <= 0 or page_h <= 0:
+            return [int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])]
+
+        x1 = max(0, min(int(rect[0]), page_w - 1))
+        y1 = max(0, min(int(rect[1]), page_h - 1))
+        x2 = max(0, min(int(rect[2]), page_w))
+        y2 = max(0, min(int(rect[3]), page_h))
+
+        if x2 <= x1 + 1 or y2 <= y1 + 1:
+            return None
+        return [x1, y1, x2, y2]
+
+    def _get_page_y_offset_for_source(self, source: str, page_id: Optional[int]) -> int:
+        if not page_id or page_id <= 1:
+            return 0
+        pages = self._get_pages_for_source(source)
+        if not pages:
+            return 0
+
+        y_offset = 0
+        limit = min(page_id - 1, len(pages))
+        for idx in range(limit):
+            item = pages[idx]
+            if not isinstance(item, dict):
+                continue
+            img = item.get("image")
+            y_offset += int(getattr(img, "height", 0) or 0)
+        return y_offset
+
+    def _infer_region_page_id(self, region, source: str) -> Optional[int]:
+        page_id = getattr(region, "page_id", None)
+        if isinstance(page_id, int) and page_id > 0:
+            return page_id
+
+        area_code = str(getattr(region, "area_code", "") or "")
+
+        if source == "web":
+            for pat in (r"^P(\d+)-", r"^W(\d+)-"):
+                match = re.search(pat, area_code)
+                if match:
+                    try:
+                        return int(match.group(1))
+                    except Exception:
+                        pass
+            return None
+
+        # PDF: avoid parsing plain "P-001" as page number (it is often sequence-only).
+        for pat in (r"^P(\d+)-\d+", r"^PDF-P(\d+)-"):
+            match = re.search(pat, area_code)
+            if match:
+                try:
+                    return int(match.group(1))
+                except Exception:
+                    pass
+
+        # fallback: infer from stitched offset if available
+        try:
+            y_off = int(getattr(region, "stitched_y_offset", 0) or 0)
+            pages = self._get_pages_for_source("pdf")
+            if y_off > 0 and pages:
+                accum = 0
+                for idx, item in enumerate(pages, start=1):
+                    img = item.get("image") if isinstance(item, dict) else None
+                    h = int(getattr(img, "height", 0) or 0)
+                    if accum == y_off:
+                        return idx
+                    accum += h
+        except Exception:
+            pass
+
+        # In paged PDF mode, unknown page regions must stay unknown.
+        # Returning current page here leaks cross-page/unknown regions into view.
+        return None
+
+    def _get_region_coord_system(self, region) -> str:
+        coord = str(getattr(region, "coord_system", "") or "").lower()
+        if coord in ("local", "global"):
+            return coord
+
+        if int(getattr(region, "stitched_y_offset", 0) or 0) > 0:
+            return "global"
+
+        # Legacy heuristic: if bbox exceeds page height, treat as stitched/global.
+        source = str(getattr(region, "source", "") or "").lower() or "web"
+        page_id = self._infer_region_page_id(region, source)
+        page_h = self._get_page_height_for_source(source, page_id)
+        rect = list(getattr(region, "rect", [0, 0, 0, 0]) or [0, 0, 0, 0])
+        if page_h > 0 and len(rect) >= 4 and rect[3] > page_h + 2:
+            return "global"
+
+        return "local"
+
+    def _normalize_region_rect_for_current_view(self, region, source: str):
+        rect = list(getattr(region, "rect", [0, 0, 0, 0]) or [0, 0, 0, 0])
+        if len(rect) < 4:
+            return rect
+
+        page_id = self._infer_region_page_id(region, source)
+        stitched_attr = int(getattr(region, "stitched_y_offset", 0) or 0)
+        stitched_calc = self._get_page_y_offset_for_source(source, page_id)
+        coord_system = self._get_region_coord_system(region)
+
+        # In stitched PDF view, draw in global coordinates.
+        if source == "pdf" and getattr(self, "pdf_stitched_groups", None):
+            if coord_system == "local":
+                for y_off in (stitched_attr, stitched_calc):
+                    if y_off > 0:
+                        global_rect = [rect[0], rect[1] + y_off, rect[2], rect[3] + y_off]
+                        if global_rect[2] > global_rect[0] and global_rect[3] > global_rect[1]:
+                            return global_rect
+            return rect
+
+        # In page view, local coordinates are canonical and must be clipped.
+        if coord_system == "local":
+            clipped = self._clip_rect_to_page(rect, source, page_id)
+            return clipped if clipped is not None else [0, 0, 0, 0]
+
+        # global -> local conversion using possible offsets.
+        candidates = []
+        for y_off in (stitched_attr, stitched_calc):
+            if y_off > 0 and y_off not in candidates:
+                candidates.append(y_off)
+
+        for y_off in candidates:
+            local_rect = [rect[0], rect[1] - y_off, rect[2], rect[3] - y_off]
+            if local_rect[2] <= local_rect[0] or local_rect[3] <= local_rect[1]:
+                continue
+            clipped = self._clip_rect_to_page(local_rect, source, page_id)
+            if clipped is not None:
+                return clipped
+
+        # If conversion fails in paged PDF mode, drop the region from drawing.
+        if source == "pdf":
+            return [0, 0, 0, 0]
+
+        return rect
+
+    def _filter_regions_for_current_view(self, regions, source: str):
+        if not regions:
+            return []
+
+        if source == "pdf" and getattr(self, "pdf_stitched_groups", None):
+            return list(regions)
+
+        pages = self._get_pages_for_source(source)
+        current_page = self._get_current_page_for_source(source)
+        if not pages:
+            return list(regions)
+
+        filtered = []
+        for region in regions:
+            page_id = self._infer_region_page_id(region, source)
+            if page_id is None or page_id < 1:
+                # In paged mode, unknown page regions are hidden to avoid cross-page clutter.
+                continue
+            if page_id == current_page:
+                filtered.append(region)
+        return filtered
+
+    def _redraw_regions(self):
+        """Redraw regions with page-aware filtering and rect normalization."""
+        try:
             print(f"[_redraw_regions] web_regions={len(self.web_regions)}, pdf_regions={len(self.pdf_regions)}")
 
-            # シンク色パレット
             sync_colors = [
                 "#4CAF50", "#2196F3", "#FF9800", "#9C27B0", "#00BCD4",
                 "#E91E63", "#CDDC39", "#FF5722", "#607D8B", "#795548"
@@ -2243,68 +2655,85 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                     print(f"[_redraw_regions] {source} canvas is None, skipping")
                     continue
 
-                # 古い矩形を削除
                 canvas.delete("region")
-
                 if not regions:
                     print(f"[_redraw_regions] {source} has no regions, skipping")
+                    if source == "pdf":
+                        print("[PDF_OVERLAY] skip: no regions")
                     continue
 
-                # ★ Phase 44: Web領域は現在ページでフィルタリング
-                if source == "web":
-                    current_page = getattr(self, 'current_page', 1)
-                    prefix = f"P{current_page}-"
-                    # area_code が "P{current_page}-" で始まる領域のみ表示
-                    filtered_regions = [r for r in regions 
-                                       if getattr(r, 'area_code', '').startswith(prefix)]
-                    print(f"[_redraw_regions] Web: page={current_page}, prefix='{prefix}', filtered={len(filtered_regions)}/{len(regions)}")
-                else:
-                    # PDF はスティッチモードなので全て表示
-                    filtered_regions = regions
-                    print(f"[_redraw_regions] PDF: showing all {len(regions)} regions (stitch mode)")
+                filtered_regions = self._filter_regions_for_current_view(regions, source)
+                normalized_regions = self._get_normalized_regions_for_source(source, canvas=canvas)
+                current_page = self._get_current_page_for_source(source)
+                print(
+                    f"[_redraw_regions] {source}: page={current_page}, "
+                    f"filtered={len(filtered_regions)}/{len(regions)}, normalized={len(normalized_regions)}"
+                )
+                if source == "pdf":
+                    # Provenance log: where current overlays originate from.
+                    sample = []
+                    for r, _ in normalized_regions[:5]:
+                        sample.append({
+                            "area_code": str(getattr(r, "area_code", "") or ""),
+                            "page_id": int(self._infer_region_page_id(r, "pdf") or 0),
+                            "sync_number": getattr(r, "sync_number", None),
+                        })
+                    print(f"[PDF_OVERLAY] origin_sample={sample}")
+                diag = self._get_region_diagnostics(source)
+                if diag:
+                    print(f"[_redraw_regions] {source} hidden_reasons={diag.get('hidden_reasons', {})} page_drift_px={diag.get('page_drift_px', {})}")
 
-                # ★ B3: CanvasTransformを使用（座標変換の一元化）
+                if source == "pdf":
+                    counts = (diag or {}).get("counts", {})
+                    print(
+                        f"[PDF_OVERLAY] page={current_page} total={counts.get('total', len(regions))} "
+                        f"filtered={counts.get('filtered', len(filtered_regions))} drawn={counts.get('drawn', len(normalized_regions))}"
+                    )
+
                 from app.gui.sdk.coord_transform import get_canvas_transform
                 transform = get_canvas_transform(canvas)
-                
-                print(f"[_redraw_regions] {source}: transform={transform}")
+                sample_logged = 0
+                sample_limit = max(1, int(getattr(self, "_overlay_log_sample_limit", 3)))
 
-                for region in filtered_regions:
+                for region, rect in normalized_regions:
                     try:
-                        # 座標検証
-                        if not hasattr(region, 'rect') or len(region.rect) < 4:
-                            continue
-
-                        # ★ B3: Transform経由で座標変換
                         x1, y1, x2, y2 = transform.src_rect_to_view(
-                            region.rect[0], region.rect[1],
-                            region.rect[2], region.rect[3]
+                            rect[0], rect[1], rect[2], rect[3]
                         )
 
-                        # 色設定 (シンク番号ベース)
                         if region == self.selected_region:
                             outline = "#FFFFFF"
                             width = 3
                         elif hasattr(region, 'sync_number') and region.sync_number is not None:
-                            # シンク番号で色を決定
                             outline = sync_colors[region.sync_number % len(sync_colors)]
                             width = 2
                         else:
-                            # ★ 修正: 未比較は中立色 (灰色) を使用
-                            # 赤は「不一致」を示唆するため、比較前には不適切
-                            outline = "#808080"  # 中立灰色
-                            width = 1  # 細い線で控えめに表示
+                            # Improve visibility for unmatched PDF overlays on dense pages.
+                            if source == "pdf":
+                                outline = "#00E5FF"
+                                width = 2
+                            else:
+                                outline = "#808080"
+                                width = 1
 
-                        # 矩形描画
                         canvas.create_rectangle(
                             x1, y1, x2, y2,
                             outline=outline, width=width,
                             tags="region"
                         )
 
-                        # エリアコード描画
+                        if source == "pdf" and sample_logged < sample_limit:
+                            drift_px = self._round_trip_error_for_rect(transform, rect)
+                            print(
+                                f"[PDF_OVERLAY] sample#{sample_logged + 1} area={getattr(region, 'area_code', '?')} "
+                                f"src={rect} view={[int(x1), int(y1), int(x2), int(y2)]} drift_px={drift_px:.3f}"
+                            )
+                            sample_logged += 1
+
                         area_code = getattr(region, 'area_code', '')
-                        if area_code:
+                        show_unmatched_labels = (getattr(self, "show_unmatched_area_labels_by_source", {}) or {}).get(source, True)
+                        is_matched_or_selected = (region == self.selected_region) or (getattr(region, "sync_number", None) is not None)
+                        if area_code and (show_unmatched_labels or is_matched_or_selected):
                             canvas.create_text(
                                 x1 + 5, y1 + 5,
                                 text=area_code,
@@ -2314,166 +2743,15 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                                 tags="region"
                             )
                     except Exception as e:
-                        print(f"[WARNING] Region描画スキップ: {e}")
+                        print(f"[WARNING] Region draw skip: {e}")
                         continue
 
-                # ★ 描画後のキャンバスアイテム数を出力
                 region_items = canvas.find_withtag("region")
                 print(f"[_redraw_regions] {source}: {len(region_items)} region items drawn")
 
         except Exception as e:
-            self._show_error("領域描画エラー", e, show_traceback=True)
+            self._show_error("Region redraw error", e, show_traceback=True)
 
-    
-    def _run_ocr_analysis(self):
-        """OCR + クラスタリング + Sync分析を実行"""
-        if not self.web_image and not self.pdf_image:
-            self.status_label.configure(text="⚠️ 画像がありません")
-            return
-        
-        self.status_label.configure(text="🔄 OCR実行中...")
-        self.update()
-        
-        try:
-            from app.core.engine_cloud import CloudOCREngine
-            from app.core.page_detector import PageBreakDetector
-            from app.core.sync_matcher import SyncMatcher, AreaCode
-            
-            # ★ 前処理は一旦無効化（カラー広告ではグレースケール化がOCR精度を下げる）
-            # TODO: カラー対応の前処理を実装
-            engine = CloudOCREngine(preprocess=False)
-            detector = PageBreakDetector()
-            
-            total_web_clusters = 0
-            total_pdf_clusters = 0
-            
-            # Web OCR
-            if self.web_image:
-                clusters, raw_words = engine.extract_text(self.web_image)
-                self.web_raw_words = raw_words  # Store for Template Propagation
-                total_web_clusters = len(clusters)
-                print(f"[AdvancedView] ★ Web OCR完了: clusters={len(clusters)}, raw_words={len(raw_words)}")
-                
-                # ページ検出
-                pages = detector.detect_breaks(self.web_image, clusters)
-                self.page_regions = [(p.y_start, p.y_end) for p in pages]
-                print(f"[AdvancedView] ★ ページ検出: {len(self.page_regions)}ページ")
-                
-                # web_pagesにテキストを保存
-                if hasattr(self, 'web_pages') and self.web_pages:
-                    full_text = ' '.join(c.get('text', '') for c in clusters)
-                    for i, page in enumerate(self.web_pages):
-                        page['text'] = full_text
-                        page['clusters'] = clusters
-                
-                # ★ Phase 44: web_pagesの高さから正確なページ境界を計算
-                self.web_page_offsets = [0]  # インスタンス変数として保存（描画時の逆変換用）
-                if hasattr(self, 'web_pages') and self.web_pages:
-                    cumulative_y = 0
-                    for page in self.web_pages:
-                        img = page.get('image')
-                        if img:
-                            self.web_page_offsets.append(cumulative_y + img.height)
-                            cumulative_y += img.height
-                    print(f"[Phase44] web_page_offsets saved: {self.web_page_offsets}")
-                
-                web_page_offsets = self.web_page_offsets # ローカル変数互換用
-                
-                # エリア生成
-                self.web_regions = []
-                for i, c in enumerate(clusters):
-                    page_num = 1
-                    page_y_offset = 0  # ★ ページのY開始位置
-                    y_center = (c['rect'][1] + c['rect'][3]) // 2
-                    
-                    # ★ Phase 44: web_pagesの高さから正しいページを判定
-                    for j in range(len(web_page_offsets) - 1):
-                        y_start = web_page_offsets[j]
-                        y_end = web_page_offsets[j + 1]
-                        if y_start <= y_center < y_end:
-                            page_num = j + 1
-                            page_y_offset = y_start
-                            break
-                    
-                    # ★ Phase 44: スティッチ座標→ページ相対座標に変換
-                    x1, y1, x2, y2 = c['rect']
-                    page_relative_rect = [x1, y1 - page_y_offset, x2, y2 - page_y_offset]
-                    
-                    seq = i + 1
-                    region = EditableRegion(
-                        id=c.get('id', i+1),
-                        rect=page_relative_rect,  # ★ ページ相対座標を保存
-                        text=c.get('text', ''),
-                        area_code=f"P{page_num}-{seq}",
-                        sync_number=None,
-                        similarity=1.0,
-                        source="web",
-                        page_id=page_num  # ★ Phase 44: ページ番号を保存
-                    )
-                    self.web_regions.append(region)
-            
-            # PDF OCR
-            if self.pdf_image:
-                pdf_clusters, pdf_raw = engine.extract_text(self.pdf_image)
-                self.pdf_raw_words = pdf_raw # Store
-                total_pdf_clusters = len(pdf_clusters)
-                
-                # pdf_pages_listにテキストを保存
-                if hasattr(self, 'pdf_pages_list') and self.pdf_pages_list:
-                    full_pdf_text = ' '.join(c.get('text', '') for c in pdf_clusters)
-                    for i, page in enumerate(self.pdf_pages_list):
-                        page['text'] = full_pdf_text
-                        page['clusters'] = pdf_clusters
-                
-                # PDFエリア生成
-                self.pdf_regions = []
-                for i, c in enumerate(pdf_clusters):
-                    region = EditableRegion(
-                        id=c.get('id', i+1),
-                        rect=c['rect'],
-                        text=c.get('text', ''),
-                        area_code=f"PDF-{i+1}",
-                        sync_number=None,
-                        similarity=1.0,
-                        source="pdf"
-                    )
-                    self.pdf_regions.append(region)
-            
-            # エリアリスト更新
-            self._update_area_list()
-            
-            # ★ 描画前に画像を再表示してscale_x/scale_yを確実に設定
-            if self.web_image:
-                self._display_image(self.web_canvas, self.web_image)
-            if self.pdf_image:
-                self._display_image(self.pdf_canvas, self.pdf_image)
-            
-            # 描画
-            self._redraw_regions()
-            
-            # ページサムネイル生成
-            self._generate_thumbnails()
-            
-            self.status_label.configure(
-                text=f"✅ OCR完了: Web {total_web_clusters}エリア, PDF {total_pdf_clusters}エリア"
-            )
-            if hasattr(self, 'page_regions') and self.page_regions:
-                self.page_label.configure(
-                    text=f"Page {self.current_page} / {len(self.page_regions)}"
-                )
-            
-            # ★ 自動Sync計算実行
-            self.after(100, self._auto_sync_and_display)
-            
-            # ★ OCR直後にSpreadsheetも更新 (sync_pairsなしでもWeb/PDF regionsを表示)
-            self._refresh_inline_spreadsheet()
-            
-        except Exception as e:
-            self.status_label.configure(text=f"❌ OCRエラー: {e}")
-            print(f"OCR Error: {e}")
-            import traceback
-            traceback.print_exc()
-    
     def _auto_sync_and_display(self):
         """OCR後に自動でSync計算 + 範囲最適化 + 全テキスト表示 (高速化版)"""
         self.status_label.configure(text="🔄 自動Sync計算中...")
@@ -2507,7 +2785,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             # 5. UI成分の手動更新 (Silent Sync対応)
             total_web = len(self.web_regions)
             # 類似度はVisual(Region)を正とする (★ threshold_low=0.25)
-            match_count = sum(1 for r in self.web_regions if hasattr(r, 'similarity') and r.similarity >= 0.25)
+            match_count = self._count_matches(self.sync_pairs, threshold=0.25)
             
             sync_percent = (match_count / total_web * 100) if total_web > 0 else 0
             
@@ -2545,6 +2823,10 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 
 
     
+    def _count_matches(self, pairs, threshold: float = 0.25) -> int:
+        """Single-source match count for Advanced view stats."""
+        return sum(1 for p in (pairs or []) if float(getattr(p, "similarity", 0.0) or 0.0) >= threshold)
+
     def _show_all_texts(self):
         """全パラグラフテキストを一括表示"""
         # Webテキスト集約
@@ -2751,48 +3033,59 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 self.status_label.configure(text=f"❌ Syncエラー: {e}")
     
     def _redraw_regions_with_sync(self):
-        """Sync結果に基づいてマッチしたパラグラフを同色で描画"""
-        for canvas, regions, source in [
+        """Redraw matched regions with normalized pipeline and diagnostics."""
+        for canvas, _, source in [
             (self.web_canvas, self.web_regions, "web"),
             (self.pdf_canvas, self.pdf_regions, "pdf")
         ]:
-            # 古い矩形を削除
+            if not canvas:
+                continue
+
             canvas.delete("region")
-            
-            # ★ SDK統一: CanvasTransform経由で座標変換
+
             from app.gui.sdk.coord_transform import get_canvas_transform
             transform = get_canvas_transform(canvas)
-            
-            for region in regions:
-                # ★ SDK: Source→View変換
+
+            normalized_regions = self._get_normalized_regions_for_source(source, canvas=canvas)
+            for region, rect in normalized_regions:
+                if len(rect) < 4:
+                    continue
+
                 x1, y1, x2, y2 = transform.src_rect_to_view(
-                    region.rect[0], region.rect[1],
-                    region.rect[2], region.rect[3]
+                    rect[0], rect[1], rect[2], rect[3]
                 )
-                
-                # 色決定 (sync_colorを使用)
+
                 outline = getattr(region, 'sync_color', '#F44336')
                 width = 3 if region == self.selected_region else 2
-                
-                # 矩形描画
+
                 canvas.create_rectangle(
                     x1, y1, x2, y2,
                     outline=outline, width=width,
                     tags="region"
                 )
-                
-                # エリアコード描画
-                similarity_str = f"{region.similarity*100:.0f}%" if hasattr(region, 'similarity') and region.similarity > 0 else ""
-                label = f"{region.area_code} {similarity_str}"
-                canvas.create_text(
-                    x1 + 5, y1 + 5,
-                    text=label,
-                    fill=outline,
-                    anchor="nw",
-                    font=("Meiryo", 8, "bold"),
-                    tags="region"
+
+                show_unmatched_labels = (getattr(self, "show_unmatched_area_labels_by_source", {}) or {}).get(source, True)
+                is_matched_or_selected = (region == self.selected_region) or (getattr(region, "sync_number", None) is not None)
+                similarity_str = (
+                    f"{region.similarity * 100:.0f}%"
+                    if hasattr(region, 'similarity') and region.similarity > 0
+                    else ""
                 )
-    
+                label = f"{getattr(region, 'area_code', '')} {similarity_str}".strip()
+                if label and (show_unmatched_labels or is_matched_or_selected):
+                    canvas.create_text(
+                        x1 + 5, y1 + 5,
+                        text=label,
+                        fill=outline,
+                        anchor="nw",
+                        font=("Meiryo", 8, "bold"),
+                        tags="region"
+                    )
+
+            diag = self._get_region_diagnostics(source)
+            if diag:
+                print(f"[_redraw_regions_with_sync] {source} hidden_reasons={diag.get('hidden_reasons', {})} page_drift_px={diag.get('page_drift_px', {})}")
+
     def _export_to_excel(self):
         """Sync結果をExcelにエクスポート"""
         print("[Export] Excel出力開始...")
@@ -2923,16 +3216,46 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self._recalculate_sync()
     
     def _open_fullscreen(self):
-        """フルスクリーンで開く"""
-        from app.gui.windows.comparison_matrix import ComparisonMatrixWindow
-        
-        queue = []
-        if hasattr(self.parent_app, 'comparison_queue'):
-            queue = self.parent_app.comparison_queue
-        
-        window = ComparisonMatrixWindow(self.parent_app, comparison_queue=queue)
-        window.focus()
-    
+        """Toggle fullscreen/maximize on current window and reflow canvases."""
+        root = self.winfo_toplevel()
+
+        full = bool(getattr(self, "_is_fullscreen", False))
+        target_full = not full
+
+        try:
+            root.attributes("-fullscreen", target_full)
+        except Exception:
+            try:
+                root.state("zoomed" if target_full else "normal")
+            except Exception as e:
+                print(f"[Fullscreen] toggle failed: {e}")
+                return
+
+        self._is_fullscreen = target_full
+
+        if hasattr(self, "fullscreen_btn") and self.fullscreen_btn:
+            try:
+                self.fullscreen_btn.configure(text="ExitFS" if target_full else "Fullscreen")
+            except Exception:
+                pass
+
+        def _refresh():
+            try:
+                self._last_canvas_size["web"] = (0, 0)
+                self._last_canvas_size["pdf"] = (0, 0)
+                self._clear_image_cache("web")
+                self._clear_image_cache("pdf")
+                if getattr(self, "web_image", None):
+                    self._display_image(self.web_canvas, self.web_image)
+                if getattr(self, "pdf_image", None):
+                    self._display_image(self.pdf_canvas, self.pdf_image)
+                self._redraw_regions()
+            except Exception as e:
+                print(f"[Fullscreen] refresh warning: {e}")
+
+        self.after(80, _refresh)
+        self.after(220, _refresh)
+
     def _open_comparison_spreadsheet(self):
         """比較スプレッドシートウィンドウを開く (画面2)"""
         from app.gui.windows.comparison_spreadsheet import ComparisonSpreadsheetWindow
@@ -3116,23 +3439,28 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self.drag_handle = None
     
     def _find_region_at(self, canvas, x, y) -> Optional[EditableRegion]:
-        """指定座標にあるリージョンを探す"""
-        regions = self.web_regions if canvas == self.web_canvas else self.pdf_regions
-        
+        """Find the first region under the given canvas coordinates."""
+        source = "web" if canvas == self.web_canvas else "pdf"
+        regions = self.web_regions if source == "web" else self.pdf_regions
+
         from app.gui.sdk.coord_transform import get_canvas_transform
         transform = get_canvas_transform(canvas)
-        
-        for region in regions:
-            # Source -> View
+
+        filtered_regions = self._filter_regions_for_current_view(regions, source)
+        for region in filtered_regions:
+            rect = self._normalize_region_rect_for_current_view(region, source)
+            if len(rect) < 4:
+                continue
+
             rx1, ry1, rx2, ry2 = transform.src_rect_to_view(
-                region.rect[0], region.rect[1], region.rect[2], region.rect[3]
+                rect[0], rect[1], rect[2], rect[3]
             )
-            
+
             if rx1 <= x <= rx2 and ry1 <= y <= ry2:
                 return region
-        
+
         return None
-    
+
     def _highlight_selected_region(self):
         """選択中のリージョンをハイライト"""
         if not self.selected_region:
@@ -3182,6 +3510,169 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         window.title(f"🔬 詳細インスペクター - 選択範囲")
         window.focus()
     
+    def _passes_region_quality_gate(self, region, rect, source: str) -> bool:
+        """Filter tiny/low-signal regions to keep overlays readable."""
+        if not rect or len(rect) < 4:
+            return False
+
+        x1, y1, x2, y2 = [int(v) for v in rect]
+        w = max(0, x2 - x1)
+        h = max(0, y2 - y1)
+        area = w * h
+
+        min_area_map = getattr(self, "min_region_area_by_source", {}) or {}
+        min_area = int(min_area_map.get(source, 0) or 0)
+        if min_area > 0 and area < min_area:
+            return False
+
+        if source == "pdf":
+            # Decorative tiny strips/no-text boxes are frequent in PDF pages.
+            txt = str(getattr(region, "text", "") or "").strip()
+            if area < max(min_area, 400) and len(txt) < 1:
+                return False
+
+        return True
+
+    def _limit_regions_for_view(self, items, source: str):
+        """Cap rendered regions to avoid unreadable overlay density."""
+        max_map = getattr(self, "max_regions_per_view_by_source", {}) or {}
+        max_count = int(max_map.get(source, 0) or 0)
+        if max_count <= 0 or len(items) <= max_count:
+            return items
+        return items[:max_count]
+
+    def _prioritize_regions_for_display(self, items, source: str):
+        """Apply per-source display policy (e.g., matched-first for PDF)."""
+        mode_map = getattr(self, "region_display_mode_by_source", {}) or {}
+        mode = str(mode_map.get(source, "all") or "all").lower()
+
+        if source != "pdf" or mode != "matched" or not items:
+            return items
+
+        selected = getattr(self, "selected_region", None)
+        selected_items = [(r, rect) for (r, rect) in items if selected is not None and r == selected]
+        matched_items = [
+            (r, rect) for (r, rect) in items
+            if getattr(r, "sync_number", None) is not None and (selected is None or r != selected)
+        ]
+
+        if selected_items or matched_items:
+            prioritized = selected_items + matched_items
+            return self._limit_regions_for_view(prioritized, source)
+
+        return items
+
+
+    def _round_trip_error_for_rect(self, transform, rect) -> float:
+        """Estimate source-space drift for a rect via round-trip error."""
+        try:
+            x1, y1, x2, y2 = [int(v) for v in rect]
+            cx = (x1 + x2) // 2
+            cy = (y1 + y2) // 2
+            points = [(x1, y1), (x2, y2), (cx, cy)]
+            max_err = 0.0
+            for sx, sy in points:
+                ex, ey = transform.round_trip_error(sx, sy)
+                max_err = max(max_err, float(ex), float(ey))
+            return max_err
+        except Exception:
+            return 0.0
+
+    def _get_region_diagnostics(self, source: str):
+        store = getattr(self, "_last_region_diagnostics", {}) or {}
+        return store.get(source)
+
+
+
+    def _get_normalized_regions_for_source(self, source: str, canvas=None):
+        """Return current-view regions with normalized/clipped rects and diagnostics."""
+        regions = self.web_regions if source == "web" else self.pdf_regions
+        filtered = self._filter_regions_for_current_view(regions, source)
+
+        hidden_reasons = {
+            "page_filter_or_unknown": max(0, len(regions) - len(filtered)),
+            "invalid_or_unconvertible": 0,
+            "quality_gate": 0,
+            "density_limit": 0,
+            "display_mode": 0,
+        }
+
+        normalized = []
+        for region in filtered:
+            rect = self._normalize_region_rect_for_current_view(region, source)
+            if not rect or len(rect) < 4:
+                hidden_reasons["invalid_or_unconvertible"] += 1
+                continue
+            if int(rect[2]) <= int(rect[0]) or int(rect[3]) <= int(rect[1]):
+                hidden_reasons["invalid_or_unconvertible"] += 1
+                continue
+            if not self._passes_region_quality_gate(region, rect, source):
+                hidden_reasons["quality_gate"] += 1
+                continue
+            normalized.append((region, [int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])]))
+
+        limited = self._limit_regions_for_view(normalized, source)
+        hidden_reasons["density_limit"] += max(0, len(normalized) - len(limited))
+        prioritized = self._prioritize_regions_for_display(limited, source)
+        hidden_reasons["display_mode"] += max(0, len(limited) - len(prioritized))
+
+        # Adaptive fallback for dense PDF pages: avoid near-empty overlays caused by strict matched mode.
+        if source == "pdf":
+            filtered_count = len(filtered)
+            drawn_count = len(prioritized)
+            if filtered_count >= 120 and drawn_count < 15 and len(limited) >= 30:
+                fallback_count = min(max(30, drawn_count), min(120, len(limited)))
+                prioritized = limited[:fallback_count]
+                hidden_reasons["display_mode"] = max(0, len(limited) - len(prioritized))
+                hidden_reasons["display_mode_fallback"] = 1
+                print(
+                    f"[PDF_OVERLAY] fallback: filtered={filtered_count} "
+                    f"drawn_before={drawn_count} drawn_after={len(prioritized)}"
+                )
+
+        page_stats = {}
+        try:
+            from app.gui.sdk.coord_transform import get_canvas_transform
+            target_canvas = canvas
+            if target_canvas is None:
+                target_canvas = self.web_canvas if source == "web" else self.pdf_canvas
+            transform = get_canvas_transform(target_canvas)
+            for region, rect in prioritized:
+                page_id = int(self._infer_region_page_id(region, source) or 0)
+                drift_px = self._round_trip_error_for_rect(transform, rect)
+                bucket = page_stats.setdefault(page_id, {"count": 0, "max_drift_px": 0.0, "sum_drift_px": 0.0})
+                bucket["count"] += 1
+                bucket["sum_drift_px"] += drift_px
+                if drift_px > bucket["max_drift_px"]:
+                    bucket["max_drift_px"] = drift_px
+            for bucket in page_stats.values():
+                c = max(1, int(bucket.get("count", 1)))
+                bucket["avg_drift_px"] = round(float(bucket.get("sum_drift_px", 0.0)) / c, 3)
+                bucket["max_drift_px"] = round(float(bucket.get("max_drift_px", 0.0)), 3)
+                bucket.pop("sum_drift_px", None)
+        except Exception:
+            pass
+
+        diag = {
+            "source": source,
+            "page": self._get_current_page_for_source(source),
+            "counts": {
+                "total": len(regions),
+                "filtered": len(filtered),
+                "normalized": len(normalized),
+                "limited": len(limited),
+                "drawn": len(prioritized),
+            },
+            "hidden_reasons": hidden_reasons,
+            "page_drift_px": page_stats,
+        }
+        store = getattr(self, "_last_region_diagnostics", None)
+        if isinstance(store, dict):
+            store[source] = diag
+
+        return prioritized
+
+
     def _detach_panel(self, panel_type: str):
         """パネルを別ウィンドウに分離"""
         # 分離ウィンドウ作成
@@ -3239,7 +3730,10 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 x1, y1, x2, y2 = region.rect
                 color = getattr(region, 'sync_color', '#FF9800')
                 canvas.create_rectangle(x1, y1, x2, y2, outline=color, width=2, tags="region")
-                canvas.create_text(x1+3, y1+3, text=region.area_code, fill=color, anchor="nw", font=("Meiryo", 8, "bold"), tags="region")
+                show_unmatched_labels = (getattr(self, "show_unmatched_area_labels_by_source", {}) or {}).get(source, True)
+                is_matched_or_selected = (region == self.selected_region) or (getattr(region, "sync_number", None) is not None)
+                if show_unmatched_labels or is_matched_or_selected:
+                    canvas.create_text(x1+3, y1+3, text=region.area_code, fill=color, anchor="nw", font=("Meiryo", 8, "bold"), tags="region")
         else:
             ctk.CTkLabel(canvas_frame, text="画像がありません", font=("Meiryo", 12), text_color="gray").pack(pady=50)
         
@@ -3339,64 +3833,117 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     # ============================================================
     # SimpleSelectionHandler Callbacks - Phase 1.6 Ultra Professional
     # ============================================================
+
+    def _allocate_unique_selection_area_code(self, preferred_code: Optional[str] = None) -> str:
+        """Allocate a unique SEL_XXX area code across regions and sync pairs."""
+        import re
+
+        used = set()
+        for r in (getattr(self, "web_regions", []) or []):
+            code = str(getattr(r, "area_code", "") or "").strip()
+            if code:
+                used.add(code)
+        for r in (getattr(self, "pdf_regions", []) or []):
+            code = str(getattr(r, "area_code", "") or "").strip()
+            if code:
+                used.add(code)
+        for p in (getattr(self, "sync_pairs", []) or []):
+            wid = str(getattr(p, "web_id", "") or "").strip()
+            pid = str(getattr(p, "pdf_id", "") or "").strip()
+            if wid:
+                used.add(wid)
+            if pid:
+                used.add(pid)
+
+        sel_num_pattern = re.compile(r"^SEL[_-](\d{3})$")
+        counter = int(getattr(self, "_selection_area_counter", 0) or 0)
+
+        preferred = str(preferred_code or "").strip()
+        m = sel_num_pattern.match(preferred)
+        if preferred and m and preferred not in used:
+            num = int(m.group(1))
+            self._selection_area_counter = max(counter, num)
+            return f"SEL_{num:03d}"
+
+        if m:
+            counter = max(counter, int(m.group(1)))
+
+        while True:
+            counter += 1
+            candidate = f"SEL_{counter:03d}"
+            if candidate not in used:
+                self._selection_area_counter = counter
+                return candidate
+
     
     def _on_simple_selection_complete(self, result):
-        """
-        SimpleSelectionHandler からの選択完了コールバック
-        
-        Args:
-            result: SelectionResult (rect, text, source, area_code)
-        """
+        """Selection complete callback from SimpleSelectionHandler."""
         print(f"\n{'='*60}")
         print(f"[Callback] _on_simple_selection_complete")
         print(f"[Callback] area_code: {result.area_code}")
         print(f"[Callback] text: {result.text[:50]}..." if len(result.text) > 50 else f"[Callback] text: {result.text}")
         print(f"{'='*60}")
-        
+
         try:
-            # ★ Phase 45: Local-to-Global Coordinate Mapping (Orchestra Fix)
-            # SimpleSelectionHandlerは現在のページ内のローカル座標を返してくる。
-            # しかし、システム全体はステッチ座標(Global)で統一されているため、
-            # 保存前にオフセットを加算する必要がある。
-            
-            final_rect = list(result.rect)
+            result.area_code = self._allocate_unique_selection_area_code(getattr(result, "area_code", None))
+
+            local_rect = list(result.rect)
+            final_rect = list(local_rect)
             page_id = -1
-            
+            stitched_y_offset = 0
+            coord_system = "global"
+
             if result.source == "web":
-                current_page = getattr(self, 'current_page', 1)
-                page_id = current_page
-                
-                offsets = getattr(self, 'web_page_offsets', [0])
-                if 0 <= current_page - 1 < len(offsets):
-                    y_offset = offsets[current_page - 1]
-                    final_rect[1] += y_offset
-                    final_rect[3] += y_offset
-                    print(f"[Callback] Converted Web Rect: {result.rect} -> {final_rect} (Offset: {y_offset})")
-            
-            # EditableRegion を作成
+                page_id = int(getattr(self, 'current_page', 1) or 1)
+                stitched_y_offset = self._get_page_y_offset_for_source("web", page_id)
+                if stitched_y_offset == 0:
+                    web_offsets = getattr(self, "web_page_offsets", None)
+                    if isinstance(web_offsets, list) and 0 <= (page_id - 1) < len(web_offsets):
+                        stitched_y_offset = int(web_offsets[page_id - 1] or 0)
+                final_rect = [
+                    int(local_rect[0]),
+                    int(local_rect[1] + stitched_y_offset),
+                    int(local_rect[2]),
+                    int(local_rect[3] + stitched_y_offset),
+                ]
+            elif result.source == "pdf":
+                page_id = int(getattr(self, 'current_pdf_page', 0) or (getattr(self, 'current_pdf_idx', 0) + 1))
+                if page_id < 1:
+                    page_id = -1
+                stitched_y_offset = self._get_page_y_offset_for_source("pdf", page_id if page_id > 0 else None)
+                if stitched_y_offset == 0 and page_id > 0:
+                    pdf_offsets = getattr(self, "pdf_page_offsets", None)
+                    if isinstance(pdf_offsets, list) and 0 <= (page_id - 1) < len(pdf_offsets):
+                        stitched_y_offset = int(pdf_offsets[page_id - 1] or 0)
+                if page_id > 0:
+                    final_rect = [
+                        int(local_rect[0]),
+                        int(local_rect[1] + stitched_y_offset),
+                        int(local_rect[2]),
+                        int(local_rect[3] + stitched_y_offset),
+                    ]
+
             new_region = EditableRegion(
                 id=len(self.web_regions) + len(self.pdf_regions) + 1,
-                rect=final_rect,  # Converted Rect
+                rect=final_rect,
                 text=result.text,
                 area_code=result.area_code,
                 sync_number=None,
                 similarity=0.0,
                 source=result.source,
-                page_id=page_id
+                page_id=page_id,
+                coord_system=coord_system,
+                stitched_y_offset=stitched_y_offset,
             )
-            
+
             if result.source == "web":
                 self.web_regions.append(new_region)
             else:
                 self.pdf_regions.append(new_region)
-            
-            print(f"[Callback] ✅ EditableRegion added: {result.area_code}")
-            
-            # SyncPair を作成
+
             from app.core.paragraph_matcher import SyncPair
-            
-            rect_list = list(result.rect)
-            
+            rect_list = list(final_rect)
+
             if result.source == "web":
                 new_pair = SyncPair(
                     web_id=result.area_code,
@@ -3406,7 +3953,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                     web_bbox=rect_list,
                     pdf_bbox=None,
                     web_text=result.text,
-                    pdf_text=""
+                    pdf_text="",
                 )
             else:
                 new_pair = SyncPair(
@@ -3417,28 +3964,23 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                     web_bbox=None,
                     pdf_bbox=rect_list,
                     web_text="",
-                    pdf_text=result.text
+                    pdf_text=result.text,
                 )
-            
+
             self.sync_pairs.append(new_pair)
-            print(f"[Callback] ✅ SyncPair added: {result.area_code}")
-            
-            # シート更新
             self._refresh_inline_spreadsheet()
-            print(f"[Callback] ✅ Spreadsheet refreshed")
-            
-            # ステータス更新
-            if result.text and "[テキスト抽出失敗" not in result.text:
-                self.status_label.configure(text=f"✅ テキスト抽出成功: {len(result.text)} 文字")
+            self._redraw_regions()  # ★ 新規選択をバッジ付きで描画
+            if result.text and "[TEXT_EXTRACT_FAILED" not in result.text:
+                self.status_label.configure(text=f"Text extraction OK: {len(result.text)} chars")
             else:
-                self.status_label.configure(text=f"⚠️ テキスト抽出失敗 - 手動入力可能")
-            
+                self.status_label.configure(text="Text extraction failed - manual edit available")
+
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"[Callback] ❌ Error: {e}")
-            self.status_label.configure(text=f"❌ エラー: {e}")
-    
+            print(f"[Callback] Error: {e}")
+            self.status_label.configure(text=f"Error: {e}")
+
     def _on_simple_selection_deleted(self, area_code: str):
         """
         SimpleSelectionHandler からの選択削除コールバック
@@ -3459,13 +4001,37 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             
             # シート更新
             self._refresh_inline_spreadsheet()
-            
+            self._redraw_regions()  # ★ キャンバス矩形を再描画
+
             self.status_label.configure(text=f"🗑️ {area_code} を削除しました")
             print(f"[Callback] ✅ Region deleted: {area_code}")
-            
+
         except Exception as e:
             print(f"[Callback] ❌ Delete error: {e}")
-    
+
+    def _clear_all_manual_selections(self, _event=None):
+        """全手動選択を消去し、OCR結果のみに戻す (Ctrl+Shift+Delete)"""
+        try:
+            if hasattr(self, '_web_selection_handler') and self._web_selection_handler:
+                self._web_selection_handler.clear_all()
+            if hasattr(self, '_pdf_selection_handler') and self._pdf_selection_handler:
+                self._pdf_selection_handler.clear_all()
+
+            self.web_regions = [r for r in self.web_regions
+                                if not str(getattr(r, 'area_code', '')).startswith('SEL')]
+            self.pdf_regions = [r for r in self.pdf_regions
+                                if not str(getattr(r, 'area_code', '')).startswith('SEL')]
+            self.sync_pairs = [p for p in self.sync_pairs
+                               if not str(getattr(p, 'web_id', '')).startswith('SEL')
+                               and not str(getattr(p, 'pdf_id', '')).startswith('SEL')]
+
+            self._refresh_inline_spreadsheet()
+            self._redraw_regions()
+            self.status_label.configure(text="全手動選択をクリアしました")
+            print("[ClearAll] ✅ All manual selections cleared")
+        except Exception as e:
+            print(f"[ClearAll] ❌ Error: {e}")
+
     # ============================================================
     # Canvas Drag Selection - 画像上で矩形選択→テキスト抽出 (Legacy)
     # ============================================================
@@ -3547,26 +4113,68 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         x2 = canvas.canvasx(event.x)
         y2 = canvas.canvasy(event.y)
         x1, y1 = self._selection_start
-        
-        # 正規化 (左上→右下)
-        rect = (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
-        
-        # 選択範囲が小さすぎる場合はスキップ
+
+        # Normalize view rect (top-left to bottom-right)
+        view_rect = (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+
         if abs(x2 - x1) < 10 or abs(y2 - y1) < 10:
             self._selection_start = None
             return
-        
-        # ★ ステータス表示: OCR中
-        self.status_label.configure(text=f"🔍 Gemini Vision OCR 実行中...")
+
+        # Convert from canvas(view) to source coordinates
+        from app.gui.sdk.coord_transform import get_canvas_transform
+        transform = get_canvas_transform(canvas)
+        sx1, sy1 = transform.view_to_src(int(view_rect[0]), int(view_rect[1]))
+        sx2, sy2 = transform.view_to_src(int(view_rect[2]), int(view_rect[3]))
+        source_rect = (min(sx1, sx2), min(sy1, sy2), max(sx1, sx2), max(sy1, sy2))
+
+        # Convert source local rect to source global rect for sheet/sync
+        local_rect = [int(source_rect[0]), int(source_rect[1]), int(source_rect[2]), int(source_rect[3])]
+        final_rect = list(local_rect)
+        page_id = -1
+        stitched_y_offset = 0
+        coord_system = "global"
+
+        if self._selection_source == "web":
+            page_id = int(getattr(self, "current_page", 1) or 1)
+            stitched_y_offset = self._get_page_y_offset_for_source("web", page_id)
+            if stitched_y_offset == 0:
+                web_offsets = getattr(self, "web_page_offsets", None)
+                if isinstance(web_offsets, list) and 0 <= (page_id - 1) < len(web_offsets):
+                    stitched_y_offset = int(web_offsets[page_id - 1] or 0)
+            final_rect = [
+                int(local_rect[0]),
+                int(local_rect[1] + stitched_y_offset),
+                int(local_rect[2]),
+                int(local_rect[3] + stitched_y_offset),
+            ]
+        elif self._selection_source == "pdf":
+            page_id = int(getattr(self, "current_pdf_page", 0) or (getattr(self, "current_pdf_idx", 0) + 1))
+            if page_id < 1:
+                page_id = -1
+            stitched_y_offset = self._get_page_y_offset_for_source("pdf", page_id if page_id > 0 else None)
+            if stitched_y_offset == 0 and page_id > 0:
+                pdf_offsets = getattr(self, "pdf_page_offsets", None)
+                if isinstance(pdf_offsets, list) and 0 <= (page_id - 1) < len(pdf_offsets):
+                    stitched_y_offset = int(pdf_offsets[page_id - 1] or 0)
+            if page_id > 0:
+                final_rect = [
+                    int(local_rect[0]),
+                    int(local_rect[1] + stitched_y_offset),
+                    int(local_rect[2]),
+                    int(local_rect[3] + stitched_y_offset),
+                ]
+
+        self.status_label.configure(text=f"剥 Gemini Vision OCR 螳溯｡御ｸｭ...")
         self.update()
-        
-        # 選択範囲内のテキストを抽出
-        extracted_text = self._extract_text_from_region(rect, self._selection_source)
+
+        # Extract text using page-local source coordinates
+        extracted_text = self._extract_text_from_region(source_rect, self._selection_source)
         
         # ★ HYPER-DIAGNOSTIC: テキスト抽出結果を詳細ログ
         print(f"\n{'='*60}")
         print(f"[HYPER-DEBUG] _on_canvas_release テキスト抽出完了")
-        print(f"[HYPER-DEBUG] rect: {rect}")
+        print(f"[HYPER-DEBUG] view_rect: {view_rect}\n[HYPER-DEBUG] source_rect: {source_rect}\n[HYPER-DEBUG] final_rect: {final_rect}")
         print(f"[HYPER-DEBUG] source: {self._selection_source}")
         print(f"[HYPER-DEBUG] extracted_text type: {type(extracted_text)}")
         print(f"[HYPER-DEBUG] extracted_text value: {repr(extracted_text[:200] if extracted_text else 'None')}")
@@ -3593,12 +4201,15 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         
         new_region = EditableRegion(
             id=len(self.web_regions) + len(self.pdf_regions) + 1,
-            rect=[int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3])],
+            rect=list(final_rect),
             text=display_text,
             area_code=f"SEL_{len(self.web_regions) + len(self.pdf_regions) + 1:03d}",
             sync_number=None,
             similarity=0.0,
-            source=self._selection_source
+            source=self._selection_source,
+            page_id=page_id,
+            coord_system=coord_system,
+            stitched_y_offset=stitched_y_offset,
         )
         
         if self._selection_source == "web":
@@ -3694,11 +4305,15 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 print(f"[AutoMatch] Best match: {best.paragraph_text[:50]}... (score: {best.similarity_score:.2f})")
                 
                 # 対向テキストボックスにマッチ結果を表示
-                self.after(0, lambda: self._apply_auto_match_result(source_region, best, opposite_source))
+                self._safe_after(0, lambda: self._apply_auto_match_result(source_region, best, opposite_source))
             else:
-                self.after(0, lambda: self.status_label.configure(
-                    text=f"⚠️ {opposite_source.upper()}に類似テキストが見つかりませんでした"
-                ))
+                self._safe_after(
+                    0,
+                    lambda: self._safe_status(
+                        f"笞・・{opposite_source.upper()}縺ｫ鬘樔ｼｼ繝・く繧ｹ繝医′隕九▽縺九ｊ縺ｾ縺帙ｓ縺ｧ縺励◆",
+                        force_update=False
+                    ),
+                )
         
         # 非同期でマッチング実行
         try:
@@ -4320,56 +4935,82 @@ Please provide:
     # ============================================================
     
     def _on_mouse_motion(self, event):
-        """マウス移動時にクロスヘアと座標を表示（B5: Sanity Check）"""
+        """Show crosshair and coordinates on mouse move."""
         if not self._crosshair_enabled:
             return
-        
+
         canvas = event.widget
-        
-        # スクロール位置を考慮したキャンバス座標
-        vx = canvas.canvasx(event.x)
-        vy = canvas.canvasy(event.y)
-        
-        # SDK経由でSource座標を取得
-        from app.gui.sdk.coord_transform import get_canvas_transform
-        transform = get_canvas_transform(canvas)
-        sx, sy = transform.view_to_src(int(vx), int(vy))
-        
-        # Round-trip検証
-        error_x, error_y = transform.round_trip_error(sx, sy)
-        
-        # 古いクロスヘアを削除
-        canvas.delete("crosshair")
-        canvas.delete("coord_label")
-        
-        # スクロール領域を取得
-        scrollregion = canvas.cget('scrollregion')
+
+        # View coordinates with scroll offset applied.
+        vx = float(canvas.canvasx(event.x))
+        vy = float(canvas.canvasy(event.y))
+
+        # Read scrollregion bounds.
+        scrollregion = canvas.cget("scrollregion")
         if scrollregion:
             try:
                 parts = scrollregion.split()
-                max_x = float(parts[2]) if len(parts) >= 3 else canvas.winfo_width()
-                max_y = float(parts[3]) if len(parts) >= 4 else canvas.winfo_height()
-            except:
-                max_x = canvas.winfo_width()
-                max_y = canvas.winfo_height()
+                max_x = float(parts[2]) if len(parts) >= 3 else float(canvas.winfo_width())
+                max_y = float(parts[3]) if len(parts) >= 4 else float(canvas.winfo_height())
+            except Exception:
+                max_x = float(canvas.winfo_width())
+                max_y = float(canvas.winfo_height())
         else:
-            max_x = canvas.winfo_width()
-            max_y = canvas.winfo_height()
-        
-        # クロスヘア描画（半透明のライン）
-        canvas.create_line(0, vy, max_x, vy, fill="#00FF00", width=1, dash=(2, 2), tags="crosshair")
-        canvas.create_line(vx, 0, vx, max_y, fill="#00FF00", width=1, dash=(2, 2), tags="crosshair")
-        
-        # 座標ラベル（誤差込み）
+            max_x = float(canvas.winfo_width())
+            max_y = float(canvas.winfo_height())
+
+        # Clamp pointer to drawable bounds.
+        vx = max(0.0, min(vx, max_x))
+        vy = max(0.0, min(vy, max_y))
+
+        # Constrain crosshair to rendered image area.
+        line_min_x, line_min_y = 0.0, 0.0
+        line_max_x, line_max_y = max_x, max_y
+        try:
+            src_w = float(getattr(canvas, "source_width", 0) or 0)
+            src_h = float(getattr(canvas, "source_height", 0) or 0)
+            sc_x = float(getattr(canvas, "scale_x", 0) or 0)
+            sc_y = float(getattr(canvas, "scale_y", 0) or 0)
+            off_x = float(getattr(canvas, "offset_x", 0) or 0)
+            off_y = float(getattr(canvas, "offset_y", 0) or 0)
+            if src_w > 0 and src_h > 0 and sc_x > 0 and sc_y > 0:
+                line_min_x = max(0.0, off_x)
+                line_min_y = max(0.0, off_y)
+                line_max_x = min(max_x, off_x + src_w * sc_x)
+                line_max_y = min(max_y, off_y + src_h * sc_y)
+        except Exception:
+            pass
+
+        vx = max(line_min_x, min(vx, line_max_x))
+        vy = max(line_min_y, min(vy, line_max_y))
+
+        from app.gui.sdk.coord_transform import get_canvas_transform
+        transform = get_canvas_transform(canvas)
+        sx, sy = transform.view_to_src(int(vx), int(vy))
+        error_x, error_y = transform.round_trip_error(sx, sy)
+
+        canvas.delete("crosshair")
+        canvas.delete("coord_label")
+
+        canvas.create_line(line_min_x, vy, line_max_x, vy, fill="#00FF00", width=1, dash=(2, 2), tags="crosshair")
+        canvas.create_line(vx, line_min_y, vx, line_max_y, fill="#00FF00", width=1, dash=(2, 2), tags="crosshair")
+
         source_type = "Web" if canvas == self.web_canvas else "PDF"
-        error_text = f"Δ{error_x:.0f},{error_y:.0f}" if (error_x > 0 or error_y > 0) else "✓"
-        coord_text = f"{source_type} V({int(vx)},{int(vy)}) → S({sx},{sy}) {error_text}"
-        
-        # ラベル位置をカーソル近くに（オフセット付き）
+        error_text = f"d{error_x:.0f},{error_y:.0f}" if (error_x > 0 or error_y > 0) else "ok"
+        coord_text = f"{source_type} V({int(vx)},{int(vy)}) -> S({sx},{sy}) {error_text}"
+
         label_x = vx + 15
         label_y = vy - 15
-        
-        # 背景付きテキスト
+        box_w = len(coord_text) * 6 + 4
+        box_h = 22
+
+        if label_x + box_w > max_x:
+            label_x = max(0.0, max_x - box_w)
+        if label_y < 0:
+            label_y = min(max_y - box_h, vy + 8)
+        if label_y + box_h > max_y:
+            label_y = max(0.0, max_y - box_h)
+
         canvas.create_rectangle(
             label_x - 2, label_y - 10,
             label_x + len(coord_text) * 6 + 2, label_y + 12,
@@ -4380,9 +5021,8 @@ Please provide:
             text=coord_text, fill="#00FF00", anchor="nw",
             font=("Consolas", 9), tags="coord_label"
         )
-        
+
         self._last_crosshair_pos = (vx, vy)
-    
     def _on_mouse_leave(self, event):
         """マウスがキャンバスから離れたらクロスヘアを消去"""
         canvas = event.widget
@@ -4575,14 +5215,15 @@ Please provide:
                 results = searcher.find_similar(template_text, candidates)
                 
                 # 結果をUIに反映
-                self.after(0, lambda: self._apply_gemini_results(results, search_source))
+                self._safe_after(0, lambda: self._apply_gemini_results(results, search_source))
                 
             except Exception as e:
                 import traceback
                 traceback.print_exc()
-                self.after(0, lambda: self.status_label.configure(
-                    text=f"❌ Gemini検索エラー: {e}"
-                ))
+                self._safe_after(
+                    0,
+                    lambda: self._safe_status(f"笶・Gemini讀懃ｴ｢繧ｨ繝ｩ繝ｼ: {e}", force_update=False),
+                )
         
         # バックグラウンドで実行
         threading.Thread(target=search_task, daemon=True).start()
@@ -4701,96 +5342,75 @@ Please provide:
             self.status_label.configure(text=f"❌ メタデータ出力エラー: {e}")
 
     def _run_ocr_analysis(self):
-        """Gemini Hybrid OCRを実行し、結果をUIに反映
-        
-        ★ Phase 44統合: PDF埋め込みテキスト優先 + HybridOCRフォールバック
-        """
-        if not getattr(self, 'web_image', None) and not getattr(self, 'pdf_image', None):
-             self._safe_status("⚠️ 画像が読み込まれていません")
-             return
+        """Run Hybrid OCR and refresh regions/sheet."""
+        if not getattr(self, "web_image", None) and not getattr(self, "pdf_image", None):
+            self._safe_status("No images loaded")
+            return
 
-        self._safe_status("🔥 Hybrid OCR実行中...")
-        
-        # UI更新用のヘルパー (スレッドセーフ対策)
-        def _update_ui(func):
-            if self.winfo_exists():
-                self.after(0, func)
+        self._safe_status("Hybrid OCR running...")
 
         try:
             from app.core.hybrid_ocr import HybridOCREngine
             engine = HybridOCREngine()
-            
-            # Web OCR
-            if getattr(self, 'web_pages', None):
-                 self._safe_status(f"🔥 Hybrid OCR: Web {len(self.web_pages)}ページを並列解析中...")
-                 # Async Parallel Pipeline
-                 res_web = engine.detect_pages_parallel(self.web_pages)
-                 
-                 if not self.winfo_exists(): return
-                 self.web_regions = self._process_ocr_result(res_web, "web")
-                 self._safe_status(f"✅ Web OCR完了: {len(self.web_regions)}リージョン検出")
-            elif getattr(self, 'web_image', None):
-                 self._safe_status("🔥 Hybrid OCR: Web画像を解析中 (単一ページモード)...")
-                 res_web = engine.detect_document_text(self.web_image)
-                 
-                 if not self.winfo_exists(): return
-                 self.web_regions = self._process_ocr_result(res_web, "web")
-                 self._safe_status(f"✅ Web OCR完了: {len(self.web_regions)}リージョン検出")
-            
-            # ★ Phase 44統合: PDF埋め込みテキスト優先
-            if getattr(self, 'pdf_image', None):
-                pdf_embedded_success = False
-                
-                # 親アプリからPDFパスを取得
-                pdf_file_path = self._get_pdf_file_path()
-                
-                if pdf_file_path:
-                    self._safe_status("📄 PDF埋め込みテキスト抽出中...")
-                    pdf_embedded_success = self._extract_pdf_embedded_text(pdf_file_path)
-                
-                if not self.winfo_exists(): return
 
-                # 埋め込みテキストがない場合はOCRフォールバック
+            # Web OCR
+            if getattr(self, "web_pages", None):
+                self._safe_status(f"Hybrid OCR: Web {len(self.web_pages)} pages")
+                res_web = engine.detect_pages_parallel(self.web_pages)
+                if not self.winfo_exists():
+                    return
+                self.web_regions = self._process_ocr_result(res_web, "web")
+            elif getattr(self, "web_image", None):
+                self._safe_status("Hybrid OCR: Web single page")
+                res_web = engine.detect_document_text(self.web_image)
+                if not self.winfo_exists():
+                    return
+                self.web_regions = self._process_ocr_result(res_web, "web")
+
+            # PDF OCR: embedded text first, then OCR fallback
+            if getattr(self, "pdf_image", None):
+                pdf_embedded_success = False
+                pdf_file_path = self._get_pdf_file_path()
+                if pdf_file_path:
+                    self._safe_status("PDF embedded text extraction...")
+                    pdf_embedded_success = self._extract_pdf_embedded_text(pdf_file_path)
+
+                if not self.winfo_exists():
+                    return
+
                 if not pdf_embedded_success:
-                    if getattr(self, 'pdf_pages', None):
-                        self._safe_status(f"🔥 Hybrid OCR: PDF {len(self.pdf_pages)}ページを並列解析中...")
-                        res_pdf = engine.detect_pages_parallel(self.pdf_pages)
-                        
-                        if not self.winfo_exists(): return
+                    pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None) or []
+                    if pages:
+                        self._safe_status(f"Hybrid OCR: PDF {len(pages)} pages")
+                        res_pdf = engine.detect_pages_parallel(pages)
+                        if not self.winfo_exists():
+                            return
                         self.pdf_regions = self._process_ocr_result(res_pdf, "pdf")
                     else:
-                        self._safe_status("🔥 Hybrid OCR: PDF画像を解析中 (単一ページモード)...")
+                        self._safe_status("Hybrid OCR: PDF single page")
                         res_pdf = engine.detect_document_text(self.pdf_image)
-                        
-                        if not self.winfo_exists(): return
+                        if not self.winfo_exists():
+                            return
                         self.pdf_regions = self._process_ocr_result(res_pdf, "pdf")
-                
-                if getattr(self, 'pdf_regions', None):
-                     self._safe_status(f"✅ PDF完了: {len(self.pdf_regions)}リージョン検出")
 
-            if not self.winfo_exists(): return
-            self._safe_status("🔄 パラグラフマッチング計算中...")
+            if not self.winfo_exists():
+                return
 
-            # Update ID & Sync
+            self._safe_status("Sync matching...")
             self._recalculate_sync()
-            
-            # Update Panels
-            if self.winfo_exists():
-                self._update_area_list()
-                self._redraw_regions()
-                self._refresh_inline_spreadsheet() # This updates the sheet thumbnails
-            
-            count_web = len(self.web_regions)
-            count_pdf = len(self.pdf_regions)
-            self._safe_status(f"✅ OCR完了: Web {count_web}件 / PDF {count_pdf}件")
+            self._update_area_list()
+            self._redraw_regions()
+            self._refresh_inline_spreadsheet()
+
+            self._safe_status(f"OCR done: Web {len(self.web_regions)} / PDF {len(self.pdf_regions)}")
 
         except Exception as e:
             if self.winfo_exists():
-                self._safe_status(f"❌ OCRエラー: {e}")
-            print(f"OCR失敗: {e}")
+                self._safe_status(f"OCR error: {e}")
+            print(f"OCR failed: {e}")
             import traceback
             traceback.print_exc()
-    
+
     def _get_pdf_file_path(self) -> str:
         """親アプリからPDFファイルパスを取得"""
         try:
@@ -4808,195 +5428,418 @@ Please provide:
             print(f"[PDF] Error getting file path: {e}")
         return ""
     
+    def _rect_x_overlap_ratio(self, a, b) -> float:
+        try:
+            ax1, _, ax2, _ = [int(v) for v in a]
+            bx1, _, bx2, _ = [int(v) for v in b]
+            inter = max(0, min(ax2, bx2) - max(ax1, bx1))
+            min_w = max(1, min(ax2 - ax1, bx2 - bx1))
+            return inter / min_w
+        except Exception:
+            return 0.0
+
+    def _merge_pdf_page_candidates(self, candidates):
+        """Merge dense PDF blocks with title-paragraph aware grouping."""
+        if not candidates:
+            return []
+
+        gap_y = int(getattr(self, "pdf_region_merge_gap_px", 28) or 28)
+        min_overlap = float(getattr(self, "pdf_region_merge_x_overlap_ratio", 0.35) or 0.35)
+        max_per_page = int(getattr(self, "pdf_max_regions_per_page", 240) or 240)
+
+        items = sorted(candidates, key=lambda c: (c["rect"][1], c["rect"][0]))
+        merged = []
+
+        # Pass 1: line/block merge + micro-fragment absorption.
+        for cand in items:
+            rect = [int(v) for v in cand.get("rect", [0, 0, 0, 0])]
+            text = str(cand.get("text", "") or "").strip()
+            if len(rect) < 4 or not text:
+                continue
+
+            if not merged:
+                merged.append({"rect": rect, "text": text})
+                continue
+
+            prev = merged[-1]
+            pr = prev["rect"]
+            gap = rect[1] - pr[3]
+            overlap = self._rect_x_overlap_ratio(pr, rect)
+
+            prev_area = max(1, (pr[2] - pr[0]) * (pr[3] - pr[1]))
+            curr_area = max(1, (rect[2] - rect[0]) * (rect[3] - rect[1]))
+            tiny_fragment = min(prev_area, curr_area) < 1800
+
+            should_merge = False
+            if gap <= gap_y and overlap >= min_overlap:
+                should_merge = True
+            elif tiny_fragment and gap <= max(gap_y + 16, 44) and overlap >= max(0.2, min_overlap - 0.15):
+                should_merge = True
+
+            if should_merge:
+                prev["rect"] = [
+                    min(pr[0], rect[0]),
+                    min(pr[1], rect[1]),
+                    max(pr[2], rect[2]),
+                    max(pr[3], rect[3]),
+                ]
+                if text and text not in prev["text"]:
+                    prev["text"] = (prev["text"] + "\n" + text).strip()
+            else:
+                merged.append({"rect": rect, "text": text})
+
+        if not merged:
+            return []
+
+        # Pass 2: title -> paragraph relation simulation (layout-aware grouping).
+        x_min = min(m["rect"][0] for m in merged)
+        x_max = max(m["rect"][2] for m in merged)
+        page_w = max(1, x_max - x_min)
+
+        grouped = []
+        i = 0
+        while i < len(merged):
+            base = merged[i]
+            br = list(base["rect"])
+            btxt = str(base.get("text", "") or "").strip()
+            bw = max(1, br[2] - br[0])
+            bh = max(1, br[3] - br[1])
+            blen = len(btxt)
+
+            is_title_like = (blen <= 90 and bh <= 150 and bw >= max(220, int(page_w * 0.16)))
+
+            j = i + 1
+            while j < len(merged):
+                nxt = merged[j]
+                nr = nxt["rect"]
+                nt = str(nxt.get("text", "") or "").strip()
+                if not nt:
+                    j += 1
+                    continue
+
+                gap = nr[1] - br[3]
+                overlap = self._rect_x_overlap_ratio(br, nr)
+                nw = max(1, nr[2] - nr[0])
+
+                c1 = (br[0] + br[2]) / 2.0
+                c2 = (nr[0] + nr[2]) / 2.0
+                center_near = abs(c2 - c1) <= max(220, page_w * 0.30)
+
+                if is_title_like:
+                    # Titles often own following paragraph blocks in same lane.
+                    if gap <= 120 and overlap >= 0.20 and center_near and nw >= max(80, int(bw * 0.35)):
+                        br = [min(br[0], nr[0]), min(br[1], nr[1]), max(br[2], nr[2]), max(br[3], nr[3])]
+                        if nt not in btxt:
+                            btxt = (btxt + "\n" + nt).strip()
+                        j += 1
+                        continue
+                # General continuation merge for paragraph chunks.
+                if gap <= max(gap_y + 18, 46) and overlap >= max(0.22, min_overlap - 0.10) and center_near:
+                    br = [min(br[0], nr[0]), min(br[1], nr[1]), max(br[2], nr[2]), max(br[3], nr[3])]
+                    if nt not in btxt:
+                        btxt = (btxt + "\n" + nt).strip()
+                    j += 1
+                    continue
+
+                break
+
+            grouped.append({"rect": br, "text": btxt})
+            i = j
+
+        # Pass 3: coarse card-level merge for title+body+image layouts (right-side grid pages).
+        grouped_before_card = list(grouped)
+        card_merged = []
+        for item in grouped:
+            rect = list(item["rect"])
+            txt = str(item.get("text", "") or "").strip()
+            if not card_merged:
+                card_merged.append({"rect": rect, "text": txt})
+                continue
+
+            prev = card_merged[-1]
+            pr = prev["rect"]
+            gap = rect[1] - pr[3]
+            overlap = self._rect_x_overlap_ratio(pr, rect)
+            c1 = (pr[0] + pr[2]) / 2.0
+            c2 = (rect[0] + rect[2]) / 2.0
+            center_near = abs(c2 - c1) <= max(260, page_w * 0.40)
+
+            if gap <= 180 and overlap >= 0.08 and center_near:
+                prev["rect"] = [
+                    min(pr[0], rect[0]),
+                    min(pr[1], rect[1]),
+                    max(pr[2], rect[2]),
+                    max(pr[3], rect[3]),
+                ]
+                if txt and txt not in prev["text"]:
+                    prev["text"] = (prev["text"] + "\n" + txt).strip()
+            else:
+                card_merged.append({"rect": rect, "text": txt})
+
+        # Safety valve: if card merge over-collapses regions, rollback.
+        use_card_merged = True
+        try:
+            keep_ratio = float(getattr(self, "pdf_card_merge_min_keep_ratio", 0.45) or 0.45)
+            max_area_ratio = float(getattr(self, "pdf_card_merge_max_area_ratio", 0.28) or 0.28)
+            if grouped_before_card:
+                if len(card_merged) < max(1, int(len(grouped_before_card) * keep_ratio)):
+                    use_card_merged = False
+
+            y_min = min(g["rect"][1] for g in grouped_before_card) if grouped_before_card else 0
+            y_max = max(g["rect"][3] for g in grouped_before_card) if grouped_before_card else 1
+            page_h_est = max(1, y_max - y_min)
+            page_area_est = max(1, int(page_w * page_h_est))
+            max_rect_area = 0
+            for g in card_merged:
+                x1, y1, x2, y2 = g["rect"]
+                area = max(1, (x2 - x1) * (y2 - y1))
+                if area > max_rect_area:
+                    max_rect_area = area
+            if max_rect_area > int(page_area_est * max_area_ratio):
+                use_card_merged = False
+        except Exception:
+            use_card_merged = True
+
+        grouped = card_merged if use_card_merged else grouped_before_card
+
+        # Filter tiny noise after grouping.
+        filtered = []
+        min_area = int((getattr(self, "min_region_area_by_source", {}) or {}).get("pdf", 300) or 300)
+        for m in grouped:
+            x1, y1, x2, y2 = m["rect"]
+            area = max(0, x2 - x1) * max(0, y2 - y1)
+            txt = str(m.get("text", "") or "").strip()
+            if area < min_area:
+                continue
+            if len(txt) < 2:
+                continue
+            filtered.append({"rect": [int(x1), int(y1), int(x2), int(y2)], "text": txt})
+
+        if len(filtered) <= max_per_page:
+            return filtered
+
+        # Keep informative regions and restore reading order.
+        scored = []
+        for m in filtered:
+            x1, y1, x2, y2 = m["rect"]
+            area = max(1, (x2 - x1) * (y2 - y1))
+            txt = len(m["text"])
+            score = area * (1.0 + min(txt, 260) / 260.0)
+            scored.append((score, m))
+
+        scored.sort(key=lambda t: t[0], reverse=True)
+        keep = [m for _, m in scored[:max_per_page]]
+        keep.sort(key=lambda m: (m["rect"][1], m["rect"][0]))
+        return keep
+
     def _extract_pdf_embedded_text(self, pdf_file_path: str) -> bool:
-        """PDFから埋め込みテキストを抽出
-        
-        Returns:
-            True: 埋め込みテキストが十分にある場合
-            False: OCRフォールバックが必要な場合
-        """
+        """Extract PDF embedded text into page-local regions."""
         import os
         if not pdf_file_path or not os.path.exists(pdf_file_path):
             print(f"[PDF] File not found: {pdf_file_path}")
             return False
-        
+
         try:
-            import fitz  # PyMuPDF
-            from app.gui.windows.advanced_comparison_view import EditableRegion
-            
+            import fitz
+
             doc = fitz.open(pdf_file_path)
             total_chars = 0
             self.pdf_regions = []
-            
+
             PDF_DPI = 300
             DPI_SCALE = PDF_DPI / 72.0
             BBOX_PADDING = 5
-            
+
+            # Build page offsets for stitched-space compatibility.
+            self.pdf_page_offsets = [0]
+            cumulative = 0
+            pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None) or []
+            if pages:
+                for page in pages:
+                    img = page.get("image") if isinstance(page, dict) else None
+                    if img:
+                        cumulative += img.height
+                        self.pdf_page_offsets.append(cumulative)
+            else:
+                for page_num in range(min(len(doc), 10)):
+                    page = doc.load_page(page_num)
+                    cumulative += int(page.rect.height * DPI_SCALE)
+                    self.pdf_page_offsets.append(cumulative)
+
             seq = 0
-            y_offset = 0  # 縦連結オフセット
-            
-            for page_num in range(min(len(doc), 10)):  # 最大10ページ
+            for page_num in range(min(len(doc), 10)):
                 page = doc.load_page(page_num)
                 text_dict = page.get_text("dict")
-                page_height_scaled = int(page.rect.height * DPI_SCALE)
-                
+                page_id = page_num + 1
+                page_offset = self.pdf_page_offsets[page_num] if page_num < len(self.pdf_page_offsets) else 0
+
+                page_img = pages[page_num].get("image") if page_num < len(pages) and isinstance(pages[page_num], dict) else None
+                if page_img is not None:
+                    scale_x = float(page_img.width) / max(1.0, float(page.rect.width))
+                    scale_y = float(page_img.height) / max(1.0, float(page.rect.height))
+                else:
+                    scale_x = DPI_SCALE
+                    scale_y = DPI_SCALE
+
+                candidates = []
                 for block in text_dict.get("blocks", []):
                     if block.get("type") != 0:
                         continue
-                    
+
                     bbox = block.get("bbox", [])
                     if len(bbox) != 4:
                         continue
-                    
-                    # テキスト抽出（パディング付き）
+
                     original_rect = fitz.Rect(bbox)
                     expanded_rect = fitz.Rect(
                         original_rect.x0 - BBOX_PADDING,
                         original_rect.y0 - BBOX_PADDING,
                         original_rect.x1 + BBOX_PADDING,
-                        original_rect.y1 + BBOX_PADDING
+                        original_rect.y1 + BBOX_PADDING,
                     )
                     clip_rect = expanded_rect & page.rect
                     block_text = page.get_text("text", clip=clip_rect).strip()
-                    
-                    if len(block_text) >= 5:
-                        seq += 1
-                        total_chars += len(block_text)
-                        
-                        # 画像座標系にスケーリング + 縦連結オフセット
-                        scaled_rect = [
-                            int(bbox[0] * DPI_SCALE),
-                            int(bbox[1] * DPI_SCALE + y_offset),
-                            int(bbox[2] * DPI_SCALE),
-                            int(bbox[3] * DPI_SCALE + y_offset)
-                        ]
-                        
-                        region = EditableRegion(
-                            id=seq,
-                            rect=scaled_rect,
-                            text=block_text,
-                            area_code=f"PDF-{seq:02d}",
-                            sync_number=None,
-                            similarity=0.0,
-                            source="pdf",
-                            page_id=-1  # スティッチモード
-                        )
-                        self.pdf_regions.append(region)
-                
-                y_offset += page_height_scaled
-                print(f"[PDF] Page {page_num+1}: extracted text, y_offset={y_offset}")
-            
+
+                    if len(block_text) < 5:
+                        continue
+
+                    local_rect = [
+                        int(bbox[0] * scale_x),
+                        int(bbox[1] * scale_y),
+                        int(bbox[2] * scale_x),
+                        int(bbox[3] * scale_y),
+                    ]
+                    candidates.append({"rect": local_rect, "text": block_text})
+
+                merged_regions = self._merge_pdf_page_candidates(candidates)
+                for item in merged_regions:
+                    seq += 1
+                    total_chars += len(item["text"])
+                    region = EditableRegion(
+                        id=seq,
+                        rect=item["rect"],
+                        text=item["text"],
+                        area_code=f"P{page_id}-{seq:03d}",
+                        sync_number=None,
+                        similarity=0.0,
+                        source="pdf",
+                        page_id=page_id,
+                        coord_system="local",
+                        stitched_y_offset=page_offset,
+                    )
+                    self.pdf_regions.append(region)
+
             doc.close()
-            
-            if total_chars > 100:
-                print(f"[PDF] ✅ Embedded text: {total_chars} chars, {len(self.pdf_regions)} regions")
+
+            if total_chars > 100 and self.pdf_regions:
+                print(f"[PDF] Embedded text OK: chars={total_chars}, regions={len(self.pdf_regions)}")
                 return True
-            else:
-                print(f"[PDF] ⚠️ Insufficient embedded text ({total_chars} chars), falling back to OCR")
-                return False
-                
+
+            print(f"[PDF] Embedded text insufficient: chars={total_chars}")
+            return False
+
         except ImportError:
-            print("[PDF] ⚠️ PyMuPDF (fitz) not installed, falling back to OCR")
+            print("[PDF] PyMuPDF not installed")
             return False
         except Exception as e:
-            print(f"[PDF] ⚠️ Embedded text extraction error: {e}")
+            print(f"[PDF] Embedded text extraction error: {e}")
             import traceback
             traceback.print_exc()
             return False
 
     def _process_ocr_result(self, result, source):
-        """OCR結果をEditableRegionに変換
-        
-        ★ Phase 44: Section 4.4 Asymmetric Mixed-Mode準拠
-        - Web: page_id設定、P{page}-{seq}形式、ページ相対座標
-        - PDF: page_id=-1（スティッチモード）、PDF-{seq}形式
-        """
+        """Convert OCR result blocks into EditableRegion list."""
         regions = []
-        if not result or 'blocks' not in result:
+        if not result or "blocks" not in result:
             return regions
-            
-        blocks = result['blocks']
-        
-        # Sort blocks: Y (primary), X (secondary)
-        blocks.sort(key=lambda b: (b['bbox'][1], b['bbox'][0]))
-        
-        from app.gui.windows.advanced_comparison_view import EditableRegion
 
-        # ★ Phase 44: Webの場合はページ境界を計算
-        web_page_offsets = [0]
-        if source == "web" and hasattr(self, 'web_pages') and self.web_pages:
-            cumulative_y = 0
-            for page in self.web_pages:
-                img = page.get('image')
+        blocks = list(result.get("blocks") or [])
+        if not blocks:
+            return regions
+
+        def _rect_of(block):
+            rect = block.get("bbox") or block.get("rect")
+            if not isinstance(rect, (list, tuple)) or len(rect) != 4:
+                return None
+            try:
+                x1, y1, x2, y2 = [int(v) for v in rect]
+                if x2 <= x1 or y2 <= y1:
+                    return None
+                return [x1, y1, x2, y2]
+            except Exception:
+                return None
+
+        blocks = [b for b in blocks if _rect_of(b) is not None and str(b.get("text", "")).strip()]
+        blocks.sort(key=lambda b: (_rect_of(b)[1], _rect_of(b)[0]))
+
+        pdf_offsets = [0]
+        cumulative = 0
+        pdf_pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None) or []
+        if pdf_pages:
+            for p in pdf_pages:
+                img = p.get("image") if isinstance(p, dict) else None
                 if img:
-                    cumulative_y += img.height
-                    web_page_offsets.append(cumulative_y)
-            print(f"[Phase44] _process_ocr_result web_page_offsets: {web_page_offsets}")
+                    cumulative += int(img.height)
+                    pdf_offsets.append(cumulative)
+
+        web_offsets = [0]
+        cumulative_web = 0
+        web_pages = getattr(self, "web_pages", None) or []
+        if source == "web" and web_pages:
+            for p in web_pages:
+                img = p.get("image") if isinstance(p, dict) else None
+                if img:
+                    cumulative_web += int(img.height)
+                    web_offsets.append(cumulative_web)
 
         for i, block in enumerate(blocks):
-             rect = block['bbox'] # [x0, y0, x1, y1]
-             text = block['text']
-             
-             if not text or not text.strip(): continue
-             
-             seq = i + 1
-             
-             if source == "web":
-                 # ★ Phase 45 Refactor: Global Coordinates & Page Identification
-                 # 1. Use explicit page_index if available (from Async Parallel)
-                 if 'page_index' in block:
-                     page_id = block['page_index'] + 1
-                 else:
-                     # 2. Fallback: Identify page_id based on Y-coordinate
-                     # Use the LOCALLY calculated offsets, not the potentially stale self.web_page_offsets
-                     y_center = (rect[1] + rect[3]) / 2
-                     page_id = 1
-                     
-                     if len(web_page_offsets) > 1:
-                         found_page = False
-                         for p_idx in range(len(web_page_offsets) - 1):
-                             p_start = web_page_offsets[p_idx]
-                             p_end = web_page_offsets[p_idx+1]
-                             if p_start <= y_center < p_end:
-                                 page_id = p_idx + 1
-                                 found_page = True
-                                 break
-                         # If Y is beyond the last offset (e.g. footer), assign to last page
-                         if not found_page and y_center >= web_page_offsets[-1]:
-                             page_id = len(web_page_offsets) - 1
-                             if page_id < 1: page_id = 1
-                 
-                 r = EditableRegion(
-                     id=seq,
-                     rect=rect, # Global Coordinates
-                     text=text,
-                     area_code=f"P{page_id}-{seq:02d}",
-                     sync_number=None,
-                     similarity=0.0,
-                     source=source,
-                     page_id=page_id
-                 )
-             else:
-                 # PDF: Parallel/Single Page Mode Integration
-                 if 'page_index' in block:
-                      page_id = block['page_index'] + 1
-                 else:
-                      page_id = -1 # Legacy fallback
-                      
-                 r = EditableRegion(
-                     id=seq,
-                     rect=list(rect),
-                     text=text,
-                     area_code=f"PDF-{seq:02d}",
-                     sync_number=None,
-                     similarity=0.0,
-                     source=source,
-                     page_id=page_id
-                 )
-             
-             regions.append(r)
-        
-        print(f"[Phase44] _process_ocr_result: {source} {len(regions)} regions created")
+            rect = _rect_of(block)
+            if rect is None:
+                continue
+            text = str(block.get("text", "")).strip()
+            seq = i + 1
+
+            if source == "web":
+                if "page_index" in block:
+                    page_id = int(block.get("page_index", 0)) + 1
+                else:
+                    # Infer page by y-center for stitched coordinates when page_index is missing.
+                    y_center = (rect[1] + rect[3]) / 2
+                    page_id = int(getattr(self, "current_pdf_idx", 0) or 0) + 1
+                    if len(pdf_offsets) > 1:
+                        for p_idx in range(len(pdf_offsets) - 1):
+                            if pdf_offsets[p_idx] <= y_center < pdf_offsets[p_idx + 1]:
+                                page_id = p_idx + 1
+                                break
+                        else:
+                            page_id = max(1, len(pdf_offsets) - 1)
+
+                    page_offset = (
+                        pdf_offsets[page_id - 1]
+                        if 0 <= page_id - 1 < len(pdf_offsets)
+                        else self._get_page_y_offset_for_source("pdf", page_id)
+                    )
+                    local_rect = [rect[0], rect[1] - page_offset, rect[2], rect[3] - page_offset]
+                    if local_rect[1] < 0 or local_rect[3] < 0:
+                        local_rect = rect
+
+
+                region = EditableRegion(
+                    id=seq,
+                    rect=[int(local_rect[0]), int(local_rect[1]), int(local_rect[2]), int(local_rect[3])],
+                    text=text,
+                    area_code=f"P{page_id}-{seq:03d}",
+                    sync_number=None,
+                    similarity=0.0,
+                    source="pdf",
+                    page_id=page_id,
+                    coord_system="local",
+                    stitched_y_offset=int(page_offset),
+                )
+
+            regions.append(region)
+
+        print(f"[OCR] _process_ocr_result source={source} regions={len(regions)}")
         return regions
 
     def _run_text_comparison(self):

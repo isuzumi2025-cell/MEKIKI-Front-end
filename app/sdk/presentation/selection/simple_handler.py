@@ -16,9 +16,13 @@ Design Principles:
 """
 
 import tkinter as tk
+import os
 from typing import Optional, Callable, List, Tuple, Any
 from PIL import Image
 from dataclasses import dataclass
+
+
+_DEBUG_LOG_ENABLED = os.getenv("MEKIKI_DEBUG_LOG", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 @dataclass
@@ -28,6 +32,7 @@ class SelectionResult:
     text: str
     source: str  # "web" or "pdf"
     area_code: str
+    canvas_tag: str = ""  # unique canvas tag for per-selection delete
 
 
 class SimpleSelectionHandler:
@@ -64,7 +69,8 @@ class SimpleSelectionHandler:
         self._start_x: Optional[int] = None
         self._start_y: Optional[int] = None
         self._rect_id: Optional[int] = None
-        
+        self._current_tag: Optional[str] = None  # unique tag for the in-progress selection
+
         # 既存選択領域
         self._regions: List[SelectionResult] = []
         self._region_counter = 0
@@ -90,13 +96,39 @@ class SimpleSelectionHandler:
         """マウス押下 - 選択開始"""
         self._start_x = self.canvas.canvasx(event.x)
         self._start_y = self.canvas.canvasy(event.y)
-        
+        # unique tag for this drag — counter hasn't been incremented yet so +1
+        self._current_tag = f"sel_{self._region_counter + 1:03d}"
+
         # 既存の選択矩形を削除
         if self._rect_id:
             self.canvas.delete(self._rect_id)
             self._rect_id = None
-        
+
         print(f"[Selection] Press at ({self._start_x:.0f}, {self._start_y:.0f})")
+        # #region agent log - H1: selection press coords
+        if _DEBUG_LOG_ENABLED:
+            try:
+                import json as _j, time as _t
+                tf = getattr(self.canvas, '_coord_tf', None)
+                with open(r"c:\Users\raiko\OneDrive\Desktop\26\.cursor\debug.log", "a", encoding="utf-8") as _f:
+                    _f.write(_j.dumps({
+                        "runId": "pre-fix",
+                        "hypothesisId": "H1",
+                        "location": "simple_handler.py:_on_press",
+                        "message": "Selection press coords",
+                        "data": {
+                            "canvas_xy": [self._start_x, self._start_y],
+                            "scale_x": getattr(self.canvas, "scale_x", None),
+                            "scale_y": getattr(self.canvas, "scale_y", None),
+                            "offset_x": getattr(self.canvas, "offset_x", None),
+                            "offset_y": getattr(self.canvas, "offset_y", None),
+                            "has_tf": bool(tf)
+                        },
+                        "timestamp": int(_t.time() * 1000)
+                    }) + "\n")
+            except Exception:
+                pass
+        # #endregion
     
     def _on_drag(self, event):
         """ドラッグ中 - 選択矩形を描画"""
@@ -113,7 +145,7 @@ class SimpleSelectionHandler:
         self._rect_id = self.canvas.create_rectangle(
             self._start_x, self._start_y, x, y,
             outline="#00FF00", width=2, dash=(4, 2),
-            tags="simple_selection"
+            tags=(self._current_tag or "simple_selection", "simple_selection")
         )
     
     def _on_release(self, event):
@@ -171,13 +203,48 @@ class SimpleSelectionHandler:
             print(f"[SimpleSelection] Transform: scale={scale:.4f} (fallback)")
         
         # シンプルなスケール変換のみ
-        img_x1 = int(canvas_x1 / scale) if scale > 0 else int(canvas_x1)
-        img_y1 = int(canvas_y1 / scale) if scale > 0 else int(canvas_y1)
-        img_x2 = int(canvas_x2 / scale) if scale > 0 else int(canvas_x2)
-        img_y2 = int(canvas_y2 / scale) if scale > 0 else int(canvas_y2)
+        if tf and hasattr(tf, 'view_to_src'):
+            sx1, sy1 = tf.view_to_src(int(canvas_x1), int(canvas_y1))
+            sx2, sy2 = tf.view_to_src(int(canvas_x2), int(canvas_y2))
+            img_x1, img_y1 = int(sx1), int(sy1)
+            img_x2, img_y2 = int(sx2), int(sy2)
+        else:
+            img_x1 = int(canvas_x1 / scale) if scale > 0 else int(canvas_x1)
+            img_y1 = int(canvas_y1 / scale) if scale > 0 else int(canvas_y1)
+            img_x2 = int(canvas_x2 / scale) if scale > 0 else int(canvas_x2)
+            img_y2 = int(canvas_y2 / scale) if scale > 0 else int(canvas_y2)
         
         rect = (img_x1, img_y1, img_x2, img_y2)
         print(f"[SimpleSelection] Image coords: {rect}")
+        # #region agent log - H2: selection transform
+        if _DEBUG_LOG_ENABLED:
+            try:
+                import json as _j, time as _t
+                current_image = self.image
+                if self.image_getter:
+                    fetched = self.image_getter()
+                    if fetched:
+                        current_image = fetched
+                with open(r"c:\Users\raiko\OneDrive\Desktop\26\.cursor\debug.log", "a", encoding="utf-8") as _f:
+                    _f.write(_j.dumps({
+                        "runId": "pre-fix",
+                        "hypothesisId": "H2",
+                        "location": "simple_handler.py:_on_release",
+                        "message": "Selection transform result",
+                        "data": {
+                            "canvas_rect": [canvas_x1, canvas_y1, canvas_x2, canvas_y2],
+                            "image_rect": [img_x1, img_y1, img_x2, img_y2],
+                            "scale": scale,
+                            "offset_x": offset_x,
+                            "offset_y": offset_y,
+                            "image_size": [current_image.width, current_image.height] if current_image else None,
+                            "scrollregion": self.canvas.cget("scrollregion")
+                        },
+                        "timestamp": int(_t.time() * 1000)
+                    }) + "\n")
+            except Exception:
+                pass
+        # #endregion
         
         # 選択矩形を確定表示
         if self._rect_id:
@@ -201,7 +268,8 @@ class SimpleSelectionHandler:
             rect=rect,
             text=text,
             source=self.source,
-            area_code=area_code
+            area_code=area_code,
+            canvas_tag=self._current_tag or f"sel_{self._region_counter:03d}",
         )
         
         self._regions.append(result)
@@ -320,14 +388,15 @@ class SimpleSelectionHandler:
             if x1 <= x <= x2 and y1 <= y <= y2:
                 print(f"[Selection] Deleting: {region.area_code}")
                 self._regions.remove(region)
-                
-                # キャンバスから選択矩形を削除
-                self.canvas.delete("simple_selection")
-                
+
+                # この選択のみ削除（個別タグ使用）
+                tag = getattr(region, "canvas_tag", "") or "simple_selection"
+                self.canvas.delete(tag)
+
                 # コールバック
                 if self.on_selection_deleted:
                     self.on_selection_deleted(region.area_code)
-                
+
                 return
         
         print("[Selection] No region found at click position")
