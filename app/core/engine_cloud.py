@@ -729,7 +729,14 @@ class CloudOCREngine(OCREngineStrategy):
         # クラスタリング
         vertical_clusters = self._vertical_stack_clustering(all_blocks)
         final_clusters = self._orphan_absorption(vertical_clusters)
-        
+
+        # カード境界後処理（チャンクモードでも有効化）
+        # image は元画像（モード変換済みだがリサイズ前）、all_blocks も元座標系
+        if self.enable_card_detection:
+            final_clusters = self._apply_card_boundary_filter(
+                final_clusters, all_blocks, image
+            )
+
         # ソート
         def sort_key(cluster):
             x0, y0, _, _ = cluster["rect"]
