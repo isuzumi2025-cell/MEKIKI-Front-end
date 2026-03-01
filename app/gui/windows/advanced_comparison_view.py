@@ -3968,6 +3968,16 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                 )
 
             self.sync_pairs.append(new_pair)
+
+            # Delete the handler-drawn draft rect before redraw to avoid a
+            # duplicate: the handler rect lives in canvas coords while
+            # _redraw_regions draws via src_rect_to_view, so tiny divergences
+            # cause the visible "offset" artifact.
+            _sel_canvas = self.web_canvas if result.source == "web" else self.pdf_canvas
+            _draft_tag = getattr(result, 'canvas_tag', '')
+            if _draft_tag and _sel_canvas:
+                _sel_canvas.delete(_draft_tag)
+
             self._refresh_inline_spreadsheet()
             self._redraw_regions()  # ★ 新規選択をバッジ付きで描画
             if result.text and "[TEXT_EXTRACT_FAILED" not in result.text:
