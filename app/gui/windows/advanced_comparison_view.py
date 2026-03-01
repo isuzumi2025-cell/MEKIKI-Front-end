@@ -3969,17 +3969,32 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
             self.sync_pairs.append(new_pair)
 
-            # Delete the handler-drawn draft rect before redraw to avoid a
-            # duplicate: the handler rect lives in canvas coords while
-            # _redraw_regions draws via src_rect_to_view, so tiny divergences
-            # cause the visible "offset" artifact.
-            _sel_canvas = self.web_canvas if result.source == "web" else self.pdf_canvas
-            _draft_tag = getattr(result, 'canvas_tag', '')
-            if _draft_tag and _sel_canvas:
-                _sel_canvas.delete(_draft_tag)
+            # Add area_code label directly on the handler-drawn rect using its
+            # canvas coordinates.  Do NOT call _redraw_regions() here: that
+            # would delete("region") and potentially drop OCR overlays if the
+            # page-filter pipeline rejects them (→ "Web検出ナシ" symptom).
+            # The handler rect is already at the correct canvas position — we
+            # only need to annotate it.
+            try:
+                _sel_canvas = self.web_canvas if result.source == "web" else self.pdf_canvas
+                _draft_tag = getattr(result, 'canvas_tag', '')
+                if _draft_tag and _sel_canvas:
+                    items = _sel_canvas.find_withtag(_draft_tag)
+                    if items:
+                        coords = _sel_canvas.coords(items[0])
+                        if coords and len(coords) >= 2:
+                            _sel_canvas.create_text(
+                                int(coords[0]) + 4, int(coords[1]) + 4,
+                                text=result.area_code,
+                                fill="#FFFF00",
+                                anchor="nw",
+                                font=("Consolas", 9, "bold"),
+                                tags=(_draft_tag, "simple_selection"),
+                            )
+            except Exception as _label_err:
+                print(f"[SelectionLabel] {_label_err}")
 
             self._refresh_inline_spreadsheet()
-            self._redraw_regions()  # ★ 新規選択をバッジ付きで描画
             if result.text and "[TEXT_EXTRACT_FAILED" not in result.text:
                 self.status_label.configure(text=f"Text extraction OK: {len(result.text)} chars")
             else:
@@ -4011,7 +4026,8 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             
             # シート更新
             self._refresh_inline_spreadsheet()
-            self._redraw_regions()  # ★ キャンバス矩形を再描画
+            # NOTE: The handler already deleted the canvas rect via canvas_tag.
+            # Do NOT call _redraw_regions() — it would wipe OCR overlays.
 
             self.status_label.configure(text=f"🗑️ {area_code} を削除しました")
             print(f"[Callback] ✅ Region deleted: {area_code}")
