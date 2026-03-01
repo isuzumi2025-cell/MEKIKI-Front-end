@@ -136,11 +136,12 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self._is_fullscreen: bool = False
 
         # FR-01: 画像表示モード ("cover" or "fit")
-        self.display_mode: str = "cover"
+        # "fit" = width-first scaling (scroll vertically) — matches baseline behavior
+        self.display_mode: str = "fit"
 
         # Source-specific display mode state
         self.display_mode_by_source: Dict[str, str] = {
-            "web": "cover",
+            "web": "fit",   # restored to fit (was "cover" which over-zoomed)
             "pdf": "fit",
         }
 
@@ -1648,7 +1649,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
         # キャッシュキー生成（サイズ + source別モード + 画像ハッシュ）
         image_hash = id(image)  # PIL ImageのIDをハッシュとして使用
-        mode = self.display_mode_by_source.get(source, "cover" if source == "web" else "fit")
+        mode = self.display_mode_by_source.get(source, "fit")
         cache_key = (canvas_width, canvas_height, mode, image_hash)
 
         # キャッシュ確認
@@ -1999,12 +2000,18 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             
         # ★ ByCursor Fix: web_pages_listを同期
         self.web_pages_list = self.web_pages
-            
-        # ★ Webステッチ画像をキャッシュ (初回のみ)
+
+        # ★ Webステッチ画像キャッシュ: 遅延生成（同期生成は起動を著しく遅らせる）
         if self.web_pages:
-            print("[Cache] Generating Web Stitch Cache...")
-            self._web_stitch_cache = self._stitch_pages_vertically([p['image'] for p in self.web_pages])
-            print(f"[Cache] Web Stitch Generated: {self._web_stitch_cache.size}")
+            def _gen_web_stitch():
+                try:
+                    self._web_stitch_cache = self._stitch_pages_vertically(
+                        [p['image'] for p in self.web_pages]
+                    )
+                    print(f"[Cache] Web Stitch Generated (deferred): {self._web_stitch_cache.size}")
+                except Exception as _e:
+                    print(f"[Cache] Web Stitch error: {_e}")
+            self.after(1000, _gen_web_stitch)
     
     def _load_pdf_data(self):
         """PDFデータをロード - 全ページを収集"""
@@ -2037,11 +2044,17 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
                     except Exception as e:
                         print(f"PDF画像読み込みエラー: {e}")
         
-        # ★ PDFステッチ画像をキャッシュ (初回のみ)
+        # ★ PDFステッチ画像キャッシュ: 遅延生成（同期生成は起動を著しく遅らせる）
         if self.pdf_pages:
-            print("[Cache] Generating PDF Stitch Cache...")
-            self._pdf_stitch_cache = self._stitch_pages_vertically([p['image'] for p in self.pdf_pages])
-            print(f"[Cache] PDF Stitch Generated: {self._pdf_stitch_cache.size}")
+            def _gen_pdf_stitch():
+                try:
+                    self._pdf_stitch_cache = self._stitch_pages_vertically(
+                        [p['image'] for p in self.pdf_pages]
+                    )
+                    print(f"[Cache] PDF Stitch Generated (deferred): {self._pdf_stitch_cache.size}")
+                except Exception as _e:
+                    print(f"[Cache] PDF Stitch error: {_e}")
+            self.after(1500, _gen_pdf_stitch)
         
         print(f"📄 PDF合計: {len(self.pdf_pages)}ページ")
         
@@ -2359,7 +2372,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
             src = "web"
 
         modes = ["cover", "fit", "smart"]
-        current = self.display_mode_by_source.get(src, "cover" if src == "web" else "fit")
+        current = self.display_mode_by_source.get(src, "fit")
         try:
             idx = modes.index(current)
         except ValueError:
@@ -2368,7 +2381,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
         self.display_mode_by_source[src] = next_mode
 
         # backward compatibility field
-        self.display_mode = self.display_mode_by_source.get("web", "cover")
+        self.display_mode = self.display_mode_by_source.get("web", "fit")
 
         self._update_display_mode_buttons()
         self._clear_image_cache(src)
@@ -2382,7 +2395,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
 
     def _update_display_mode_buttons(self):
         """Update Web/PDF display mode button labels."""
-        web_mode = self.display_mode_by_source.get("web", "cover")
+        web_mode = self.display_mode_by_source.get("web", "fit")
         pdf_mode = self.display_mode_by_source.get("pdf", "fit")
 
         if hasattr(self, "web_display_mode_btn") and self.web_display_mode_btn:
@@ -2394,7 +2407,7 @@ class AdvancedComparisonView(EditMixin, SelectionMixin, ctk.CTkFrame):
     def _resolve_display_mode(self, source: str, image_size: Tuple[int, int], viewport_size: Tuple[int, int]) -> str:
         """Resolve effective mode for mixed-size sources on one window."""
         src = str(source or "web").lower()
-        mode = self.display_mode_by_source.get(src, "cover" if src == "web" else "fit")
+        mode = self.display_mode_by_source.get(src, "fit")
         if mode != "smart":
             return mode
 
@@ -5368,56 +5381,109 @@ Please provide:
             self.status_label.configure(text=f"❌ メタデータ出力エラー: {e}")
 
     def _run_ocr_analysis(self):
-        """Run Hybrid OCR and refresh regions/sheet."""
+        """Run OCR (CloudOCREngine) and refresh regions/sheet.
+
+        Uses CloudOCREngine.extract_text() directly — same engine as
+        unified_app._run_ai_analysis_mode_impl() — for stable results.
+        HybridOCREngine was removed here because it caused:
+          - Long init time (Gemini LLM connection attempt)
+          - detect_pages_parallel() format mismatch with _process_ocr_result
+          - Empty web_regions on Gemini auth failure
+        """
         if not getattr(self, "web_image", None) and not getattr(self, "pdf_image", None):
             self._safe_status("No images loaded")
             return
 
-        self._safe_status("Hybrid OCR running...")
+        self._safe_status("OCR running...")
 
         try:
-            from app.core.hybrid_ocr import HybridOCREngine
-            engine = HybridOCREngine()
+            from app.core.engine_cloud import CloudOCREngine
+            ocr_engine = CloudOCREngine(preprocess=False)
 
-            # Web OCR
-            if getattr(self, "web_pages", None):
-                self._safe_status(f"Hybrid OCR: Web {len(self.web_pages)} pages")
-                res_web = engine.detect_pages_parallel(self.web_pages)
-                if not self.winfo_exists():
-                    return
-                self.web_regions = self._process_ocr_result(res_web, "web")
-            elif getattr(self, "web_image", None):
-                self._safe_status("Hybrid OCR: Web single page")
-                res_web = engine.detect_document_text(self.web_image)
-                if not self.winfo_exists():
-                    return
-                self.web_regions = self._process_ocr_result(res_web, "web")
+            # -- Web OCR --------------------------------------------------
+            web_pages = getattr(self, "web_pages", None) or []
+            if not web_pages and getattr(self, "web_image", None):
+                web_pages = [{"image": self.web_image, "url": "", "title": "Web"}]
 
-            # PDF OCR: embedded text first, then OCR fallback
-            if getattr(self, "pdf_image", None):
-                pdf_embedded_success = False
-                pdf_file_path = self._get_pdf_file_path()
-                if pdf_file_path:
-                    self._safe_status("PDF embedded text extraction...")
-                    pdf_embedded_success = self._extract_pdf_embedded_text(pdf_file_path)
+            if web_pages:
+                all_web_blocks = []
+                web_y_offset = 0
+                for page_idx, page in enumerate(web_pages[:5]):
+                    img = page.get("image") if isinstance(page, dict) else page
+                    if img is None:
+                        continue
+                    self._safe_status(f"OCR Web page {page_idx + 1}/{min(len(web_pages), 5)}...")
+                    if not self.winfo_exists():
+                        return
+                    try:
+                        clusters, _ = ocr_engine.extract_text(img)
+                    except Exception as _e:
+                        print(f"[OCR] Web page {page_idx+1} error: {_e}")
+                        continue
+                    for c in clusters:
+                        rect = c.get("rect", [0, 0, 0, 0])
+                        # Shift rect to stitched-image coordinates
+                        stitched_rect = [rect[0], rect[1] + web_y_offset,
+                                         rect[2], rect[3] + web_y_offset]
+                        all_web_blocks.append({
+                            "rect": stitched_rect,
+                            "text": c.get("text", ""),
+                            "page_index": page_idx,
+                            "stitched_y_offset": web_y_offset,
+                        })
+                    web_y_offset += img.height
 
-                if not self.winfo_exists():
-                    return
+                self.web_regions = self._process_ocr_result({"blocks": all_web_blocks}, "web")
+                print(f"[OCR] web_regions: {len(self.web_regions)}")
 
-                if not pdf_embedded_success:
-                    pages = getattr(self, "pdf_pages_list", None) or getattr(self, "pdf_pages", None) or []
-                    if pages:
-                        self._safe_status(f"Hybrid OCR: PDF {len(pages)} pages")
-                        res_pdf = engine.detect_pages_parallel(pages)
-                        if not self.winfo_exists():
-                            return
-                        self.pdf_regions = self._process_ocr_result(res_pdf, "pdf")
-                    else:
-                        self._safe_status("Hybrid OCR: PDF single page")
-                        res_pdf = engine.detect_document_text(self.pdf_image)
-                        if not self.winfo_exists():
-                            return
-                        self.pdf_regions = self._process_ocr_result(res_pdf, "pdf")
+            if not self.winfo_exists():
+                return
+
+            # -- PDF OCR --------------------------------------------------
+            # Try embedded text first, fall back to Vision API
+            pdf_embedded_success = False
+            pdf_file_path = self._get_pdf_file_path()
+            if pdf_file_path:
+                self._safe_status("PDF embedded text extraction...")
+                pdf_embedded_success = self._extract_pdf_embedded_text(pdf_file_path)
+
+            if not self.winfo_exists():
+                return
+
+            if not pdf_embedded_success:
+                pdf_pages = (getattr(self, "pdf_pages_list", None)
+                             or getattr(self, "pdf_pages", None) or [])
+                if not pdf_pages and getattr(self, "pdf_image", None):
+                    pdf_pages = [{"image": self.pdf_image, "title": "PDF"}]
+
+                all_pdf_blocks = []
+                pdf_y_offset = 0
+                for page_idx, page in enumerate(pdf_pages):
+                    img = page.get("image") if isinstance(page, dict) else page
+                    if img is None:
+                        continue
+                    self._safe_status(f"OCR PDF page {page_idx + 1}/{len(pdf_pages)}...")
+                    if not self.winfo_exists():
+                        return
+                    try:
+                        clusters, _ = ocr_engine.extract_text(img)
+                    except Exception as _e:
+                        print(f"[OCR] PDF page {page_idx+1} error: {_e}")
+                        continue
+                    for c in clusters:
+                        rect = c.get("rect", [0, 0, 0, 0])
+                        stitched_rect = [rect[0], rect[1] + pdf_y_offset,
+                                         rect[2], rect[3] + pdf_y_offset]
+                        all_pdf_blocks.append({
+                            "rect": stitched_rect,
+                            "text": c.get("text", ""),
+                            "page_index": page_idx,
+                            "stitched_y_offset": pdf_y_offset,
+                        })
+                    pdf_y_offset += img.height
+
+                self.pdf_regions = self._process_ocr_result({"blocks": all_pdf_blocks}, "pdf")
+                print(f"[OCR] pdf_regions: {len(self.pdf_regions)}")
 
             if not self.winfo_exists():
                 return
@@ -5823,46 +5889,50 @@ Please provide:
             if rect is None:
                 continue
             text = str(block.get("text", "")).strip()
+            if not text:
+                continue
             seq = i + 1
 
-            if source == "web":
-                if "page_index" in block:
-                    page_id = int(block.get("page_index", 0)) + 1
+            # Stitched-Y offset carried from the caller (set in _run_ocr_analysis)
+            page_offset = int(block.get("stitched_y_offset", 0))
+
+            if "page_index" in block:
+                page_id = int(block.get("page_index", 0)) + 1
+            else:
+                # Infer page from stitched y-coordinate using source-appropriate offsets
+                y_center = (rect[1] + rect[3]) / 2
+                offsets = web_offsets if source == "web" else pdf_offsets
+                page_id = 1
+                for p_idx in range(len(offsets) - 1):
+                    if offsets[p_idx] <= y_center < offsets[p_idx + 1]:
+                        page_id = p_idx + 1
+                        break
                 else:
-                    # Infer page by y-center for stitched coordinates when page_index is missing.
-                    y_center = (rect[1] + rect[3]) / 2
-                    page_id = int(getattr(self, "current_pdf_idx", 0) or 0) + 1
-                    if len(pdf_offsets) > 1:
-                        for p_idx in range(len(pdf_offsets) - 1):
-                            if pdf_offsets[p_idx] <= y_center < pdf_offsets[p_idx + 1]:
-                                page_id = p_idx + 1
-                                break
-                        else:
-                            page_id = max(1, len(pdf_offsets) - 1)
+                    page_id = max(1, len(offsets) - 1)
+                page_offset = offsets[page_id - 1] if 0 <= (page_id - 1) < len(offsets) else 0
 
-                    page_offset = (
-                        pdf_offsets[page_id - 1]
-                        if 0 <= page_id - 1 < len(pdf_offsets)
-                        else self._get_page_y_offset_for_source("pdf", page_id)
-                    )
-                    local_rect = [rect[0], rect[1] - page_offset, rect[2], rect[3] - page_offset]
-                    if local_rect[1] < 0 or local_rect[3] < 0:
-                        local_rect = rect
+            # Convert stitched → page-local coordinates
+            local_rect = [rect[0], rect[1] - page_offset,
+                          rect[2], rect[3] - page_offset]
+            if local_rect[1] < 0 or local_rect[3] < 0:
+                local_rect = rect
 
+            # Area code: W-NNN for web, P-NNN for pdf (CLAUDE.md ID spec)
+            prefix = "W" if source == "web" else "P"
+            area_code = f"{prefix}-{seq:03d}"
 
-                region = EditableRegion(
-                    id=seq,
-                    rect=[int(local_rect[0]), int(local_rect[1]), int(local_rect[2]), int(local_rect[3])],
-                    text=text,
-                    area_code=f"P{page_id}-{seq:03d}",
-                    sync_number=None,
-                    similarity=0.0,
-                    source="pdf",
-                    page_id=page_id,
-                    coord_system="local",
-                    stitched_y_offset=int(page_offset),
-                )
-
+            region = EditableRegion(
+                id=seq,
+                rect=[int(v) for v in local_rect],
+                text=text,
+                area_code=area_code,
+                sync_number=None,
+                similarity=0.0,
+                source=source,          # use actual source (was hardcoded "pdf")
+                page_id=page_id,
+                coord_system="local",
+                stitched_y_offset=int(page_offset),
+            )
             regions.append(region)
 
         print(f"[OCR] _process_ocr_result source={source} regions={len(regions)}")
