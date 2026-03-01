@@ -22,24 +22,18 @@ class CloudOCREngine(OCREngineStrategy):
     「クラスタリング結果」と「全文字の生データ」を返します。
     """
 
-    def __init__(
-        self,
-        preprocess: bool = False,
-        preprocess_binarize: bool = False,
-        enable_card_detection: bool = None,
-    ):
+    def __init__(self, preprocess: bool = False, preprocess_binarize: bool = False,
+                 enable_card_detection: bool = None):
         """
         初期化
 
         Args:
             preprocess: 前処理を有効にするか（ノイズ多い画像向け）
             preprocess_binarize: 二値化を有効にするか
-            enable_card_detection: カード型境界検出を有効にする。
-                None の場合は config.ENABLE_CARD_DETECTION に従う。
+            enable_card_detection: カード境界検出を有効にする（None=config値に従う）
         """
         self.preprocess = preprocess
         self.preprocess_binarize = preprocess_binarize
-
         if enable_card_detection is None:
             try:
                 from app.config import ENABLE_CARD_DETECTION
@@ -191,42 +185,16 @@ class CloudOCREngine(OCREngineStrategy):
                         "font_size": statistics.mean(symbol_heights) if symbol_heights else 10
                     })
 
-            # --- 2. カード境界検出（オプション）---
-            card_boundaries = None
-            if self.enable_card_detection and raw_blocks:
-                try:
-                    import cv2 as _cv2
-                    import numpy as _np
-                    from app.core.card_boundary_detector import CardBoundaryDetector
-                    from app.core.visual_analyzer import VisualAnalyzer
-                    from app.core.color_utils import extract_text_foreground_color
-                    from app.config import ENABLE_CARD_SSIM
+            # --- 2. 自動クラスタリング実行（既存ロジック完全維持）---
+            vertical_clusters = self._vertical_stack_clustering(raw_blocks)
+            final_clusters = self._orphan_absorption(vertical_clusters)
 
-                    cv_img = _cv2.cvtColor(_np.array(image), _cv2.COLOR_RGB2BGR)
-                    va = VisualAnalyzer()
-                    for block in raw_blocks:
-                        try:
-                            info = va.analyze_text_region(cv_img, block["rect"])
-                            block["bg_color"] = info.get("background_color", "#FFFFFF")
-                            block["has_border"] = info.get("has_border", False)
-                            block["fg_color"] = extract_text_foreground_color(cv_img, block["rect"])
-                        except Exception:
-                            block.setdefault("bg_color", "#FFFFFF")
-                            block.setdefault("has_border", False)
-                            block.setdefault("fg_color", "#000000")
-
-                    detector = CardBoundaryDetector(enable_ssim=ENABLE_CARD_SSIM)
-                    _result = detector.detect(image)
-                    card_boundaries = _result.cards
-                    print(f"[CardDetect] {len(card_boundaries)} cards found"
-                          f" ({_result.detection_time_ms:.0f}ms)")
-                except Exception as _e:
-                    print(f"[CardDetect] skipped: {_e}")
-                    card_boundaries = None
-
-            # --- 3. 自動クラスタリング実行 ---
-            vertical_clusters = self._vertical_stack_clustering(raw_blocks, card_boundaries)
-            final_clusters = self._orphan_absorption(vertical_clusters, card_boundaries)
+            # --- 3. カード境界後処理（オプション・既存ロジックに非侵襲）---
+            # ENABLE_CARD_DETECTION=False(デフォルト)の場合は完全スキップ
+            if self.enable_card_detection:
+                final_clusters = self._apply_card_boundary_filter(
+                    final_clusters, raw_blocks, image
+                )
 
             # ソート
             def sort_key(cluster):
@@ -280,7 +248,7 @@ class CloudOCREngine(OCREngineStrategy):
             raise RuntimeError(str(e))
 
     # --- 以下、前回のロジック（そのまま利用） ---
-    def _vertical_stack_clustering(self, blocks, card_boundaries=None):
+    def _vertical_stack_clustering(self, blocks):
         """
         知的パラグラフ検出 (Orchestra協議スコア8/10に基づく改善版)
         
@@ -356,45 +324,22 @@ class CloudOCREngine(OCREngineStrategy):
                     
                     if not is_aligned: continue
 
-                    # === カード境界チェック（オプション）===
-                    _card_crosses = False
-                    _card_conf = 0.0
-                    _in_same_card = None
-                    if card_boundaries:
-                        from app.core.card_boundary_detector import CardBoundaryDetector as _CBD
-                        _card_crosses, _card_conf = _CBD.blocks_cross_card_boundary(
-                            current["rect"], target["rect"], card_boundaries
-                        )
-                        if _card_crosses and _card_conf >= 0.8:
-                            continue  # ハード制約：異なるカード間のマージを拒否
-                        _in_same_card = _CBD.blocks_in_same_card(
-                            current["rect"], target["rect"], card_boundaries
-                        )
-
                     gap_y = target["rect"][1] - current["rect"][3]
-
+                    
                     # === ダイナミックY閾値 (GPT戦略: 2.0-4.0x) ===
                     # レイアウト類似の場合は4.0x、通常は3.0x
                     y_multiplier = 4.0 if is_layout_similar else (3.5 if is_both_template else 3.0)
                     threshold_y = max(base_size * y_multiplier * template_bonus, 60)
 
-                    # カード境界ソフト制約 / 同一カード閾値緩和
-                    if _card_crosses and _card_conf >= 0.5:
-                        threshold_y *= 0.6  # ソフト制約：閾値厳格化
-                    if _in_same_card:
-                        threshold_y *= 1.5  # 同一カード内：閾値緩和
-
                     if gap_y > threshold_y: continue
-
+                    
                     # フォントサイズ差の許容 (GPT推奨: 3.0x)
                     if current["avg_font_size"] > target["avg_font_size"] * 3.0: continue
                     if target["avg_font_size"] > current["avg_font_size"] * 2.5: continue
-
+                    
                     # X方向ギャップ (GPT推奨: 20-25px)
                     gap_x = max(0, target["rect"][0] - current["rect"][2]) if current["rect"][0] < target["rect"][0] else max(0, current["rect"][0] - target["rect"][2])
                     gap_x_threshold = 30 if is_layout_similar else 20
-                    if _in_same_card:
-                        gap_x_threshold = max(gap_x_threshold, 40)  # 同一カード内：X方向も緩和
                     if gap_x > gap_x_threshold: continue
 
                     new_rect = [
@@ -421,15 +366,15 @@ class CloudOCREngine(OCREngineStrategy):
             clusters = new_clusters
         return clusters
 
-    def _orphan_absorption(self, clusters, card_boundaries=None):
+    def _orphan_absorption(self, clusters):
         if not clusters: return []
         areas = [(c["rect"][2]-c["rect"][0]) * (c["rect"][3]-c["rect"][1]) for c in clusters]
         avg_area = statistics.mean(areas) if areas else 0
-        orphan_threshold = avg_area * 0.1
-
+        orphan_threshold = avg_area * 0.1 
+        
         final_clusters = []
         orphans = []
-
+        
         for c in clusters:
             area = (c["rect"][2]-c["rect"][0]) * (c["rect"][3]-c["rect"][1])
             text_len = sum(len(t) for t in c["texts"])
@@ -446,12 +391,6 @@ class CloudOCREngine(OCREngineStrategy):
             r1 = orphan["rect"]
             for parent in final_clusters:
                 r2 = parent["rect"]
-                # カード境界越えの吸収を防ぐ
-                if card_boundaries:
-                    from app.core.card_boundary_detector import CardBoundaryDetector as _CBD
-                    _crosses, _conf = _CBD.blocks_cross_card_boundary(r1, r2, card_boundaries)
-                    if _crosses and _conf >= 0.8:
-                        continue
                 dx = max(0, r2[0] - r1[2]) if r1[0] < r2[0] else max(0, r1[0] - r2[2])
                 dy = max(0, r2[1] - r1[3]) if r1[1] < r2[1] else max(0, r1[1] - r2[3])
                 dist = dx + dy
@@ -469,6 +408,106 @@ class CloudOCREngine(OCREngineStrategy):
             else:
                 final_clusters.append(orphan)
         return final_clusters
+
+    def _apply_card_boundary_filter(self, clusters, raw_blocks, image):
+        """
+        カード境界後処理フィルタ（ENABLE_CARD_DETECTION=True の場合のみ呼ばれる）
+
+        既存の _vertical_stack_clustering / _orphan_absorption には一切触れない。
+        クラスタリング完了後のクラスタリストに対して、カード境界を越えた
+        マージが残っている場合に分割する後処理として動作する。
+
+        Returns:
+            フィルタ済みのクラスタリスト（問題なければ入力そのままを返す）
+        """
+        try:
+            import cv2 as _cv2
+            import numpy as _np
+            from app.core.card_boundary_detector import CardBoundaryDetector
+            from app.core.visual_analyzer import VisualAnalyzer
+            from app.core.color_utils import extract_text_foreground_color
+            from app.config import ENABLE_CARD_SSIM
+
+            cv_img = _cv2.cvtColor(_np.array(image), _cv2.COLOR_RGB2BGR)
+
+            # raw_blocks に視覚情報を付与
+            va = VisualAnalyzer()
+            for block in raw_blocks:
+                try:
+                    info = va.analyze_text_region(cv_img, block["rect"])
+                    block["bg_color"] = info.get("background_color", "#FFFFFF")
+                    block["has_border"] = info.get("has_border", False)
+                    block["fg_color"] = extract_text_foreground_color(cv_img, block["rect"])
+                except Exception:
+                    block.setdefault("bg_color", "#FFFFFF")
+                    block.setdefault("has_border", False)
+                    block.setdefault("fg_color", "#000000")
+
+            # カード境界を検出
+            detector = CardBoundaryDetector(enable_ssim=ENABLE_CARD_SSIM)
+            result = detector.detect(image)
+            cards = result.cards
+            print(f"[CardDetect] {len(cards)} cards found ({result.detection_time_ms:.0f}ms)")
+
+            if not cards:
+                return clusters  # カードなし → 変更なし
+
+            # カード境界を越えたクラスタを分割
+            filtered = []
+            for cluster in clusters:
+                # クラスタが複数の raw_blocks を含むかチェック
+                cluster_rect = cluster["rect"]
+                # クラスタ内の raw_blocks を収集
+                cluster_blocks = [
+                    b for b in raw_blocks
+                    if (b["rect"][0] >= cluster_rect[0] - 5 and
+                        b["rect"][1] >= cluster_rect[1] - 5 and
+                        b["rect"][2] <= cluster_rect[2] + 5 and
+                        b["rect"][3] <= cluster_rect[3] + 5)
+                ]
+
+                if len(cluster_blocks) <= 1:
+                    filtered.append(cluster)
+                    continue
+
+                # クラスタ内のブロックが複数のカードにまたがっているか確認
+                card_groups = {}
+                for block in cluster_blocks:
+                    assigned = None
+                    for card in cards:
+                        cx = (block["rect"][0] + block["rect"][2]) / 2
+                        cy = (block["rect"][1] + block["rect"][3]) / 2
+                        if (card.rect[0] <= cx <= card.rect[2] and
+                                card.rect[1] <= cy <= card.rect[3]):
+                            assigned = id(card)
+                            break
+                    key = assigned if assigned is not None else -1
+                    card_groups.setdefault(key, []).append(block)
+
+                if len(card_groups) <= 1:
+                    # 全ブロックが同一カード内 → 変更なし
+                    filtered.append(cluster)
+                else:
+                    # 複数カードにまたがる → カードごとに分割
+                    for group_blocks in card_groups.values():
+                        if not group_blocks:
+                            continue
+                        xs = [b["rect"][0] for b in group_blocks] + [b["rect"][2] for b in group_blocks]
+                        ys = [b["rect"][1] for b in group_blocks] + [b["rect"][3] for b in group_blocks]
+                        new_rect = [min(xs), min(ys), max(xs), max(ys)]
+                        filtered.append({
+                            "rect": new_rect,
+                            "texts": [b["text"] for b in group_blocks],
+                            "width": new_rect[2] - new_rect[0],
+                            "center_x": (new_rect[0] + new_rect[2]) / 2,
+                            "avg_font_size": cluster.get("avg_font_size", 14),
+                            "is_template": cluster.get("is_template", False),
+                        })
+            return filtered
+
+        except Exception as e:
+            print(f"[CardDetect] filter skipped: {e}")
+            return clusters  # 失敗時は元のクラスタをそのまま返す
 
     def _ocr_tall_image_chunks(self, image: Image.Image):
         """
