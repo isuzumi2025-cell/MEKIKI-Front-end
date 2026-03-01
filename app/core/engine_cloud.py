@@ -421,27 +421,9 @@ class CloudOCREngine(OCREngineStrategy):
             フィルタ済みのクラスタリスト（問題なければ入力そのままを返す）
         """
         try:
-            import cv2 as _cv2
-            import numpy as _np
             from app.core.card_boundary_detector import CardBoundaryDetector
-            from app.core.visual_analyzer import VisualAnalyzer
-            from app.core.color_utils import extract_text_foreground_color
             from app.config import ENABLE_CARD_SSIM
-
-            cv_img = _cv2.cvtColor(_np.array(image), _cv2.COLOR_RGB2BGR)
-
-            # raw_blocks に視覚情報を付与
-            va = VisualAnalyzer()
-            for block in raw_blocks:
-                try:
-                    info = va.analyze_text_region(cv_img, block["rect"])
-                    block["bg_color"] = info.get("background_color", "#FFFFFF")
-                    block["has_border"] = info.get("has_border", False)
-                    block["fg_color"] = extract_text_foreground_color(cv_img, block["rect"])
-                except Exception:
-                    block.setdefault("bg_color", "#FFFFFF")
-                    block.setdefault("has_border", False)
-                    block.setdefault("fg_color", "#000000")
+            # NOTE: bg_color/fg_color 付与は将来の色判定実装時に復活予定
 
             # カード境界を検出
             detector = CardBoundaryDetector(enable_ssim=ENABLE_CARD_SSIM)
@@ -503,11 +485,100 @@ class CloudOCREngine(OCREngineStrategy):
                             "avg_font_size": cluster.get("avg_font_size", 14),
                             "is_template": cluster.get("is_template", False),
                         })
-            return filtered
+            # STEP 2: 同一カード内の近接クラスタを統合（カード内断片化を修正）
+            merged = self._merge_within_cards(filtered, cards)
+            print(f"[CardDetect] clusters: {len(clusters)} → split={len(filtered)} → merged={len(merged)}")
+            return merged
 
         except Exception as e:
             print(f"[CardDetect] filter skipped: {e}")
             return clusters  # 失敗時は元のクラスタをそのまま返す
+
+    def _merge_within_cards(self, clusters, cards):
+        """
+        同一カード内の近接クラスタを統合する。
+
+        [3エージェント合意に基づく設計]
+        - 閾値: max(font * 4.0, 80) を base とし min(..., card_h * 0.18) で上限キャップ
+            → 大カード内の離れたセクションを過剰マージしない
+            → 最小保証 40px（極小カード向け）
+        - X方向整合性チェック: X重なりが min_width の 30% 未満なら別クラスタ
+            → 2カラムレイアウトや価格+説明の横並びを分離
+        - card_h を閾値計算に実際に反映
+        """
+        processed = set()
+        result = []
+
+        for card in cards:
+            card_h = max(card.rect[3] - card.rect[1], 1)
+
+            # カード内クラスタ収集（重心がカード矩形内）
+            card_idxs = [
+                i for i, c in enumerate(clusters)
+                if i not in processed
+                and card.rect[0] <= (c["rect"][0] + c["rect"][2]) / 2 <= card.rect[2]
+                and card.rect[1] <= (c["rect"][1] + c["rect"][3]) / 2 <= card.rect[3]
+            ]
+
+            if not card_idxs:
+                continue
+
+            processed.update(card_idxs)
+            card_idxs.sort(key=lambda i: clusters[i]["rect"][1])
+
+            # 先頭クラスタで acc を初期化（辞書キー名を _ck/_cv で衝突回避）
+            acc = {_ck: _cv for _ck, _cv in clusters[card_idxs[0]].items()}
+            acc["texts"] = list(acc.get("texts", []))
+
+            for k in range(1, len(card_idxs)):
+                curr = clusters[card_idxs[k]]
+
+                # ── X方向整合性チェック（2カラム・横並びセクションの誤結合を防ぐ）──
+                x_overlap = min(acc["rect"][2], curr["rect"][2]) - max(acc["rect"][0], curr["rect"][0])
+                min_w = min(acc.get("width", 1), curr.get("width", 1))
+                x_ratio = x_overlap / min_w if min_w > 0 else 0
+                if x_ratio < 0.30:
+                    # X重なり < 30% → 別カラムや横並び要素 → 別クラスタ
+                    result.append(acc)
+                    acc = {_ck: _cv for _ck, _cv in curr.items()}
+                    acc["texts"] = list(acc.get("texts", []))
+                    continue
+
+                # ── Y方向ギャップチェック（card_h 上限付き）──
+                gap_y = curr["rect"][1] - acc["rect"][3]
+                base_fs = max(acc.get("avg_font_size", 14), curr.get("avg_font_size", 14))
+                # 基本閾値: font*4.0 以上かつ 80px 以上
+                raw_thr = max(base_fs * 4.0, 80)
+                # 上限: カード高さの 18% を超えない（大カードでの過剰マージを防ぐ）
+                within_thr = max(min(raw_thr, card_h * 0.18), 40)
+
+                if gap_y <= within_thr:
+                    # マージ: bounding box を拡張し texts を結合
+                    acc["rect"] = [
+                        min(acc["rect"][0], curr["rect"][0]),
+                        acc["rect"][1],
+                        max(acc["rect"][2], curr["rect"][2]),
+                        curr["rect"][3],
+                    ]
+                    acc["texts"] = acc["texts"] + list(curr.get("texts", []))
+                    acc["width"] = acc["rect"][2] - acc["rect"][0]
+                    acc["center_x"] = (acc["rect"][0] + acc["rect"][2]) / 2
+                    acc["avg_font_size"] = max(acc.get("avg_font_size", 14), curr.get("avg_font_size", 14))
+                    acc["is_template"] = acc.get("is_template", False) or curr.get("is_template", False)
+                else:
+                    # Y ギャップが閾値超え → 別クラスタとして確定
+                    result.append(acc)
+                    acc = {_ck: _cv for _ck, _cv in curr.items()}
+                    acc["texts"] = list(acc.get("texts", []))
+
+            result.append(acc)
+
+        # どのカードにも属さないクラスタを追加（順序保持）
+        for i, c in enumerate(clusters):
+            if i not in processed:
+                result.append(c)
+
+        return result
 
     def _ocr_tall_image_chunks(self, image: Image.Image):
         """
