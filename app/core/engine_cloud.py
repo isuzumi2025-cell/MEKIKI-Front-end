@@ -6,6 +6,7 @@ from PIL import Image
 from google.cloud import vision
 from google.oauth2 import service_account
 from app.core.interface import OCREngineStrategy
+from app.config.runtime_paths import resolve_google_credentials_path
 
 # Optional preprocessing
 try:
@@ -21,20 +22,35 @@ class CloudOCREngine(OCREngineStrategy):
     「クラスタリング結果」と「全文字の生データ」を返します。
     """
 
-    def __init__(self, preprocess: bool = False, preprocess_binarize: bool = False):
+    def __init__(
+        self,
+        preprocess: bool = False,
+        preprocess_binarize: bool = False,
+        enable_card_detection: bool = None,
+    ):
         """
         初期化
-        
+
         Args:
             preprocess: 前処理を有効にするか（ノイズ多い画像向け）
             preprocess_binarize: 二値化を有効にするか
+            enable_card_detection: カード型境界検出を有効にする。
+                None の場合は config.ENABLE_CARD_DETECTION に従う。
         """
         self.preprocess = preprocess
         self.preprocess_binarize = preprocess_binarize
+
+        if enable_card_detection is None:
+            try:
+                from app.config import ENABLE_CARD_DETECTION
+                enable_card_detection = ENABLE_CARD_DETECTION
+            except Exception:
+                enable_card_detection = False
+        self.enable_card_detection = enable_card_detection
         
-        key_path = "service_account.json"
-        if os.path.exists(key_path):
-            credentials = service_account.Credentials.from_service_account_file(key_path)
+        cred_path = resolve_google_credentials_path()
+        if cred_path and cred_path.exists():
+            credentials = service_account.Credentials.from_service_account_file(str(cred_path))
             self.client = vision.ImageAnnotatorClient(credentials=credentials)
         else:
             self.client = vision.ImageAnnotatorClient()
@@ -175,9 +191,42 @@ class CloudOCREngine(OCREngineStrategy):
                         "font_size": statistics.mean(symbol_heights) if symbol_heights else 10
                     })
 
-            # --- 2. 自動クラスタリング実行 ---
-            vertical_clusters = self._vertical_stack_clustering(raw_blocks)
-            final_clusters = self._orphan_absorption(vertical_clusters)
+            # --- 2. カード境界検出（オプション）---
+            card_boundaries = None
+            if self.enable_card_detection and raw_blocks:
+                try:
+                    import cv2 as _cv2
+                    import numpy as _np
+                    from app.core.card_boundary_detector import CardBoundaryDetector
+                    from app.core.visual_analyzer import VisualAnalyzer
+                    from app.core.color_utils import extract_text_foreground_color
+                    from app.config import ENABLE_CARD_SSIM
+
+                    cv_img = _cv2.cvtColor(_np.array(image), _cv2.COLOR_RGB2BGR)
+                    va = VisualAnalyzer()
+                    for block in raw_blocks:
+                        try:
+                            info = va.analyze_text_region(cv_img, block["rect"])
+                            block["bg_color"] = info.get("background_color", "#FFFFFF")
+                            block["has_border"] = info.get("has_border", False)
+                            block["fg_color"] = extract_text_foreground_color(cv_img, block["rect"])
+                        except Exception:
+                            block.setdefault("bg_color", "#FFFFFF")
+                            block.setdefault("has_border", False)
+                            block.setdefault("fg_color", "#000000")
+
+                    detector = CardBoundaryDetector(enable_ssim=ENABLE_CARD_SSIM)
+                    _result = detector.detect(image)
+                    card_boundaries = _result.cards
+                    print(f"[CardDetect] {len(card_boundaries)} cards found"
+                          f" ({_result.detection_time_ms:.0f}ms)")
+                except Exception as _e:
+                    print(f"[CardDetect] skipped: {_e}")
+                    card_boundaries = None
+
+            # --- 3. 自動クラスタリング実行 ---
+            vertical_clusters = self._vertical_stack_clustering(raw_blocks, card_boundaries)
+            final_clusters = self._orphan_absorption(vertical_clusters, card_boundaries)
 
             # ソート
             def sort_key(cluster):
@@ -231,7 +280,7 @@ class CloudOCREngine(OCREngineStrategy):
             raise RuntimeError(str(e))
 
     # --- 以下、前回のロジック（そのまま利用） ---
-    def _vertical_stack_clustering(self, blocks):
+    def _vertical_stack_clustering(self, blocks, card_boundaries=None):
         """
         知的パラグラフ検出 (Orchestra協議スコア8/10に基づく改善版)
         
@@ -307,22 +356,45 @@ class CloudOCREngine(OCREngineStrategy):
                     
                     if not is_aligned: continue
 
+                    # === カード境界チェック（オプション）===
+                    _card_crosses = False
+                    _card_conf = 0.0
+                    _in_same_card = None
+                    if card_boundaries:
+                        from app.core.card_boundary_detector import CardBoundaryDetector as _CBD
+                        _card_crosses, _card_conf = _CBD.blocks_cross_card_boundary(
+                            current["rect"], target["rect"], card_boundaries
+                        )
+                        if _card_crosses and _card_conf >= 0.8:
+                            continue  # ハード制約：異なるカード間のマージを拒否
+                        _in_same_card = _CBD.blocks_in_same_card(
+                            current["rect"], target["rect"], card_boundaries
+                        )
+
                     gap_y = target["rect"][1] - current["rect"][3]
-                    
+
                     # === ダイナミックY閾値 (GPT戦略: 2.0-4.0x) ===
                     # レイアウト類似の場合は4.0x、通常は3.0x
                     y_multiplier = 4.0 if is_layout_similar else (3.5 if is_both_template else 3.0)
                     threshold_y = max(base_size * y_multiplier * template_bonus, 60)
 
+                    # カード境界ソフト制約 / 同一カード閾値緩和
+                    if _card_crosses and _card_conf >= 0.5:
+                        threshold_y *= 0.6  # ソフト制約：閾値厳格化
+                    if _in_same_card:
+                        threshold_y *= 1.5  # 同一カード内：閾値緩和
+
                     if gap_y > threshold_y: continue
-                    
+
                     # フォントサイズ差の許容 (GPT推奨: 3.0x)
                     if current["avg_font_size"] > target["avg_font_size"] * 3.0: continue
                     if target["avg_font_size"] > current["avg_font_size"] * 2.5: continue
-                    
+
                     # X方向ギャップ (GPT推奨: 20-25px)
                     gap_x = max(0, target["rect"][0] - current["rect"][2]) if current["rect"][0] < target["rect"][0] else max(0, current["rect"][0] - target["rect"][2])
                     gap_x_threshold = 30 if is_layout_similar else 20
+                    if _in_same_card:
+                        gap_x_threshold = max(gap_x_threshold, 40)  # 同一カード内：X方向も緩和
                     if gap_x > gap_x_threshold: continue
 
                     new_rect = [
@@ -349,15 +421,15 @@ class CloudOCREngine(OCREngineStrategy):
             clusters = new_clusters
         return clusters
 
-    def _orphan_absorption(self, clusters):
+    def _orphan_absorption(self, clusters, card_boundaries=None):
         if not clusters: return []
         areas = [(c["rect"][2]-c["rect"][0]) * (c["rect"][3]-c["rect"][1]) for c in clusters]
         avg_area = statistics.mean(areas) if areas else 0
-        orphan_threshold = avg_area * 0.1 
-        
+        orphan_threshold = avg_area * 0.1
+
         final_clusters = []
         orphans = []
-        
+
         for c in clusters:
             area = (c["rect"][2]-c["rect"][0]) * (c["rect"][3]-c["rect"][1])
             text_len = sum(len(t) for t in c["texts"])
@@ -374,6 +446,12 @@ class CloudOCREngine(OCREngineStrategy):
             r1 = orphan["rect"]
             for parent in final_clusters:
                 r2 = parent["rect"]
+                # カード境界越えの吸収を防ぐ
+                if card_boundaries:
+                    from app.core.card_boundary_detector import CardBoundaryDetector as _CBD
+                    _crosses, _conf = _CBD.blocks_cross_card_boundary(r1, r2, card_boundaries)
+                    if _crosses and _conf >= 0.8:
+                        continue
                 dx = max(0, r2[0] - r1[2]) if r1[0] < r2[0] else max(0, r1[0] - r2[2])
                 dy = max(0, r2[1] - r1[3]) if r1[1] < r2[1] else max(0, r1[1] - r2[3])
                 dist = dx + dy
@@ -398,6 +476,24 @@ class CloudOCREngine(OCREngineStrategy):
         各チャンクの座標を元画像座標に変換して結合
         """
         from google.cloud import vision
+        # #region agent log - H1: チャンクOCR開始
+        try:
+            import json as _json_dbg
+            import time as _t
+            _entry = {
+                "hypothesisId": "H1",
+                "location": "engine_cloud.py:_ocr_tall_image_chunks:start",
+                "message": "Chunk OCR start",
+                "data": {"orig_w": image.width, "orig_h": image.height},
+                "timestamp": int(_t.time() * 1000),
+                "sessionId": "debug-session",
+                "runId": "pre-fix"
+            }
+            with open(r"c:\Users\raiko\OneDrive\Desktop\26\.cursor\debug.log", "a", encoding="utf-8") as _f:
+                _f.write(_json_dbg.dumps(_entry, ensure_ascii=False) + "\n")
+        except:
+            pass
+        # #endregion
         
         original_width = image.width
         original_height = image.height
@@ -502,6 +598,24 @@ class CloudOCREngine(OCREngineStrategy):
             
             print(f"  チャンク{i+1}/{num_chunks}: {len(all_blocks)}ブロック検出")
         
+        # #region agent log - H1: チャンクOCR完了
+        try:
+            import json as _json_dbg
+            import time as _t
+            _entry = {
+                "hypothesisId": "H1",
+                "location": "engine_cloud.py:_ocr_tall_image_chunks:end",
+                "message": "Chunk OCR end",
+                "data": {"chunks": num_chunks, "blocks": len(all_blocks), "raw_words": len(all_raw_words)},
+                "timestamp": int(_t.time() * 1000),
+                "sessionId": "debug-session",
+                "runId": "pre-fix"
+            }
+            with open(r"c:\Users\raiko\OneDrive\Desktop\26\.cursor\debug.log", "a", encoding="utf-8") as _f:
+                _f.write(_json_dbg.dumps(_entry, ensure_ascii=False) + "\n")
+        except:
+            pass
+        # #endregion
         # クラスタリング
         vertical_clusters = self._vertical_stack_clustering(all_blocks)
         final_clusters = self._orphan_absorption(vertical_clusters)
@@ -524,4 +638,3 @@ class CloudOCREngine(OCREngineStrategy):
         
         print(f"✅ チャンクOCR完了: {len(formatted_clusters)}クラスタ, {len(all_raw_words)}単語")
         return formatted_clusters, all_raw_words
-
